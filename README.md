@@ -69,17 +69,20 @@ To update the nginx config after updating nginx_config.txt in this repository, r
 ```bash
 # Sudo becauses the nginx dest config needs extra write permissions
 sudo cp taggedweb/nginx_conf.txt /etc/nginx/sites-available/taggedweb.com
+sudo ln -s /etc/nginx/sites-available/taggedweb.com /etc/nginx/sites-enabled/taggedweb.com
 
+# Relaod nginix if it's already running for settings to apply or start it
+sudo nginx -s reload
 ```
 
-For the time being gunicorn is being run on a unix `screen` called `wsgi`. Later on this should be moved to being managed by supervisord.
+For the time being gunicorn is being run on a unix `screen` called `taggedweb`. Later on this should be moved to being managed by supervisord.
 
 ```bash
 # screen -r wsgi to resume or screen -S wsgi to start a new screen
 cd taggedweb # directory with manage.py
 # Run the following to start gunicorn WSGI service on default port 8000
 # (Ideally run in background or in dev/early stages just spin off on a screen)
-gunicorn taggedweb.wsgi
+gunicorn taggedweb.wsgi -b 127.0.0.1:8001
 ```
 
 

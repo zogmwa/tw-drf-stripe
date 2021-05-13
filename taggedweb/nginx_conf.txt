@@ -21,7 +21,7 @@
 
 server {
 
-  server_name 127.0.0.1 taggedweb.com www.taggedweb.com api.taggedweb.com;
+  server_name taggedweb.com www.taggedweb.com api.taggedweb.com;
   access_log /var/log/nginx/domain-access.log;
 
   #location /static/ {
@@ -36,12 +36,12 @@ server {
     proxy_set_header X-Scheme $scheme;
     proxy_connect_timeout 10;
 
-    // Increase read timeout to allow slow loading pages such as admin/price_lookups to load before Nginx times out
+    # Increase read timeout to allow slow loading pages such as admin/price_lookups to load before Nginx times out
     proxy_read_timeout 30;
 
     # This line is important as it tells nginx to channel all requests to port 8000.
     # We will later run our wsgi application on this port using gunicorn.
-    proxy_pass http://127.0.0.1:8000/;
+    proxy_pass http://127.0.0.1:8001/;
   }
 
 }
