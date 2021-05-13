@@ -29,10 +29,11 @@ class TagSerializer(HyperlinkedModelSerializer):
 
 
 class AssetSerializer(HyperlinkedModelSerializer):
+    tags = TagSerializer(read_only=True, many=True)
 
     class Meta:
         model = Asset
-        fields = ['slug', 'name', 'website', 'description']
+        fields = ['slug', 'name', 'website', 'description', 'tags']
         lookup_field = 'slug'
         extra_kwargs = {
             'url': {'lookup_field': 'slug'}

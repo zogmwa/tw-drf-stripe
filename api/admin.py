@@ -8,6 +8,7 @@ from api.models import Tag, Asset, User
 
 class TagInline(admin.TabularInline):
     model = Asset.tags.through
+    autocomplete_fields = ['tag']
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -26,7 +27,6 @@ class AssetAdmin(GuardedModelAdmin):
     # user_can_access_owned_objects_only = True
     list_display = ('name', 'company', 'website')
     search_fields = ['name', ]
-    autocomplete_fields = ['tags']
     prepopulated_fields = {'slug': ('name',), }
     inlines = [
         TagInline
