@@ -1,0 +1,14 @@
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'taggedweb',
+        'HOST': 'localhost',
+        'USER': 'pranjal',
+        # Replace with decrypted secret for prod overrides/and your local postgres password for local overrides.
+        'PASSWORD': '',
+        'PORT': '5432',
+    },
+}
+
+GDAL_LIBRARY_PATH = '/opt/homebrew/Cellar/gdal/3.2.2_4/lib/libgdal.dylib'
+GEOS_LIBRARY_PATH = '/opt/homebrew/Cellar/geos/3.9.1/lib/libgeos_c.dylib'

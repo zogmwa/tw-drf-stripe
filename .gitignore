@@ -1,0 +1,6 @@
+.DS_Store
+*.pyc
+.idea/*
+taggedweb/override_settings.py
+db.sqlite3
+*.ipynb_checkpoints
