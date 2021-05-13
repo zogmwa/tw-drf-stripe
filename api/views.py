@@ -1,11 +1,5 @@
-from django.contrib.gis.db.models.functions import Distance
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import D
-from django.db.models import Q, Count, QuerySet
-from django.shortcuts import render
-from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Count, QuerySet
 from rest_framework import viewsets, permissions
-from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 
 from api.models import Asset, Tag
@@ -24,7 +18,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     queryset = Asset.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = AssetSerializer
-    lookup_field = 'name'
+    lookup_field = 'slug'
 
     @staticmethod
     def _filter_assets_matching_tags(tag_slugs: list) -> QuerySet:
@@ -45,12 +39,17 @@ class AssetViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             # /api/assets/ (List View)
             tags = self.request.query_params.get('tags')
+
+            if tags is None:
+                # TODO: For now returning upto 10 assets but later we want to return nothing if no tags are provided
+                return Asset.objects.all()[:10]
+
             tag_slugs = tags.strip().split(',')
             filtered_assets = self._filter_assets_matching_tags(tag_slugs)
             return filtered_assets
 
         elif self.action == 'retrieve':
-            # TODO
-            pass
+            slug = self.kwargs['slug']
+            return Asset.objects.filter(slug=slug)
         else:
             super(AssetViewSet, self).get_queryset()
