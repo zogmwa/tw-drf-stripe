@@ -15,7 +15,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 class Tag(models.Model):
     slug = models.SlugField(null=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
@@ -25,6 +25,7 @@ class Asset(models.Model):
     """
     Asset for now represents a web asset such as a website, software, application or web offering.
     """
+    slug = models.SlugField(null=True)
     name = models.CharField(max_length=255)
     website = models.URLField(max_length=2048, null=True, blank=True)
 
@@ -34,7 +35,7 @@ class Asset(models.Model):
 
     # The company that is providing this application or software
     company = models.CharField(max_length=255, null=True, blank=True)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, through='LinkedTag')
 
     def __str__(self):
@@ -47,7 +48,6 @@ class LinkedTag(models.Model):
     """
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
-    date_added = models.DateField()
 
 
 class User(AbstractUser, GuardianUserMixin):

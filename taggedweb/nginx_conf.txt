@@ -1,0 +1,50 @@
+##
+# You should look at the following URL's in order to grasp a solid understanding
+# of Nginx configuration files in order to fully unleash the power of Nginx.
+# https://www.nginx.com/resources/wiki/start/
+# https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/
+# https://wiki.debian.org/Nginx/DirectoryStructure
+#
+# In most cases, administrators will remove this file from sites-enabled/ and
+# leave it as reference inside of sites-available where it will continue to be
+# updated by the nginx packaging team.
+#
+# This file will automatically load configuration files provided by other
+# applications, such as Drupal or Wordpress. These applications will be made
+# available underneath a path with that package name, such as /drupal8.
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+# Default server configuration
+#
+
+server {
+
+  server_name 127.0.0.1 taggedweb.com www.taggedweb.com api.taggedweb.com;
+  access_log /var/log/nginx/domain-access.log;
+
+  #location /static/ {
+  #  rewrite ^/static(.*)$ http://taggedweb.s3.amazonaws.com/static redirect;
+  #}
+
+  location / {
+    proxy_pass_header Server;
+    proxy_set_header Host $http_host;
+    proxy_redirect off;
+    proxy_set_header X-Forwarded-For  $remote_addr;
+    proxy_set_header X-Scheme $scheme;
+    proxy_connect_timeout 10;
+
+    // Increase read timeout to allow slow loading pages such as admin/price_lookups to load before Nginx times out
+    proxy_read_timeout 30;
+
+    # This line is important as it tells nginx to channel all requests to port 8000.
+    # We will later run our wsgi application on this port using gunicorn.
+    proxy_pass http://127.0.0.1:8000/;
+  }
+
+}
+
+server {
+}

@@ -49,16 +49,6 @@ verify your local installation is running correctly.
 
     pytest
 
-## Loading Fixtures
-
-    python manage.py load_hospitals_from_csv
-
-Make sure there is a hospitals.csv containing the following fields:
-
-```csv
-npi_number,name,url,street_address,city,state,zip_code,publish_date
-```
-
 # Prod
 
 ## Pre-Setup

@@ -27,6 +27,7 @@ class AssetAdmin(GuardedModelAdmin):
     list_display = ('name', 'company', 'website')
     search_fields = ['name', ]
     autocomplete_fields = ['tags']
+    prepopulated_fields = {'slug': ('name',), }
     inlines = [
         TagInline
     ]
