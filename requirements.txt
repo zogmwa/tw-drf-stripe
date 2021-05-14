@@ -11,6 +11,9 @@ django-filter==2.4.0
 django-cors-headers==3.7.0
 django-guardian==2.3.0
 django-phonenumber-field==5.1.0
+django-elasticsearch-dsl==7.2.0
+elasticsearch==7.12.1
+elasticsearch-dsl==7.3.0
 
 # Prod Only Requirements
 gunicorn==20.1.0

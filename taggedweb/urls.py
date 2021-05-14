@@ -18,7 +18,7 @@ from django.urls import path, include
 from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 
-from api.views import AssetViewSet
+from api.views import AssetViewSet, autocomplete_tags
 
 router = routers.DefaultRouter()
 router.register(r'assets', AssetViewSet, 'assets')
@@ -28,4 +28,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),
+    path('autocomplete-tags/', autocomplete_tags),
 ]

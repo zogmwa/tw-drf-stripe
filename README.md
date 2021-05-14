@@ -36,11 +36,15 @@ python manage.py runserver
 
 For changing any local only settings (for your computer), don't directly edit settings.py, update over
 
-## Optional Setup
+### ElasticSearch
 
-    python manage.py cities_light
+We use ElasticSearch for our search indexes. Download and install from here:
+https://www.elastic.co/downloads/elasticsearch
+Tested during v7.12.1
 
-This will take a bit of time to load all the cities data.
+After installing it, simply run the following to start elasticsearch:
+
+    elasticsearch
 
 ## Tests
 
@@ -55,9 +59,30 @@ verify your local installation is running correctly.
 
 For the database we use an RDS PostgreSQL instance.
 
-Add the following libraries to install Geographic utilities.
+### ElasticSearch
 
-    sudo apt-get install binutils libproj-dev gdal-bin
+Follow instructions here to setup ElasticSearch on Ubuntu.
+https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html
+(As of date of this writing, tested with version 7.12.1)
+
+One Time
+
+To configure Elasticsearch to start automatically when the system boots up, run the following commands:
+```bash
+sudo /bin/systemctl daemon-reload
+sudo /bin/systemctl enable elasticsearch.service
+```
+
+To start/stop elastic search
+```bash
+sudo systemctl start elasticsearch.service
+sudo systemctl stop elasticsearch.service
+```
+
+To test that it is working:
+```bash
+curl -X GET "localhost:9200/?pretty"
+```
 
 ## Setup
 
@@ -84,7 +109,6 @@ cd taggedweb # directory with manage.py
 # (Ideally run in background or in dev/early stages just spin off on a screen)
 gunicorn taggedweb.wsgi -b 127.0.0.1:8001
 ```
-
 
 ## HTTPS/SSL Certificate
 
