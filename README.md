@@ -84,6 +84,11 @@ To test that it is working:
 curl -X GET "localhost:9200/?pretty"
 ```
 
+To initialize/rebuild search indexes for existing models:
+```bash
+python manage.py search_index --rebuild
+```
+
 ## Setup
 
 Same steps as local + also requires some additional prod setup, like nginx configuration and starting the WSGI application

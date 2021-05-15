@@ -37,9 +37,35 @@ class Asset(models.Model):
     company = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, through='LinkedTag')
+    # questions: to fetch all questions related to this asset
 
     def __str__(self):
         return self.name
+
+
+class AssetQuestion(models.Model):
+    """
+    A frequently-asked or user question related to an asset for which they seek an answer.
+    The questions can be user submitted or added by a moderator for informational purposes
+    """
+    asset = models.ForeignKey(Asset, related_name='questions', on_delete=models.CASCADE)
+    question = models.TextField()
+    # There might be an open question that is not answered yet
+    answer = models.TextField(null=True, blank=True)
+
+    # The user who submitted this question, if this is submitted by a moderator or is anonymous, this can be blank
+    submitted_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL)
+
+    # Number of users who have shown interest in this question by up-voting it (one user should only be able to upvote
+    # this once - probably need a separate model to track UpVotes, this is just a summary count)
+    upvote_count = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Question'
+        verbose_name_plural = 'Questions'
+
+    def __str__(self):
+        return "{}: {}".format(self.asset.name, self.question)
 
 
 class LinkedTag(models.Model):
