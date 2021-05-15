@@ -2,7 +2,7 @@ from email.headerregistry import Group
 
 from rest_framework.serializers import HyperlinkedModelSerializer
 
-from api.models import User, Tag, Asset
+from api.models import User, Tag, Asset, AssetQuestion
 
 
 class UserSerializer(HyperlinkedModelSerializer):
@@ -28,7 +28,18 @@ class TagSerializer(HyperlinkedModelSerializer):
         }
 
 
+class AssetQuestionSerializer(HyperlinkedModelSerializer):
+
+    class Meta:
+        model = AssetQuestion
+        fields = ['question', 'answer', 'upvote_count']
+
+
 class AssetSerializer(HyperlinkedModelSerializer):
+    """
+    This is the serializer for the listing page, not all fields are to be returned
+    on the listing page.
+    """
     tags = TagSerializer(read_only=True, many=True)
 
     class Meta:

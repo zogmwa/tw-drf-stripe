@@ -4,12 +4,14 @@ from rest_framework import viewsets, permissions
 from rest_framework.pagination import PageNumberPagination
 
 from api.documents import TagDocument
-from api.models import Asset, Tag
-from api.serializers import AssetSerializer
+from api.models import Asset, Tag, AssetQuestion
+from api.serializers import AssetSerializer, AssetQuestionSerializer
 
 
 class ProviderViewSetPagination(PageNumberPagination):
     page_size = 50
+
+
 
 ################# Views ##################
 ##########################################
@@ -55,6 +57,26 @@ class AssetViewSet(viewsets.ModelViewSet):
             return Asset.objects.filter(slug=slug)
         else:
             super(AssetViewSet, self).get_queryset()
+
+
+class AssetQuestionViewSet(viewsets.ModelViewSet):
+    queryset = AssetQuestion.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = AssetQuestionSerializer
+
+    def get_queryset(self):
+        if self.action == 'list':
+            # /api/questions/ (List View)
+            asset_slug = self.request.query_params.get('asset')
+
+            if asset_slug is None:
+                return []
+
+            asset_slug = asset_slug.strip()
+            filtered_questions = AssetQuestion.objects.filter(asset__slug=asset_slug)
+            return filtered_questions
+        else:
+            super(AssetQuestionViewSet, self).get_queryset()
 
 
 def autocomplete_tags(request):

@@ -18,10 +18,11 @@ from django.urls import path, include
 from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 
-from api.views import AssetViewSet, autocomplete_tags
+from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet
 
 router = routers.DefaultRouter()
 router.register(r'assets', AssetViewSet, 'assets')
+router.register(r'questions', AssetQuestionViewSet, 'questions')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
