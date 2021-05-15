@@ -29,6 +29,10 @@ class Asset(models.Model):
     name = models.CharField(max_length=255)
     website = models.URLField(max_length=2048, null=True, blank=True)
 
+    # This is a referral link to that asset, to be used in preference over regular web link
+    # when it is set to a non-empty value
+    affiliate_link = models.URLField(max_length=2048, null=True, blank=True)
+
     # Later on we can have image field as well but for now to avoid storing images
     # we can pull the logo directly from the respective site
     logo_url = models.URLField(max_length=2048, null=True, blank=True)
