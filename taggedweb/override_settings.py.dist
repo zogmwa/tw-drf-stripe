@@ -10,5 +10,14 @@ DATABASES = {
     },
 }
 
-GDAL_LIBRARY_PATH = '/opt/homebrew/Cellar/gdal/3.2.2_4/lib/libgdal.dylib'
-GEOS_LIBRARY_PATH = '/opt/homebrew/Cellar/geos/3.9.1/lib/libgeos_c.dylib'
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'localhost:9200',
+        # 'hosts': 'https://taggedweb.es.us-east-1.aws.found.io:9243',
+        # 'http_auth': ('elastic', '<put-your-elastic-password-here>'),
+    }
+}
+
+# Only enable this on M1 Mac deploys if using Geographic DB extensions (otherwise not needed)
+# GDAL_LIBRARY_PATH = '/opt/homebrew/Cellar/gdal/3.2.2_4/lib/libgdal.dylib'
+# GEOS_LIBRARY_PATH = '/opt/homebrew/Cellar/geos/3.9.1/lib/libgeos_c.dylib'

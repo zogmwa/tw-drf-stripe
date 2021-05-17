@@ -61,33 +61,17 @@ For the database we use an RDS PostgreSQL instance.
 
 ### ElasticSearch
 
-Follow instructions here to setup ElasticSearch on Ubuntu.
-https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html
-(As of date of this writing, tested with version 7.12.1)
-
-One Time
-
-To configure Elasticsearch to start automatically when the system boots up, run the following commands:
-```bash
-sudo /bin/systemctl daemon-reload
-sudo /bin/systemctl enable elasticsearch.service
-```
-
-To start/stop elastic search
-```bash
-sudo systemctl start elasticsearch.service
-sudo systemctl stop elasticsearch.service
-```
-
-To test that it is working:
-```bash
-curl -X GET "localhost:9200/?pretty"
-```
+First setup an ElasticSearch cluster. This is onetime. We are currently using Elastic.co for our elasticsearch cluster.
+(On Pranjal's personal email right now, ask for details if you want to connect to it locally and play around).
 
 To initialize/rebuild search indexes for existing models:
+
 ```bash
 python manage.py search_index --rebuild
 ```
+
+Note this will prompt if it can delete and recreate index, you can say yes. That is because we aren't using ElasticSearch
+as primary storage of mission-critical data, just indexes that are built on top of the  underlying SQL database.
 
 ## Setup
 
@@ -98,14 +82,15 @@ To update the nginx config after updating nginx_config.txt in this repository, r
 
 ```bash
 # Sudo becauses the nginx dest config needs extra write permissions
-sudo cp taggedweb/nginx_conf.txt /etc/nginx/sites-available/taggedweb.com
-sudo ln -s /etc/nginx/sites-available/taggedweb.com /etc/nginx/sites-enabled/taggedweb.com
+sudo cp taggedweb/nginx_conf.txt /etc/nginx/sites-available/api.taggedweb.com
+sudo ln -s /etc/nginx/sites-available/taggedweb.com /etc/nginx/sites-enabled/api.taggedweb.com
 
 # Relaod nginix if it's already running for settings to apply or start it
 sudo nginx -s reload
 ```
 
-For the time being gunicorn is being run on a unix `screen` called `taggedweb`. Later on this should be moved to being managed by supervisord.
+For the time being gunicorn is being run on a unix `screen` called `tweb-backend`.
+Later on this should be moved to being managed by supervisord.
 
 ```bash
 # screen -r wsgi to resume or screen -S wsgi to start a new screen
@@ -122,5 +107,5 @@ Command to run on the server (Don't need to run now as it is set to auto-renew w
 only added here in case the deploy is to be performed on a new instance.
 
 ```bash
-sudo certbot --nginx -d taggedweb.com -d api.taggedweb.com -d www.taggedweb.com
+sudo certbot --nginx -d api.taggedweb.com
 ```
