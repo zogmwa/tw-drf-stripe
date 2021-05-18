@@ -8,12 +8,13 @@ from elasticsearch_dsl import analyzer
 from api.models import Tag, Asset
 
 
-# html_strip = analyzer(
-#     'html_strip',
-#     tokenizer="standard",
-#     filter=["standard", "lowercase", "stop", "snowball"],
-#     char_filter=["html_strip"]
-# )
+html_strip = analyzer(
+    'html_strip',
+    tokenizer="standard",
+    filter=["lowercase", "stop", "snowball"],
+    char_filter=["html_strip"]
+)
+
 
 @registry.register_document
 class TagDocument(Document):
@@ -52,6 +53,12 @@ class AssetDocument(Document):
     """
     Web Asset Elasticsearch Document
     """
+
+    description = fields.TextField(
+        analyzer=html_strip,
+        fields={'raw': fields.KeywordField()}
+    )
+
     class Index:
         # Name of the Elasticsearch index
         name = 'asset'
@@ -64,8 +71,8 @@ class AssetDocument(Document):
         # The fields of the model you want to be indexed in Elasticsearch,
         # other than the ones already used in the Document class
         fields = [
+            'slug',
             'name',
-            'description',
         ]
 
         # Ignore auto updating of Elasticsearch when a model is saved or deleted.

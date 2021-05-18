@@ -15,5 +15,5 @@ class TestAssetViewSet:
         asset_makemymails.tags.set([email_marketing_tag, aws_ses_tag])
         asset_mailchimp.tags.set([email_marketing_tag])
 
-        assets = AssetViewSet._filter_assets_matching_tags([email_marketing_tag_slug, aws_ses_tag_slug])
+        assets = AssetViewSet._filter_assets_matching_tags_exact([email_marketing_tag_slug, aws_ses_tag_slug])
         assert assets.get().name == asset_makemymails.name
