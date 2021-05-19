@@ -44,7 +44,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
 
     class Meta:
         model = Asset
-        fields = ['slug', 'name', 'logo_url', 'website', 'description', 'tags']
+        fields = ['slug', 'name', 'logo_url', 'website', 'affiliate_link', 'description', 'tags']
         lookup_field = 'slug'
         extra_kwargs = {
             'url': {'lookup_field': 'slug'}
