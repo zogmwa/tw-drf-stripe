@@ -49,7 +49,13 @@ class AssetViewSet(viewsets.ModelViewSet):
                 # If no tags are provided return nothing, no more returning of default sample
                 return []
 
-            es_query = MultiMatch(query=search_query, fields=['description', 'name'])
+            es_query = MultiMatch(
+                query=search_query,
+                fields=['description', 'name'],
+                # If number of tags/clauses in query is less than or equal to 2, they are all required, after that
+                # this will even return results if 75% of the tags/clauses are present in the text.
+                minimum_should_match='2<75%',
+            )
             es_search = AssetDocument.search().query(es_query)
             assets_db_queryset = es_search.to_queryset()
             # assets_db_queryset = self._filter_assets_matching_tags_exact(tag_slugs)
