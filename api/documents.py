@@ -59,6 +59,12 @@ class AssetDocument(Document):
         fields={'raw': fields.KeywordField()}
     )
 
+    tags = fields.NestedField(
+        properties={
+            'slug': fields.KeywordField(),
+        }
+    )
+
     class Index:
         # Name of the Elasticsearch index
         name = 'asset'
@@ -68,6 +74,7 @@ class AssetDocument(Document):
 
     class Django:
         model = Asset
+        related_models = [Tag]
         # The fields of the model you want to be indexed in Elasticsearch,
         # other than the ones already used in the Document class
         fields = [
@@ -84,3 +91,10 @@ class AssetDocument(Document):
         # Paginate the django queryset used to populate the index with the specified size
         # (by default it uses the database driver's default setting)
         # queryset_pagination = 5000
+
+    def get_queryset(self):
+        return super(AssetDocument, self).get_queryset().prefetch_related('tags')
+
+    def get_instances_from_related(self, related_instance):
+        if isinstance(related_instance, Asset):
+            return related_instance.tags.all()
