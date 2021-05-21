@@ -25,8 +25,8 @@ class Asset(models.Model):
     """
     Asset for now represents a web asset such as a website, software, application or web offering.
     """
-    slug = models.SlugField(null=True)
-    name = models.CharField(max_length=255)
+    slug = models.SlugField(null=True, unique=True)
+    name = models.CharField(max_length=255, unique=True)
     website = models.URLField(max_length=2048, null=True, blank=True)
 
     # This is a referral link to that asset, to be used in preference over regular web link
