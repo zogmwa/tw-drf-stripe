@@ -21,7 +21,7 @@ class TagDocument(Document):
     """
     Tag Elasticsearch Document
     """
-    slug = fields.SearchAsYouTypeField()
+    name = fields.SearchAsYouTypeField()
 
     class Index:
         # Name of the Elasticsearch index
@@ -34,7 +34,7 @@ class TagDocument(Document):
         model = Tag
         # The fields of the model you want to be indexed in Elasticsearch,
         # other than the ones already used in the Document class
-        fields = []
+        fields = ['slug']
 
         # Ignore auto updating of Elasticsearch when a model is saved
         # or deleted:

@@ -113,7 +113,7 @@ def autocomplete_tags(request):
     max_items = 10
     q = request.GET.get('q')
     if q and len(q) >= 3:
-        es_search = TagDocument.search().query('match_phrase_prefix', slug=q)
+        es_search = TagDocument.search().query('match_phrase_prefix', name=q)
         results = []
         for i, hit in enumerate(es_search):
             if i >= max_items:
