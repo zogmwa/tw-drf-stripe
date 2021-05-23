@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     # 3P Apps
     'corsheaders',
@@ -60,9 +61,36 @@ INSTALLED_APPS = [
     'django_extensions',
     'phonenumber_field',
 
+    ## Authentication
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
     # Project Apps
     'api',
 ]
+
+SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+SOCIAL_ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIAL_ACCOUNT_EMAIL_REQUIRED = False
+REST_USE_JWT = True
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -167,6 +195,7 @@ AUTHENTICATION_BACKENDS = (
     # ModelBackend is the default, but we also want object level permissions with django-guardian
     'django.contrib.auth.backends.ModelBackend',
     'guardian.backends.ObjectPermissionBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 GUARDIAN_MONKEY_PATCH = False
@@ -179,6 +208,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "dj_rest_auth.utils.JWTCookieAuthentication",
     ],
 
     # Use Django's standard `django.contrib.auth` permissions,

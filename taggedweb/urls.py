@@ -19,6 +19,7 @@ from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from api.auth_views import GoogleLogin
 from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet
 
 router = routers.DefaultRouter()
@@ -33,6 +34,12 @@ urlpatterns = [
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),
+
+    # Authentication
+    path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login'),
+    path('accounts/', include('allauth.urls')),
 
     # DRF JWT Token Views (Preferable over Standard Tokens as these are more performant as they don't involve the db)
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

@@ -11,7 +11,8 @@ django-filter==2.4.0
 django-cors-headers==3.7.0
 django-guardian==2.3.0
 django-phonenumber-field==5.1.0
-djangorestframework-simplejwt==4.6.0
+django-allauth==0.44.0
+dj-rest-auth==2.1.5
 django-elasticsearch-dsl==7.2.0
 elasticsearch==7.12.1
 elasticsearch-dsl==7.3.0
