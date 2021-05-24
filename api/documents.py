@@ -60,9 +60,13 @@ class AssetDocument(Document):
     )
 
     tags = fields.NestedField(
+        include_in_root=True,
         properties={
-            'slug': fields.KeywordField(),
-        }
+            'slug': fields.TextField(
+                analyzer=html_strip,
+                fields={'raw': fields.KeywordField()},
+            ),
+        },
     )
 
     class Index:

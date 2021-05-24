@@ -49,28 +49,12 @@ class AssetViewSet(viewsets.ModelViewSet):
                 # If no tags are provided return nothing, no more returning of default sample
                 return []
 
-            es_query_name_description = MultiMatch(
+            es_query = MultiMatch(
                 query=search_query,
-                fields=['description', 'name'],
-                # If number of tags/clauses in query is less than or equal to 2, they are all required, after that
-                # this will even return results if 75% of the tags/clauses are present in the text.
-                minimum_should_match='2<75%',
-            )
-
-            es_query_tags = ESQ(
-                'nested',
-                path='tags',
-                query=ESQ(
-                    'match',
-                    **{'tags.slug': search_query},
-                )
-            )
-
-            es_query = ESQ(
-                'bool',
-                should=[es_query_tags, es_query_name_description],
-                # Either the tags search or the names/description search should match
-                minimum_should_match=1,
+                fields=['tags.slug^2', 'description', 'name^3'],
+                # If number of tokenized words/clauses in query is less than or equal to 3, they are all required,
+                # after that this will even return results if the threshold % of the tags/clauses are present.
+                minimum_should_match='3<75%',
             )
 
             es_search = AssetDocument.search().query(es_query)
