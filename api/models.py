@@ -86,7 +86,7 @@ class User(AbstractUser, GuardianUserMixin):
     for listing on TaggedWeb. A user can also be an application like our frontend application using our API token
     to fetch details about a web asset.
     """
-    api_daily_rate_limit = models.IntegerField(default=1000)
+    api_daily_rate_limit = models.IntegerField(default=2000)
 
     def __str__(self):
         return '{}'.format(self.username,)

@@ -224,9 +224,9 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_THROTTLE_RATES': {
-        # 'anon': '2/day',
-        'user': '200/day',
-        'subscription': '1000/day',
+        # 'anon': '10000/day',
+        'user': '2000/day',
+        'subscription': '2000/day',
     },
 
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
