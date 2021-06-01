@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db import models
+from django.forms import TextInput
 from guardian.shortcuts import get_objects_for_user
 
 from guardian.admin import GuardedModelAdmin
@@ -34,6 +36,9 @@ class AssetAdmin(GuardedModelAdmin):
     list_display = ('name', 'company', 'website')
     search_fields = ['name', ]
     prepopulated_fields = {'slug': ('name',), }
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(attrs={'size': '128'})},
+    }
     inlines = [
         TagInline
     ]

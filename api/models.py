@@ -39,6 +39,8 @@ class Asset(models.Model):
 
     # The company that is providing this application or software
     company = models.CharField(max_length=255, null=True, blank=True)
+
+    short_description = models.CharField(max_length=512, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
     # questions: to fetch all questions related to this asset
