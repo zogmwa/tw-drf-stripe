@@ -3,10 +3,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.http import HttpResponseForbidden
 from guardian.mixins import GuardianUserMixin
-from opengraph import OpenGraph
 from rest_framework.authtoken.models import Token
 
+from furl import furl
+from opengraph import OpenGraph
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -50,11 +52,21 @@ class Asset(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.website and not self.short_description:
-            og_dict: dict = OpenGraph(url=self.website)
+        if self.website:
+            if not self.short_description:
+                try:
+                    og_dict: dict = OpenGraph(url=self.website)
 
-            # https://ogp.me/ OpenGraph descriptions are short one-two sentences.
-            self.short_description = og_dict.get('description', '')
+                    # https://ogp.me/ OpenGraph descriptions are short one-two sentences.
+                    self.short_description = og_dict.get('description', '')
+                except HttpResponseForbidden:
+                    # Some websites have same origin policy even for accessing OGP tags so trying to parse
+                    # from their url may result in a forbidden error
+                    pass
+
+            if not self.logo_url:
+                furled_url = furl(self.website)
+                self.logo_url = 'https://logo.clearbit.com/{}'.format(furled_url.netloc)
 
         super(Asset, self).save(*args, **kwargs)
 
