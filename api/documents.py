@@ -54,6 +54,11 @@ class AssetDocument(Document):
     Web Asset Elasticsearch Document
     """
 
+    short_description = fields.TextField(
+        analyzer=html_strip,
+        fields={'raw': fields.KeywordField()}
+    )
+
     description = fields.TextField(
         analyzer=html_strip,
         fields={'raw': fields.KeywordField()}

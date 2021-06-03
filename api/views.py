@@ -51,7 +51,7 @@ class AssetViewSet(viewsets.ModelViewSet):
 
             es_query = MultiMatch(
                 query=search_query,
-                fields=['tags.slug^2', 'description', 'name^3'],
+                fields=['tags.slug^2', 'short_description', 'description', 'name^3'],
                 # If number of tokenized words/clauses in query is less than or equal to 3, they are all required,
                 # after that this will even return results if the threshold % of the tags/clauses are present.
                 minimum_should_match='3<75%',
