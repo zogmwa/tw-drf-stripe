@@ -1,3 +1,6 @@
+import logging
+from urllib.error import HTTPError
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -59,10 +62,10 @@ class Asset(models.Model):
 
                     # https://ogp.me/ OpenGraph descriptions are short one-two sentences.
                     self.short_description = og_dict.get('description', '')
-                except HttpResponseForbidden:
+                except HTTPError as e:
                     # Some websites have same origin policy even for accessing OGP tags so trying to parse
                     # from their url may result in a forbidden error
-                    pass
+                    logging.exception(e)
 
             if not self.logo_url:
                 furled_url = furl(self.website)
