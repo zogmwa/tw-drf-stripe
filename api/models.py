@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from guardian.mixins import GuardianUserMixin
+from opengraph import OpenGraph
 from rest_framework.authtoken.models import Token
 
 
@@ -47,6 +48,15 @@ class Asset(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.website and not self.short_description:
+            og_dict: dict = OpenGraph(url=self.website)
+
+            # https://ogp.me/ OpenGraph descriptions are short one-two sentences.
+            self.short_description = og_dict.get('description', '')
+
+        super(Asset, self).save(*args, **kwargs)
 
 
 class AssetQuestion(models.Model):
