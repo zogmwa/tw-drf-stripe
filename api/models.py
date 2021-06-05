@@ -51,6 +51,8 @@ class Asset(models.Model):
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
     # questions: to fetch all questions related to this asset
 
+    promo_video = models.URLField(max_length=2048, null=True, blank=True)
+
     def __str__(self):
         return self.name
 
