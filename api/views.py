@@ -1,6 +1,7 @@
 from django.db.models import Count, QuerySet
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
+from django.views.generic import RedirectView
 from elasticsearch_dsl.query import MultiMatch, Nested, Q as ESQ, Match
 from furl import furl
 from rest_framework import viewsets, permissions
@@ -114,8 +115,12 @@ def autocomplete_tags(request):
     })
 
 
-def assets_tweb_url_redirect(request):
-    url_to = request.GET.get('u')
-    if url_to:
-        furled_url = furl(url_to)
-        return redirect(furled_url.url, permanent=False)
+class AssetClickThroughCounterRedirectView(RedirectView):
+
+    permanent = False
+    query_string = False
+
+    def get_redirect_url(self, *args, **kwargs):
+        asset = get_object_or_404(Asset, slug=kwargs['slug'])
+        asset.update_clickthrough_counter()
+        return asset.affiliate_link or asset.website

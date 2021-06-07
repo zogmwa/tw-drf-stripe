@@ -20,7 +20,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.auth_views import GoogleLogin
-from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, assets_tweb_url_redirect
+from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, AssetClickThroughCounterRedirectView
 
 router = routers.DefaultRouter()
 router.register(r'assets', AssetViewSet, 'assets')
@@ -45,5 +45,9 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    path('rdrt/assets/', assets_tweb_url_redirect, name='assets_tweb_url_redirect'),
+    path(
+        'r/assets/<slug:slug>',
+        AssetClickThroughCounterRedirectView.as_view(),
+        name='asset_clickthrough_counter_redirect_view',
+    ),
 ]

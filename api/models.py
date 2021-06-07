@@ -54,17 +54,22 @@ class Asset(models.Model):
 
     promo_video = models.URLField(max_length=2048, null=True, blank=True)
 
+    tweb_url_clickthrogh_counter = models.IntegerField(default=0)
+
     @property
     def tweb_url(self):
         """ A masked TaggedWeb URL to allow tracking how many clicks each affiliate link/website is getting """
         final_url = self.affiliate_link or self.website
         if final_url:
-            # /assets/rdrt/ stands for redirect from TWeb asset url to third party url
-            # u is a GET parameter which represents the third party url either the affiliate url or the website
-            return "https://{}/rdrt/assets/?u={}".format(settings.BASE_API_URL, final_url)
+            # /r/assets/{slug} stands for redirect asset with the given slug from this to third party url
+            return "https://{}/r/assets/{}".format(settings.BASE_API_URL, self.slug)
 
     def __str__(self):
         return self.name
+
+    def update_clickthrough_counter(self):
+        self.tweb_url_clickthrogh_counter += 1
+        self.save()
 
     def save(self, *args, **kwargs):
         if self.website:
