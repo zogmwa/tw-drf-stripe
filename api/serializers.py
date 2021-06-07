@@ -1,5 +1,6 @@
 from email.headerregistry import Group
 
+from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer
 
 from api.models import User, Tag, Asset, AssetQuestion
@@ -41,12 +42,13 @@ class AssetSerializer(HyperlinkedModelSerializer):
     on the listing page.
     """
     tags = TagSerializer(read_only=True, many=True)
+    tweb_url = serializers.URLField(read_only=True)
 
     class Meta:
         model = Asset
         fields = [
             'slug', 'name', 'logo_url', 'website', 'affiliate_link', 'short_description', 'description', 'promo_video',
-            'tags',
+            'tags', 'tweb_url',
         ]
         lookup_field = 'slug'
         extra_kwargs = {

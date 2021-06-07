@@ -20,7 +20,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.auth_views import GoogleLogin
-from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet
+from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, assets_tweb_url_redirect
 
 router = routers.DefaultRouter()
 router.register(r'assets', AssetViewSet, 'assets')
@@ -44,4 +44,6 @@ urlpatterns = [
     # DRF JWT Token Views (Preferable over Standard Tokens as these are more performant as they don't involve the db)
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    path('rdrt/assets/', assets_tweb_url_redirect, name='assets_tweb_url_redirect'),
 ]

@@ -13,6 +13,7 @@ from rest_framework.authtoken.models import Token
 from furl import furl
 from opengraph import OpenGraph
 
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
@@ -52,6 +53,15 @@ class Asset(models.Model):
     # questions: to fetch all questions related to this asset
 
     promo_video = models.URLField(max_length=2048, null=True, blank=True)
+
+    @property
+    def tweb_url(self):
+        """ A masked TaggedWeb URL to allow tracking how many clicks each affiliate link/website is getting """
+        final_url = self.affiliate_link or self.website
+        if final_url:
+            # /assets/rdrt/ stands for redirect from TWeb asset url to third party url
+            # u is a GET parameter which represents the third party url either the affiliate url or the website
+            return "https://{}/rdrt/assets/?u={}".format(settings.BASE_API_URL, final_url)
 
     def __str__(self):
         return self.name

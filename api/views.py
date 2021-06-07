@@ -1,6 +1,8 @@
 from django.db.models import Count, QuerySet
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from elasticsearch_dsl.query import MultiMatch, Nested, Q as ESQ, Match
+from furl import furl
 from rest_framework import viewsets, permissions
 from rest_framework.pagination import PageNumberPagination
 
@@ -110,3 +112,10 @@ def autocomplete_tags(request):
     return JsonResponse({
         'results': results
     })
+
+
+def assets_tweb_url_redirect(request):
+    url_to = request.GET.get('u')
+    if url_to:
+        furled_url = furl(url_to)
+        return redirect(furled_url.url, permanent=False)

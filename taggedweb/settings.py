@@ -26,14 +26,16 @@ SECRET_KEY = 'django-insecure-rvyqw!#&stjgu+!8c2(ss(eybp&ypyhd)i*k6v#n2i9)y1=pdc
 DEBUG = True
 
 TAGGEDWEB_ELASTIC_IP = '18.213.87.2'
-ALLOWED_HOSTS = [TAGGEDWEB_ELASTIC_IP, 'api.taggedweb.com', 'taggedweb.com', 'localhost', '127.0.0.1']
+
+BASE_API_URL = 'api.taggedweb.com'
+ALLOWED_HOSTS = [TAGGEDWEB_ELASTIC_IP, BASE_API_URL, 'taggedweb.com', 'localhost', '127.0.0.1']
 
 # Difference between ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS:
 # https://stackoverflow.com/a/47229671/1819254
 CORS_ALLOWED_ORIGINS = [
     "https://taggedweb.com",
     "https://www.taggedweb.com",
-    "https://api.taggedweb.com",
+    "https://{}".format(BASE_API_URL),
 
     # This is temporary, just for making local development easy on port 3000
     "http://localhost:3000",
