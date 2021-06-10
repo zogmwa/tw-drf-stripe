@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import HttpResponseForbidden
+from opengraphio import OpenGraphIO
 from guardian.mixins import GuardianUserMixin
 from rest_framework.authtoken.models import Token
 
@@ -35,6 +36,9 @@ class Asset(models.Model):
     slug = models.SlugField(null=True, unique=True)
     name = models.CharField(max_length=255, unique=True)
     website = models.URLField(max_length=2048, null=True, blank=True)
+
+    # OpenGraph og:image url
+    og_image_url = models.URLField(max_length=2048, null=True, blank=True)
 
     # This is a referral link to that asset, to be used in preference over regular web link
     # when it is set to a non-empty value
@@ -73,16 +77,22 @@ class Asset(models.Model):
 
     def save(self, *args, **kwargs):
         if self.website:
-            if not self.short_description:
+            if not self.description:
                 try:
                     og_dict: dict = OpenGraph(url=self.website)
 
                     # https://ogp.me/ OpenGraph descriptions are short one-two sentences.
-                    self.short_description = og_dict.get('description', '')
+                    self.description = og_dict.get('description', '')
+                    self.og_image_url = og_dict.get('image')
                 except HTTPError as e:
                     # Some websites have same origin policy even for accessing OGP tags so trying to parse
                     # from their url may result in a forbidden error
                     logging.exception(e)
+                    opengraph = OpenGraphIO({'app_id': '8046bf50-dd39-4e7f-8988-8e8667387ff9'})
+                    site_info = opengraph.get_site_info(passed_url=self.website)
+                    hybrid_graph_dict = site_info['hybridGraph']
+                    self.description = hybrid_graph_dict.get('description', '')
+                    self.og_image_url = hybrid_graph_dict.get('image')
 
             if not self.logo_url:
                 furled_url = furl(self.website)

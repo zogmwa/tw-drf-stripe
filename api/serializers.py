@@ -48,7 +48,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
         model = Asset
         fields = [
             'slug', 'name', 'logo_url', 'website', 'affiliate_link', 'short_description', 'description', 'promo_video',
-            'tags', 'tweb_url',
+            'tags', 'tweb_url', 'og_image_url',
         ]
         lookup_field = 'slug'
         extra_kwargs = {
