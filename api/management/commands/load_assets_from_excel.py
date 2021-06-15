@@ -22,10 +22,19 @@ def process(excel_path: str) -> None:
         slug = slugify(name)[:50]
         website = row[Asset.website.field.attname].strip()
         print(website)
-        short_description = row[Asset.short_description.field.attname].strip()
         asset, is_created = Asset.objects.get_or_create(slug=slug, name=name)
+
+        short_description_field_name = Asset.short_description.field.attname
+        description_field_name = Asset.description.field.attname
+
+        if row.get(short_description_field_name):
+            asset.short_description = row[short_description_field_name].strip()
+
+        if row.get(description_field_name):
+            asset.description = row[description_field_name].strip()
+
         asset.website = website
-        asset.short_description = short_description
+
         furled_url = furl(website)
         asset.logo_url = 'https://logo.clearbit.com/{}'.format(furled_url.netloc)
         asset.tags.set(list(tags))
