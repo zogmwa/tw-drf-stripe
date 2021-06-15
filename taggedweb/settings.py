@@ -89,6 +89,10 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+EMAIL_BACKEND = 'django_ses.SESBackend'
+DEFAULT_FROM_EMAIL = 'noreply@taggedweb.com'
+AWS_SES_REGION_NAME = 'us-west-2'
+AWS_SES_REGION_ENDPOINT = 'email.us-west-2.amazonaws.com'
 SOCIAL_ACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIAL_ACCOUNT_EMAIL_REQUIRED = False
 REST_USE_JWT = True
