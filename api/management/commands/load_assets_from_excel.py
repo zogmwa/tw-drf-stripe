@@ -14,13 +14,6 @@ def process(excel_path: str) -> None:
     df = pd.read_excel(excel_path)
 
     for i, row in df.iterrows():
-        tag_names = ast.literal_eval(row['tags'])
-        tags = set()
-
-        for tag_name in tag_names:
-            tag, is_created = Tag.objects.get_or_create(name=tag_name, slug=slugify(tag_name))
-            tags.add(tag)
-
         name = row[Asset.name.field.attname].strip()
         slug = slugify(name)[:50]
         website = row[Asset.website.field.attname].strip()
@@ -43,7 +36,18 @@ def process(excel_path: str) -> None:
         furled_url = furl(website)
         asset.logo_url = 'https://logo.clearbit.com/{}'.format(furled_url.netloc)
 
-        asset.tags.set(list(tags))
+        # Only set the tags if the tags column is provided in the input excel, else skip/keep existing tags
+        tags_list_string = row.get('tags')
+        if tags_list_string:
+            tag_names = ast.literal_eval(tags_list_string)
+            tags = set()
+
+            for tag_name in tag_names:
+                tag, is_created = Tag.objects.get_or_create(name=tag_name, slug=slugify(tag_name))
+                tags.add(tag)
+
+            asset.tags.set(list(tags))
+
         asset.save()
 
 
