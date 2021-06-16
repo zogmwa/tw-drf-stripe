@@ -34,9 +34,11 @@ def process(excel_path: str) -> None:
             asset.description = row[description_field_name].strip()
 
         asset.website = website
+        asset.is_published = True
 
         furled_url = furl(website)
         asset.logo_url = 'https://logo.clearbit.com/{}'.format(furled_url.netloc)
+
         asset.tags.set(list(tags))
         asset.save()
 

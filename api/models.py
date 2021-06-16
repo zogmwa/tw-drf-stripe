@@ -59,6 +59,7 @@ class Asset(models.Model):
     promo_video = models.URLField(max_length=2048, null=True, blank=True)
 
     tweb_url_clickthrogh_counter = models.IntegerField(default=0)
+    is_published = models.BooleanField(default=False)
 
     @property
     def tweb_url(self):

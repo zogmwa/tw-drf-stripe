@@ -39,6 +39,7 @@ def process(tag_name: str, csv_filepath: str) -> None:
             if website:
                 asset.website = website.strip()
 
+            asset.is_published = True
             asset.save()
             asset.tags.set([tag])
 

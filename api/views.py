@@ -62,12 +62,12 @@ class AssetViewSet(viewsets.ModelViewSet):
 
             es_search = AssetDocument.search().query(es_query)
             assets_db_queryset = es_search.to_queryset()
-            # assets_db_queryset = self._filter_assets_matching_tags_exact(tag_slugs)
+            assets_db_queryset = assets_db_queryset.filter(is_published=True)
             return assets_db_queryset
 
         elif self.action == 'retrieve':
             slug = self.kwargs['slug']
-            return Asset.objects.filter(slug=slug)
+            return Asset.objects.filter(slug=slug, is_published=True)
         else:
             super(AssetViewSet, self).get_queryset()
 
