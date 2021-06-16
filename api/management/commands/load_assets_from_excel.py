@@ -1,6 +1,9 @@
+import logging
+
 import pandas as pd
 import ast
 from django.core.management import BaseCommand
+from django.db import IntegrityError
 from django.utils.text import slugify
 from furl import furl
 
@@ -22,8 +25,9 @@ def process(excel_path: str) -> None:
         slug = slugify(name)[:50]
         website = row[Asset.website.field.attname].strip()
         print(website)
-        asset, is_created = Asset.objects.get_or_create(slug=slug, name=name)
 
+        asset, is_created = Asset.objects.get_or_create(name=name)
+        asset.slug = slug
         short_description_field_name = Asset.short_description.field.attname
         description_field_name = Asset.description.field.attname
 
