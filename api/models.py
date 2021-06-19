@@ -134,7 +134,7 @@ class PricePlan(models.Model):
     """
     asset = models.ForeignKey(Asset, related_name='price_plans', on_delete=models.CASCADE)
     name = models.CharField(max_length=128, null=False, blank=False)
-    plan_summary = models.CharField(max_length=1024, blank=True, null=True)
+    summary = models.CharField(max_length=1024, blank=True, null=True)
 
     currency = models.CharField(max_length=3, default='USD')
     # Price along with the caveats price per month per user, price pear seat

@@ -3,7 +3,7 @@ from email.headerregistry import Group
 from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer
 
-from api.models import User, Tag, Asset, AssetQuestion
+from api.models import User, Tag, Asset, AssetQuestion, PricePlan
 
 
 class UserSerializer(HyperlinkedModelSerializer):
@@ -29,6 +29,13 @@ class TagSerializer(HyperlinkedModelSerializer):
         }
 
 
+class PricePlanSerializer(HyperlinkedModelSerializer):
+
+    class Meta:
+        model = PricePlan
+        fields = ['name', 'summary', 'currency', 'price', 'per', 'features']
+
+
 class AssetQuestionSerializer(HyperlinkedModelSerializer):
 
     class Meta:
@@ -42,13 +49,14 @@ class AssetSerializer(HyperlinkedModelSerializer):
     on the listing page.
     """
     tags = TagSerializer(read_only=True, many=True)
+    price_plans = PricePlanSerializer(read_only=True, many=True)
     tweb_url = serializers.URLField(read_only=True)
 
     class Meta:
         model = Asset
         fields = [
             'slug', 'name', 'logo_url', 'website', 'affiliate_link', 'short_description', 'description', 'promo_video',
-            'tags', 'tweb_url', 'og_image_url',
+            'tags', 'tweb_url', 'og_image_url', 'price_plans',
         ]
         lookup_field = 'slug'
         extra_kwargs = {
