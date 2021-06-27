@@ -6,7 +6,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.http import HttpResponseForbidden
 from opengraphio import OpenGraphIO
 from guardian.mixins import GuardianUserMixin
 from rest_framework.authtoken.models import Token
@@ -61,6 +60,9 @@ class Asset(models.Model):
     tweb_url_clickthrogh_counter = models.IntegerField(default=0)
     is_published = models.BooleanField(default=False)
 
+    # Which user owns this Asset/Web Service (intended for web service owners)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+
     @property
     def tweb_url(self):
         """ A masked TaggedWeb URL to allow tracking how many clicks each affiliate link/website is getting """
@@ -100,6 +102,10 @@ class Asset(models.Model):
                 self.logo_url = 'https://logo.clearbit.com/{}'.format(furled_url.netloc)
 
         super(Asset, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Web Service'
+        verbose_name_plural = 'Web Services'
 
 
 class AssetQuestion(models.Model):
