@@ -44,9 +44,9 @@ class PricePlanAdmin(admin.ModelAdmin):
 
 class AssetAdmin(GuardedModelAdmin):
     model = Asset
-    # user_owned_objects_field = 'owner'
-    # user_can_access_owned_objects_only = True
-    list_display = ('name', 'company', 'website')
+    user_owned_objects_field = 'owner'
+    user_can_access_owned_objects_only = True
+    list_display = ('name', 'slug', 'website', 'short_description', 'owner')
     search_fields = ['name', ]
     prepopulated_fields = {'slug': ('name',), }
     formfield_overrides = {
