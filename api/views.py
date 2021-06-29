@@ -22,6 +22,7 @@ class ProviderViewSetPagination(PageNumberPagination):
 
 class AssetViewSet(viewsets.ModelViewSet):
 
+    DEFAULT_SEARCH_RESULTS_COUNT = 20
     queryset = Asset.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = AssetSerializer
@@ -48,6 +49,13 @@ class AssetViewSet(viewsets.ModelViewSet):
             # not just tags.
             search_query = self.request.query_params.get('tags') or self.request.query_params.get('q')
 
+            # A max of num_results results will be returned
+            num_results = min(
+                self.request.query_params.get('n', self.DEFAULT_SEARCH_RESULTS_COUNT),
+                # No more than 100 results should be returned regardless of n, to protect from API query load
+                100,
+            )
+
             if search_query is None:
                 # If no tags are provided return nothing, no more returning of default sample
                 return []
@@ -61,6 +69,7 @@ class AssetViewSet(viewsets.ModelViewSet):
             )
 
             es_search = AssetDocument.search().query(es_query)
+            es_search = es_search[0:num_results]
             assets_db_queryset = es_search.to_queryset()
             assets_db_queryset = assets_db_queryset.filter(is_published=True)
             return assets_db_queryset
