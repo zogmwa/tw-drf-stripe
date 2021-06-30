@@ -49,12 +49,13 @@ class AssetViewSet(viewsets.ModelViewSet):
             # not just tags.
             search_query = self.request.query_params.get('tags') or self.request.query_params.get('q')
 
-            # A max of num_results results will be returned
-            num_results = min(
-                self.request.query_params.get('n', self.DEFAULT_SEARCH_RESULTS_COUNT),
+            # A max of num_results_per_page results will be returned
+            num_results_per_page = min(
+                int(self.request.query_params.get('n', self.DEFAULT_SEARCH_RESULTS_COUNT)),
                 # No more than 100 results should be returned regardless of n, to protect from API query load
                 100,
             )
+            page = int(self.request.query_params.get('p', 0))
 
             if search_query is None:
                 # If no tags are provided return nothing, no more returning of default sample
@@ -69,7 +70,8 @@ class AssetViewSet(viewsets.ModelViewSet):
             )
 
             es_search = AssetDocument.search().query(es_query)
-            es_search = es_search[0:num_results]
+            start_page = page * num_results_per_page
+            es_search = es_search[start_page:start_page+num_results_per_page]
             assets_db_queryset = es_search.to_queryset()
             assets_db_queryset = assets_db_queryset.filter(is_published=True)
             return assets_db_queryset
