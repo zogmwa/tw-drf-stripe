@@ -21,6 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.auth_views import GoogleLogin
 from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, AssetClickThroughCounterRedirectView
+from dj_rest_auth.views import PasswordResetConfirmView
 
 router = routers.DefaultRouter()
 router.register(r'assets', AssetViewSet, 'assets')
@@ -39,6 +40,8 @@ urlpatterns = [
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login'),
+    path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+
     path('accounts/', include('allauth.urls')),
 
     # DRF JWT Token Views (Preferable over Standard Tokens as these are more performant as they don't involve the db)

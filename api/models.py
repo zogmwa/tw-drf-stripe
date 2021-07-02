@@ -139,7 +139,7 @@ class PricePlan(models.Model):
     then the plan is free, if price is not set then the plan is a CUSTOM plan.
     """
     asset = models.ForeignKey(Asset, related_name='price_plans', on_delete=models.CASCADE)
-    name = models.CharField(max_length=128, null=False, blank=False)
+    name = models.CharField(max_length=128, null=False, blank=False, help_text='Name of the Price Plan')
     summary = models.CharField(max_length=1024, blank=True, null=True)
 
     currency = models.CharField(max_length=3, default='USD')
