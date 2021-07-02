@@ -2,8 +2,9 @@ import logging
 from urllib.error import HTTPError
 
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, User
 from django.db import models
+from django.db.models import UniqueConstraint
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from opengraphio import OpenGraphIO
@@ -106,6 +107,19 @@ class Asset(models.Model):
     class Meta:
         verbose_name = 'Web Service'
         verbose_name_plural = 'Web Services'
+
+
+class AssetUpvote(models.Model):
+    upvote = models.BooleanField(default=False)
+    upvote_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='upvotes', on_delete=models.CASCADE)
+    upvoted_on = models.DateTimeField(auto_now_add=True)
+    asset = models.ForeignKey(Asset, related_name='upvotes', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.upvote_by
+
+    class Meta:
+        UniqueConstraint(fields=['asset', 'upvote_by'], name='user_asset_upvote')
 
 
 class AssetQuestion(models.Model):
