@@ -5,11 +5,12 @@ from django.views.generic import RedirectView
 from elasticsearch_dsl.query import MultiMatch, Nested, Q as ESQ, Match
 from furl import furl
 from rest_framework import viewsets, permissions
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 
 from api.documents import TagDocument, AssetDocument
-from api.models import Asset, Tag, AssetQuestion
-from api.serializers import AssetSerializer, AssetQuestionSerializer
+from api.models import Asset, Tag, AssetQuestion, AssetVote, User
+from api.serializers import AssetSerializer, AssetQuestionSerializer, AssetVoteSerializer, UserSerializer
 
 
 class ProviderViewSetPagination(PageNumberPagination):
@@ -18,6 +19,16 @@ class ProviderViewSetPagination(PageNumberPagination):
 
 ################# Views ##################
 ##########################################
+
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'username'
 
 
 class AssetViewSet(viewsets.ModelViewSet):
@@ -101,6 +112,26 @@ class AssetQuestionViewSet(viewsets.ModelViewSet):
             return filtered_questions
         else:
             super(AssetQuestionViewSet, self).get_queryset()
+
+
+class AssetVoteViewSet(viewsets.ModelViewSet):
+    queryset = AssetVote.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = AssetVoteSerializer
+
+    def get_queryset(self):
+        if self.action == 'list':
+            # /api/votes/ (List View)
+            asset_slug = self.request.query_params.get('asset')
+
+            if asset_slug is None:
+                return []
+
+            asset_slug = asset_slug.strip()
+            votes = AssetVote.objects.filter(asset__slug=asset_slug, upvote=True)
+            return votes
+        else:
+            super(AssetVoteViewSet, self).get_queryset()
 
 
 def autocomplete_tags(request):

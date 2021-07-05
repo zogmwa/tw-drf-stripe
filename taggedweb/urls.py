@@ -20,12 +20,15 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.auth_views import GoogleLogin
-from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, AssetClickThroughCounterRedirectView
+from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, AssetClickThroughCounterRedirectView, \
+    AssetVoteViewSet, UserViewSet
 from dj_rest_auth.views import PasswordResetConfirmView
 
 router = routers.DefaultRouter()
-router.register(r'assets', AssetViewSet, 'assets')
-router.register(r'questions', AssetQuestionViewSet, 'questions')
+router.register(r'users', UserViewSet)
+router.register(r'assets', AssetViewSet)
+router.register(r'questions', AssetQuestionViewSet)
+router.register(r'upvotes', AssetVoteViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

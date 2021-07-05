@@ -1,15 +1,19 @@
 from email.headerregistry import Group
 
 from rest_framework import serializers
-from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 
-from api.models import User, Tag, Asset, AssetQuestion, PricePlan
+from api.models import User, Tag, Asset, AssetQuestion, PricePlan, AssetVote
 
 
 class UserSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups']
+        fields = ['id', 'username']
+        lookup_field = 'username'
+        extra_kwargs = {
+            'url': {'lookup_field': 'username'}
+        }
 
 
 class GroupSerializer(HyperlinkedModelSerializer):
@@ -62,3 +66,11 @@ class AssetSerializer(HyperlinkedModelSerializer):
         extra_kwargs = {
             'url': {'lookup_field': 'slug'}
         }
+
+
+class AssetVoteSerializer(ModelSerializer):
+    class Meta:
+        model = AssetVote
+        fields = [
+            'user', 'asset', 'voted_on',
+        ]
