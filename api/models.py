@@ -47,7 +47,12 @@ class Asset(models.Model):
     # Later on we can have image field as well but for now to avoid storing images
     # we can pull the logo directly from the respective site
     logo_url = models.URLField(max_length=2048, null=True, blank=True)
-
+    pricing_url = models.URLField(
+        max_length=200,
+        null=True,
+        blank=True,
+        help_text='Optional link to page with more information (for clickable pricing table headers)',
+    )
     # The company that is providing this application or software
     company = models.CharField(max_length=255, null=True, blank=True)
 
@@ -173,13 +178,6 @@ class PricePlan(models.Model):
 
     # This will contain bulleted features to be stored in Markdown format
     features = models.TextField(null=True, blank=True)
-
-    url = models.URLField(
-        max_length=200,
-        null=True,
-        blank=True,
-        help_text='Optional link to page with more information (for clickable pricing table headers)',
-    )
 
     class Meta:
         verbose_name = 'Price Plan'
