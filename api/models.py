@@ -70,6 +70,10 @@ class Asset(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 
     @property
+    def upvotes_count(self):
+        return self.votes.filter(upvote=True).count()
+
+    @property
     def tweb_url(self):
         """ A masked TaggedWeb URL to allow tracking how many clicks each affiliate link/website is getting """
         final_url = self.affiliate_link or self.website
