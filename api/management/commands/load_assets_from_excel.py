@@ -10,6 +10,16 @@ from furl import furl
 from api.models import Tag, Asset
 
 
+def _get_slug_name(tag_name: str) -> str:
+    """ Get slug from the tag name """
+    # This is just for special tags
+    if tag_name == 'Machine Learning (ML)':
+        slug = 'machine-learning'
+    else:
+        slug = slugify(tag_name)
+    return slug
+
+
 def process(excel_path: str) -> None:
     df = pd.read_excel(excel_path)
 
@@ -43,7 +53,10 @@ def process(excel_path: str) -> None:
             tags = set()
 
             for tag_name in tag_names:
-                tag, is_created = Tag.objects.get_or_create(name=tag_name, slug=slugify(tag_name))
+                tag, is_created = Tag.objects.get_or_create(
+                    name=tag_name,
+                    slug=_get_slug_name(tag_name),
+                )
                 tags.add(tag)
 
             asset.tags.set(list(tags))
