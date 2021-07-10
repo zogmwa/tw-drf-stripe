@@ -19,6 +19,8 @@ def _get_slug_name(tag_name: str) -> str:
                     "Application Performance Monitoring (APM)": 'application-performance-monitoring', 'Non Fungible Tokens (NFT)': 'nft', 'Environmental Health and Safety': 'ehs', 'Environmental, Social and Governance': 'esg',
                     "User Experience Design (UXD)":"ux-design", "Q&A":'qna', 'Accounts Payable (AP)': 'accounts-payable'}
 
+    #This is the list of special tags in which the slugs are special
+
     # This is just for special tags
     if tag_name in special_tags.keys():
         slug = special_tags[tag_name]
