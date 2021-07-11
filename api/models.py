@@ -80,8 +80,8 @@ class Asset(models.Model):
         on_delete=models.SET_NULL,
         related_name='submitted_assets',
     )
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    updated = models.DateTimeField(null=True, blank=True, auto_now=True)
 
     @property
     def upvotes_count(self):
