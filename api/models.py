@@ -147,7 +147,9 @@ class AssetVote(models.Model):
         return "{}: {}".format(self.asset, self.user)
 
     class Meta:
-        UniqueConstraint(fields=['asset', 'user'], name='user_asset_vote')
+        constraints = [
+            UniqueConstraint(fields=['asset', 'user'], name='user_asset_vote')
+        ]
         verbose_name = 'Web Service Vote'
         verbose_name_plural = 'Web Service Votes'
 
