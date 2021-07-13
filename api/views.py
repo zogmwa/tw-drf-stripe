@@ -7,6 +7,7 @@ from furl import furl
 from rest_framework import viewsets, permissions
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from api.documents import TagDocument, AssetDocument
 from api.models import Asset, Tag, AssetQuestion, AssetVote, User
@@ -122,16 +123,28 @@ class AssetVoteViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.action == 'list':
             # /api/votes/ (List View)
+
             asset_slug = self.request.query_params.get('asset')
 
             if asset_slug is None:
                 return []
 
             asset_slug = asset_slug.strip()
-            votes = AssetVote.objects.filter(asset__slug=asset_slug, upvote=True)
+            votes = AssetVote.objects.filter(asset__slug__iexact=asset_slug, upvote=True)
             return votes
         else:
             super(AssetVoteViewSet, self).get_queryset()
+
+    def create(self, request, *args, **kwargs):
+        user = self.request.user
+        asset = Asset.objects.get(id=self.request.data.get('asset'))
+        asset_upvote, created = AssetVote.objects.get_or_create(
+            user=user,
+            asset=asset,
+        )
+        asset_upvote.save()
+        asset_upvote_serializer = AssetVoteSerializer(asset_upvote)
+        return Response(asset_upvote_serializer.data)
 
 
 def autocomplete_tags(request):
