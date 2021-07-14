@@ -33,18 +33,18 @@ class TagSerializer(HyperlinkedModelSerializer):
         }
 
 
-class PricePlanSerializer(HyperlinkedModelSerializer):
+class PricePlanSerializer(ModelSerializer):
 
     class Meta:
         model = PricePlan
-        fields = ['name', 'summary', 'currency', 'price', 'per', 'features']
+        fields = ['asset', 'name', 'summary', 'currency', 'price', 'per', 'features']
 
 
-class AssetQuestionSerializer(HyperlinkedModelSerializer):
+class AssetQuestionSerializer(ModelSerializer):
 
     class Meta:
         model = AssetQuestion
-        fields = ['question', 'answer', 'upvote_count']
+        fields = ['asset', 'question', 'answer', 'upvote_count']
 
 
 class AssetSerializer(HyperlinkedModelSerializer):
