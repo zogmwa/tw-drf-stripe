@@ -43,11 +43,16 @@ def process(excel_path: str) -> None:
         short_description_field_name = Asset.short_description.field.attname
         description_field_name = Asset.description.field.attname
 
+        promo_video_field_name = Asset.promo_video.field.attname
+
         if row.get(short_description_field_name):
             asset.short_description = row[short_description_field_name].strip()
 
         if row.get(description_field_name):
             asset.description = row[description_field_name].strip()
+
+        if row.get(promo_video_field_name) and not row[promo_video_field_name].strip() == '':
+            asset.promo_video = row[promo_video_field_name].strip()
 
         asset.website = website
         asset.is_published = True
