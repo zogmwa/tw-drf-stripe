@@ -3,4 +3,5 @@
 .idea/*
 taggedweb/override_settings.py
 db.sqlite3
+venv
 *.ipynb_checkpoints
