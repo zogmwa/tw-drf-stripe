@@ -12,18 +12,34 @@ from api.models import Tag, Asset
 
 def _get_slug_name(tag_name: str) -> str:
     """ Get slug from the tag name """
-    special_tags = {"Machine Learning (ML)": 'machine-learning', "Learning Management System (LMS)": 'lms', "Computer Algebra System (CAS)": "cas", "Global Positioning System (GPS)": 'gps',
-                    "Customer Data Platform (CDP)": "customer-data-platform", "Computer Aided Design (CAD)": 'cad', "Augmented Reality": "ar", "Virtual Reality":'virtual-reality',
-                    "Virtual Private Network (VPN)":'vpn', 'Enterprise Resource Planning (ERP)': 'erp', "Supply Chain Management (SCM)": 'supply-chain-management',
-                    'Search Engine Optimization (SEO)': 'seo', "Customer Relationship Management (CRM)": 'crm', "Corporate Social Responsibility (CSR)": 'corporate-social-responsibility',
-                    "Application Performance Monitoring (APM)": 'application-performance-monitoring', 'Non Fungible Tokens (NFT)': 'nft', 'Environmental Health and Safety': 'ehs', 'Environmental, Social and Governance': 'esg',
-                    "User Experience Design (UXD)":"ux-design", "Q&A":'qna', 'Accounts Payable (AP)': 'accounts-payable'}
-
-    #This is the list of special tags in which the slugs are special
+    # This is the list of special tags in which the slugs are special
+    SPECIAL_TAGS = {
+        'Machine Learning (ML)': 'machine-learning',
+         'Learning Management System (LMS)': 'lms',
+         'Computer Algebra System (CAS)': 'cas',
+         'Global Positioning System (GPS)': 'gps',
+         'Customer Data Platform (CDP)': 'customer-data-platform',
+         'Computer Aided Design (CAD)': 'cad',
+         'Augmented Reality (AR)': 'ar',
+         'Virtual Reality': 'virtual-reality',
+         'Virtual Private Network (VPN)': 'vpn',
+         'Enterprise Resource Planning (ERP)': 'erp',
+         'Supply Chain Management (SCM)': 'supply-chain-management',
+         'Search Engine Optimization (SEO)': 'seo',
+         'Customer Relationship Management (CRM)': 'crm',
+         'Corporate Social Responsibility (CSR)': 'corporate-social-responsibility',
+         'Application Performance Monitoring (APM)': 'application-performance-monitoring',
+         'Non Fungible Tokens (NFT)': 'nft',
+         'Environmental Health and Safety': 'ehs',
+         'Environmental, Social and Governance': 'esg',
+         'User Experience Design (UXD)': 'ux-design',
+         'Q&A': 'qna',
+         'Accounts Payable (AP)': 'accounts-payable',
+    }
 
     # This is just for special tags
-    if tag_name in special_tags.keys():
-        slug = special_tags[tag_name]
+    if tag_name in SPECIAL_TAGS.keys():
+        slug = SPECIAL_TAGS[tag_name]
     else:
         slug = slugify(tag_name)
     return slug
