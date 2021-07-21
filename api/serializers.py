@@ -75,5 +75,5 @@ class AssetVoteSerializer(ModelSerializer):
     class Meta:
         model = AssetVote
         fields = [
-            'user', 'asset', 'voted_on',
+            'id', 'user', 'asset', 'voted_on',
         ]

@@ -1,10 +1,10 @@
 from django.db.models import Count, QuerySet
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import RedirectView
 from elasticsearch_dsl.query import MultiMatch, Nested, Q as ESQ, Match
 from furl import furl
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -137,22 +137,28 @@ class PricePlanViewSet(viewsets.ModelViewSet):
 
 
 class AssetVoteViewSet(viewsets.ModelViewSet):
-    queryset = AssetVote.objects.all()
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    queryset = AssetVote.objects.filter(upvote=True)
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = AssetVoteSerializer
 
     def get_queryset(self):
         if self.action == 'list':
             # /api/votes/ (List View)
+            # Returns all votes associated with the currently logged in user, filtering by asset allowed using the
+            # asset GET parameter.
 
-            asset_slug = self.request.query_params.get('asset')
-
-            if asset_slug is None:
-                return []
-
+            asset_slug = self.request.query_params.get('asset', '')
             asset_slug = asset_slug.strip()
-            votes = AssetVote.objects.filter(asset__slug__iexact=asset_slug, upvote=True)
+
+            votes = AssetVote.objects.filter(user=self.request.user, upvote=True)
+
+            if asset_slug:
+                votes = votes.filter(asset__slug__iexact=asset_slug)
+
             return votes
+        elif self.action == 'retrieve':
+            asset_vote_id = self.kwargs['pk']
+            return AssetVote.objects.filter(id=asset_vote_id, upvote=True)
         else:
             super(AssetVoteViewSet, self).get_queryset()
 
@@ -166,6 +172,36 @@ class AssetVoteViewSet(viewsets.ModelViewSet):
         asset_upvote.save()
         asset_upvote_serializer = AssetVoteSerializer(asset_upvote)
         return Response(asset_upvote_serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        asset_slug = self.request.data.get('asset', '')
+        asset_slug.strip()
+        if not asset_slug:
+            return Response(
+                data={"detail": "asset parameter containing asset_id was not provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        else:
+            asset = Asset.objects.get(slug=asset_slug)
+
+        instance = AssetVote.objects.get(id=self.kwargs['pk'], upvote=True)
+
+        try:
+            asset = AssetVote.objects.get(
+                upvote=True,
+                user=self.request.user,
+                asset=asset,
+            )
+            if instance.user.id == self.request.user.id:
+                # Only allow the user to delete the resource if it belongs to them
+                self.perform_destroy(asset)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_304_NOT_MODIFIED)
+        except Http404:
+            pass
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 def autocomplete_tags(request):
