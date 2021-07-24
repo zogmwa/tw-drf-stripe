@@ -8,17 +8,19 @@ def clean_asset_descriptions() -> None:
     batch = []
 
     for asset in asset_list:
-        if "_x000D_" in asset.description:
-            asset.description = asset.description.replace("_x000D_", "\n")
+        if asset.description is not None:
+            if "_x000D_" in asset.description:
+                asset.description = asset.description.replace("_x000D_", "\n")
 
-        if "x000D" in asset.description:
-            asset.description = asset.description.replace("x000D", "\n")
+            if "x000D" in asset.description:
+                asset.description = asset.description.replace("x000D", "\n")
 
-        if "_x000D_" in asset.short_description:
-            asset.short_description = asset.short_description.replace("_x000D_", "\n")
+        if asset.short_description is not None:
+            if "_x000D_" in asset.short_description:
+                asset.short_description = asset.short_description.replace("_x000D_", "\n")
 
-        if "x000D" in asset.short_description:
-            asset.short_description = asset.short_description.replace("x000D", "\n")
+            if "x000D" in asset.short_description:
+                asset.short_description = asset.short_description.replace("x000D", "\n")
 
         batch.append(asset)
 
