@@ -15,26 +15,27 @@ def _get_slug_name(tag_name: str) -> str:
     # This is the list of special tags in which the slugs are special
     SPECIAL_TAGS = {
         'Machine Learning (ML)': 'machine-learning',
-         'Learning Management System (LMS)': 'lms',
-         'Computer Algebra System (CAS)': 'cas',
-         'Global Positioning System (GPS)': 'gps',
-         'Customer Data Platform (CDP)': 'customer-data-platform',
-         'Computer Aided Design (CAD)': 'cad',
-         'Augmented Reality (AR)': 'ar',
-         'Virtual Reality': 'virtual-reality',
-         'Virtual Private Network (VPN)': 'vpn',
-         'Enterprise Resource Planning (ERP)': 'erp',
-         'Supply Chain Management (SCM)': 'supply-chain-management',
-         'Search Engine Optimization (SEO)': 'seo',
-         'Customer Relationship Management (CRM)': 'crm',
-         'Corporate Social Responsibility (CSR)': 'corporate-social-responsibility',
-         'Application Performance Monitoring (APM)': 'application-performance-monitoring',
-         'Non Fungible Tokens (NFT)': 'nft',
-         'Environmental Health and Safety': 'ehs',
-         'Environmental, Social and Governance': 'esg',
-         'User Experience Design (UXD)': 'ux-design',
-         'Q&A': 'qna',
-         'Accounts Payable (AP)': 'accounts-payable',
+        'Learning Management System (LMS)': 'lms',
+        'Computer Algebra System (CAS)': 'cas',
+        'Global Positioning System (GPS)': 'gps',
+        'Customer Data Platform (CDP)': 'customer-data-platform',
+        'Computer Aided Design (CAD)': 'cad',
+        'Augmented Reality (AR)': 'ar',
+        'Virtual Reality': 'virtual-reality',
+        'Virtual Private Network (VPN)': 'vpn',
+        'Enterprise Resource Planning (ERP)': 'erp',
+        'Supply Chain Management (SCM)': 'supply-chain-management',
+        'Search Engine Optimization (SEO)': 'seo',
+        'Customer Relationship Management (CRM)': 'crm',
+        'Corporate Social Responsibility (CSR)': 'corporate-social-responsibility',
+        'Application Performance Monitoring (APM)': 'application-performance-monitoring',
+        'Non Fungible Tokens (NFT)': 'nft',
+        'Environmental Health and Safety': 'ehs',
+        'Environmental, Social and Governance': 'esg',
+        'User Experience Design (UXD)': 'ux-design',
+        'Q&A': 'qna',
+        'Accounts Payable (AP)': 'accounts-payable',
+        'Voice over IP (VoIP)': 'voip',
     }
 
     # This is just for special tags
@@ -64,8 +65,24 @@ def process(excel_path: str) -> None:
         if row.get(short_description_field_name) and not pd.isnull(row[short_description_field_name]):
             asset.short_description = row[short_description_field_name].strip()
 
+            if "_x000D_" in asset.short_description:
+                # Replaces _X000D_ character in short description if there
+                asset.short_description = asset.short_description.replace("_x000D_", "\n")
+
+            if "x000D" in asset.short_description:
+                # Replaces X000D character in short description if there
+                asset.short_description = asset.short_description.replace("x000D", "\n")
+
         if row.get(description_field_name) and not pd.isnull(row[description_field_name]):
             asset.description = row[description_field_name].strip()
+
+            if "_x000D_" in asset.description:
+                # Replaces _X000D_ character in description if there
+                asset.description = asset.description.replace("_x000D_", "\n")
+
+            if "x000D" in asset.description:
+                # Replaces X000D character in description if there
+                asset.description = asset.description.replace("x000D", "\n")
 
         if row.get(promo_video_field_name) and not pd.isnull(row[promo_video_field_name]):
             asset.promo_video = row[promo_video_field_name].strip()
