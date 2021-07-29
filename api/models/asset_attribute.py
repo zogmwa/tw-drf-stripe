@@ -31,6 +31,9 @@ class LinkedAttribute(models.Model):
 
 
 class AttributeVote(models.Model):
+    """
+    A vote on a specific attribute on a specific asset (only one vote per user per attribute per asset).
+    """
     is_upvote = models.BooleanField(default=True, help_text='Whether this is an Upvote=true (or Downvote=false)')
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -48,5 +51,5 @@ class AttributeVote(models.Model):
         constraints = [
             UniqueConstraint(fields=['user', 'asset', 'attribute'], name='user_asset_attribute_vote')
         ]
-        verbose_name = 'Asset Feature/Attribute Vote'
-        verbose_name_plural = 'Asset Feature/Attribute Votes'
+        verbose_name = 'Web Service Attribute Vote'
+        verbose_name_plural = 'Web Service Attribute Votes'

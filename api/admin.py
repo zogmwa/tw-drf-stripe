@@ -74,8 +74,8 @@ class AttributeAdmin(admin.ModelAdmin):
 
 class AttributeVoteAdmin(admin.ModelAdmin):
     model = AttributeVote
-    autocomplete_fields = ['asset', 'user']
-    search_fields = ['asset__name', 'user']
+    autocomplete_fields = ['asset', 'user', 'attribute']
+    search_fields = ['asset__name', 'attribute__name']
 
 
 # Admin site headers
