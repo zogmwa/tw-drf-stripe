@@ -24,6 +24,9 @@ class Attribute(models.Model):
         verbose_name = 'Web Service Attribute'
         verbose_name_plural = 'Web Service Attributes'
 
+    def __str__(self):
+        return self.name
+
 
 class LinkedAttribute(models.Model):
     attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)

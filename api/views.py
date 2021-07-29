@@ -10,9 +10,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 from api.documents import TagDocument, AssetDocument
-from api.models import Asset, Tag, AssetQuestion, AssetVote, User, PricePlan
+from api.models import Asset, Tag, AssetQuestion, AssetVote, User, PricePlan, Attribute
 from api.serializers import AssetSerializer, AssetQuestionSerializer, AssetVoteSerializer, UserSerializer, \
-    PricePlanSerializer
+    PricePlanSerializer, AssetAttributeSerializer
 
 
 class ProviderViewSetPagination(PageNumberPagination):
@@ -202,6 +202,12 @@ class AssetVoteViewSet(viewsets.ModelViewSet):
             pass
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AssetAttributeViewSet(viewsets.ModelViewSet):
+    queryset = Attribute.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AssetAttributeSerializer
 
 
 def autocomplete_tags(request):

@@ -21,7 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.auth_views import GoogleLogin
 from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, AssetClickThroughCounterRedirectView, \
-    AssetVoteViewSet, UserViewSet, PricePlanViewSet
+    AssetVoteViewSet, UserViewSet, PricePlanViewSet, AssetAttributeViewSet
 from dj_rest_auth.views import PasswordResetConfirmView
 
 router = routers.DefaultRouter()
@@ -30,6 +30,7 @@ router.register(r'assets', AssetViewSet)
 router.register(r'questions', AssetQuestionViewSet)
 router.register(r'price_plans', PricePlanViewSet)
 router.register(r'upvotes', AssetVoteViewSet)
+router.register(r'asset_attributes', AssetAttributeViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
