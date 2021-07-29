@@ -21,7 +21,7 @@ def _get_slug_name(tag_name: str) -> str:
         'Customer Data Platform (CDP)': 'customer-data-platform',
         'Computer Aided Design (CAD)': 'cad',
         'Augmented Reality (AR)': 'ar',
-        'Virtual Reality': 'virtual-reality',
+        'Virtual Reality (VR)': 'virtual-reality',
         'Virtual Private Network (VPN)': 'vpn',
         'Enterprise Resource Planning (ERP)': 'erp',
         'Supply Chain Management (SCM)': 'supply-chain-management',
