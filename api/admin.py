@@ -5,7 +5,8 @@ from guardian.shortcuts import get_objects_for_user
 
 from guardian.admin import GuardedModelAdmin
 
-from api.models import Tag, Asset, User, AssetQuestion, PricePlan, AssetVote
+from api.models import Tag, Asset, User, AssetQuestion, PricePlan, AssetVote, Attribute
+from api.models.asset_attribute import AttributeVote
 
 
 class TagInline(admin.TabularInline):
@@ -65,6 +66,18 @@ class AssetVoteAdmin(admin.ModelAdmin):
     search_fields = ['asset__name', 'user']
 
 
+class AttributeAdmin(admin.ModelAdmin):
+    model = Attribute
+    autocomplete_fields = ['submitted_by']
+    search_fields = ['name']
+
+
+class AttributeVoteAdmin(admin.ModelAdmin):
+    model = AttributeVote
+    autocomplete_fields = ['asset', 'user']
+    search_fields = ['asset__name', 'user']
+
+
 # Admin site headers
 admin.site.site_header = 'TaggedWeb Admin'
 
@@ -75,3 +88,5 @@ admin.site.register(Asset, AssetAdmin)
 admin.site.register(AssetQuestion, AssetQuestionAdmin)
 admin.site.register(PricePlan, PricePlanAdmin)
 admin.site.register(AssetVote, AssetVoteAdmin)
+admin.site.register(Attribute, AttributeAdmin)
+admin.site.register(AttributeVote, AttributeVoteAdmin)

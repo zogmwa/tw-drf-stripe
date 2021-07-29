@@ -137,7 +137,7 @@ class PricePlanViewSet(viewsets.ModelViewSet):
 
 
 class AssetVoteViewSet(viewsets.ModelViewSet):
-    queryset = AssetVote.objects.filter(upvote=True)
+    queryset = AssetVote.objects.filter(is_upvote=True)
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AssetVoteSerializer
 
@@ -150,7 +150,7 @@ class AssetVoteViewSet(viewsets.ModelViewSet):
             asset_slug = self.request.query_params.get('asset', '')
             asset_slug = asset_slug.strip()
 
-            votes = AssetVote.objects.filter(user=self.request.user, upvote=True)
+            votes = AssetVote.objects.filter(user=self.request.user, is_upvote=True)
 
             if asset_slug:
                 votes = votes.filter(asset__slug__iexact=asset_slug)
@@ -158,7 +158,7 @@ class AssetVoteViewSet(viewsets.ModelViewSet):
             return votes
         elif self.action == 'retrieve':
             asset_vote_id = self.kwargs['pk']
-            return AssetVote.objects.filter(id=asset_vote_id, upvote=True)
+            return AssetVote.objects.filter(id=asset_vote_id, is_upvote=True)
         else:
             super(AssetVoteViewSet, self).get_queryset()
 
@@ -184,11 +184,11 @@ class AssetVoteViewSet(viewsets.ModelViewSet):
         else:
             asset = Asset.objects.get(slug=asset_slug)
 
-        instance = AssetVote.objects.get(id=self.kwargs['pk'], upvote=True)
+        instance = AssetVote.objects.get(id=self.kwargs['pk'], is_upvote=True)
 
         try:
             asset = AssetVote.objects.get(
-                upvote=True,
+                is_upvote=True,
                 user=self.request.user,
                 asset=asset,
             )

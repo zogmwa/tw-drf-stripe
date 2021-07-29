@@ -40,6 +40,9 @@ class Asset(models.Model):
     short_description = models.CharField(max_length=512, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
+
+    # An attribute is kind of like a feature tag or a highlight, example "Easy to Use" is an attribute
+    attributes = models.ManyToManyField('Attribute', through='LinkedAttribute', related_name='assets')
     # questions: to fetch all questions related to this asset
 
     promo_video = models.URLField(max_length=2048, null=True, blank=True)
@@ -66,7 +69,7 @@ class Asset(models.Model):
 
     @property
     def upvotes_count(self):
-        return self.votes.filter(upvote=True).count()
+        return self.votes.filter(is_upvote=True).count()
 
     @property
     def tweb_url(self):

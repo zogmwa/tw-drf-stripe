@@ -2,10 +2,11 @@ from .asset import Asset
 from .tag import Tag
 from .user import User
 from .price_plan import PricePlan
+from .asset_attribute import Attribute
+from .asset_attribute import LinkedAttribute
 from .asset_question import AssetQuestion
 from .asset_vote import AssetVote
 from .linked_tag import LinkedTag
-
 
 from django.conf import settings
 from django.db.models.signals import post_save

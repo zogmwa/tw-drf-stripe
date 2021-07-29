@@ -21,8 +21,8 @@ def process(excel_path: str) -> None:
             asset_plans = asset_pricings[asset_slug]
             for plan_name in asset_plans.keys():
                 price_plan, is_created = PricePlan.objects.get_or_create(asset=asset, name=plan_name)
-                plan_price_field_name = PricePlan.plan_price.field.attname
-                plan_per_field_name = PricePlan.plan_per.field.attname
+                plan_price_field_name = PricePlan.price.field.attname
+                plan_per_field_name = PricePlan.per.field.attname
                 plan_features_field_name = PricePlan.features.field.attname
                 plan_currency_field_name = PricePlan.currency.field.attname
                 plan_summary_field_name = PricePlan.summary.field.attname
