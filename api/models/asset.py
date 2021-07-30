@@ -7,6 +7,7 @@ from furl import furl
 from opengraph import OpenGraph
 from opengraphio import OpenGraphIO
 
+from .asset_attribute import Attribute
 from .tag import Tag
 
 
@@ -42,7 +43,7 @@ class Asset(models.Model):
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
 
     # An attribute is kind of like a feature tag or a highlight, example "Easy to Use" is an attribute
-    attributes = models.ManyToManyField('Attribute', through='LinkedAttribute', related_name='assets')
+    attributes = models.ManyToManyField(Attribute, through='LinkedAttribute', related_name='assets')
     # questions: to fetch all questions related to this asset
 
     promo_video = models.URLField(max_length=2048, null=True, blank=True)

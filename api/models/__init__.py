@@ -1,17 +1,19 @@
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+
 from .asset import Asset
 from .tag import Tag
 from .user import User
 from .price_plan import PricePlan
 from .asset_attribute import Attribute
-from .asset_attribute import LinkedAttribute
+from .linked_attribute import LinkedAttribute
 from .asset_question import AssetQuestion
 from .asset_vote import AssetVote
 from .linked_tag import LinkedTag
-
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from rest_framework.authtoken.models import Token
+from .attribute_vote import AttributeVote
+from .linked_attribute import LinkedAttribute
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

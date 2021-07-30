@@ -102,7 +102,7 @@ class AssetDocument(Document):
         # queryset_pagination = 5000
 
     def get_queryset(self):
-        return super(AssetDocument, self).get_queryset().prefetch_related('tags')
+        return super(AssetDocument, self).get_queryset().prefetch_related('tags', 'attributes')
 
     def get_instances_from_related(self, related_instance):
         if isinstance(related_instance, Asset):

@@ -6,12 +6,17 @@ from guardian.shortcuts import get_objects_for_user
 from guardian.admin import GuardedModelAdmin
 
 from api.models import Tag, Asset, User, AssetQuestion, PricePlan, AssetVote, Attribute
-from api.models.asset_attribute import AttributeVote
+from api.models.attribute_vote import AttributeVote
 
 
 class TagInline(admin.TabularInline):
     model = Asset.tags.through
     autocomplete_fields = ['tag']
+
+
+class AttributeInline(admin.TabularInline):
+    model = Asset.attributes.through
+    autocomplete_fields = ['attribute']
 
 
 class PricePlanInline(admin.TabularInline):
@@ -56,6 +61,7 @@ class AssetAdmin(GuardedModelAdmin):
     }
     inlines = [
         TagInline,
+        AttributeInline,
         PricePlanInline
     ]
 
