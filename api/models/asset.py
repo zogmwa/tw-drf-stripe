@@ -3,6 +3,8 @@ from urllib.error import HTTPError
 
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from furl import furl
 from opengraph import OpenGraph
 from opengraphio import OpenGraphIO
@@ -87,6 +89,28 @@ class Asset(models.Model):
         self.tweb_url_clickthrogh_counter += 1
         self.save()
 
+    @staticmethod
+    def get_embed_video_url(video_url):
+        if video_url is None:
+            return video_url
+
+        """ Takes a URL string for a video and converts it into an embeddeable video link """
+        f = furl(video_url)
+
+        if 'youtu.be' in f.netloc:
+            # For youtu.be links the video id is in the path
+            embed_url = 'https://www.youtube.com/embed' + f.path
+        elif 'youtube.com' in f.netloc and not str(f.path).startswith('/embed'):
+            vid = f.args['v']
+            embed_url = 'https://www.youtube.com/embed/{}'.format(vid)
+        elif "vimeo.com" in f.netloc:
+            # Vimeo also keeps video id in the path
+            embed_url = 'https://player.vimeo.com/video' + f.path
+        else:
+            embed_url = video_url
+
+        return embed_url
+
     def save(self, *args, **kwargs):
         if self.website:
             if not self.description:
@@ -115,3 +139,21 @@ class Asset(models.Model):
     class Meta:
         verbose_name = 'Web Service'
         verbose_name_plural = 'Web Services'
+
+
+@receiver(pre_save, sender=Asset)
+def asset_conditional_updates(sender, instance=None, **kwargs):
+    """
+    Performs some checks to compare old asset state with new asset state and perform conditional field update logic.
+    Conditional updates help because they reduce average write time when saving many objects.
+    """
+
+    try:
+        instance_old = sender.objects.get(pk=instance.pk)
+        if instance.promo_video and instance_old.promo_video is None:
+            # Only update the promo video if old video link was not set and the new is set
+            instance.promo_video = sender.get_embed_video_url(instance.promo_video)
+    except sender.DoesNotExist:
+        # If it's a new asset/web-service being created for which an old one does not exist then
+        # we still want to update the promo video
+        instance.promo_video = sender.get_embed_video_url(instance.promo_video)
