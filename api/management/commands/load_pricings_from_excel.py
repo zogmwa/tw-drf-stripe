@@ -26,8 +26,8 @@ def process(excel_path: str) -> None:
                 plan_features_field_name = PricePlan.features.field.attname
                 plan_currency_field_name = PricePlan.currency.field.attname
                 plan_summary_field_name = PricePlan.summary.field.attname
-                price_plan.plan_price = asset_plans[plan_name][plan_price_field_name].strip()
-                price_plan.plan_per = asset_plans[plan_name][plan_per_field_name].strip()
+                price_plan.price = asset_plans[plan_name][plan_price_field_name].strip()
+                price_plan.per = asset_plans[plan_name][plan_per_field_name].strip()
 
                 if plan_summary_field_name in asset_plans[plan_name].keys():
                     price_plan.features = asset_plans[plan_name][plan_summary_field_name].strip()
