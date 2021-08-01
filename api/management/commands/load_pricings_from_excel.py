@@ -20,7 +20,7 @@ def process(excel_path: str) -> None:
         if asset_slug in asset_pricings.keys():
             asset_plans = asset_pricings[asset_slug]
             for plan_name in asset_plans.keys():
-                price_plan, is_created = PricePlan.objects.get_or_create(asset=asset, name=plan_name)
+                price_plan, is_created = PricePlan.objects.get_or_create(asset=asset.id, name=plan_name) #Instead of an asset, we take the id of the asset model
                 plan_price_field_name = PricePlan.price.field.attname
                 plan_per_field_name = PricePlan.per.field.attname
                 plan_features_field_name = PricePlan.features.field.attname
