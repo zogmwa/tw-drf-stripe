@@ -13,7 +13,7 @@ def process(excel_path: str) -> None:
 
     for i, row in df.iterrows():
         asset_slug = row['asset_slug'].strip()  # The col with the asset slugs is 'asset_slug' just for specifics
-        asset = Asset.objects.get_or_create(slug=asset_slug)
+        asset, is_created = Asset.objects.get_or_create(slug=asset_slug)
 
         asset_pricings = json.loads(row['pricing_data'])  # The pricing data is in the form of a dictionary
 
