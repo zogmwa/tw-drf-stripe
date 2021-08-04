@@ -94,11 +94,10 @@ class Asset(models.Model):
         if video_url is None:
             return video_url
 
-        if not video_url.startswith("https://") and not video_url.startswith(
-                "http://"):  # furl doesn't work properly if there is no http or https in the video url
-            video_url = "https://" + video_url
-
         """ Takes a URL string for a video and converts it into an embeddeable video link """
+        if '//' not in video_url:
+            video_url = "https://{}".format(video_url)
+
         f = furl(video_url)
 
         if 'youtu.be' in f.netloc:
@@ -111,7 +110,9 @@ class Asset(models.Model):
             # Vimeo also keeps video id in the path
             embed_url = 'https://player.vimeo.com/video' + str(f.path)
         else:
-            embed_url = video_url
+            # If the scheme was http then override it with https
+            f.scheme = 'https'
+            embed_url = f.url
 
         return embed_url
 

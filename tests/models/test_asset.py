@@ -30,7 +30,7 @@ class TestAsset:
         asset.save()
         assert asset.promo_video == expected_embedable_link
 
-    def test_addition_of_embedable_promo_videot(self):
+    def test_addition_of_embedable_promo_video(self):
         embedable_link = 'https://www.youtube.com/embed/Q0hi9d1W3Ag'
         asset = Asset.objects.create(
             slug='mailchimp',
@@ -41,3 +41,31 @@ class TestAsset:
             promo_video=embedable_link,
         )
         assert asset.promo_video == embedable_link
+
+    def test_addition_of_embedable_promo_video_without_https_prefix(self):
+        form_url = 'www.youtube.com/embed/Q0hi9d1W3Ag'
+        asset = Asset.objects.create(
+            slug='mailchimp',
+            name='Mailchimp',
+            website='https://mailchimp.com/',
+            short_description='bla bla',
+            description='bla bla bla',
+            promo_video=form_url,
+        )
+
+        expected_embed_url = 'https://www.youtube.com/embed/Q0hi9d1W3Ag'
+        assert asset.promo_video == expected_embed_url
+
+    def test_https_prefix_is_added_for_non_https_urls(self):
+        form_url = 'http://www.youtube.com/embed/Q0hi9d1W3Ag'
+        asset = Asset.objects.create(
+            slug='mailchimp',
+            name='Mailchimp',
+            website='https://mailchimp.com/',
+            short_description='bla bla',
+            description='bla bla bla',
+            promo_video=form_url,
+        )
+
+        expected_embed_url = 'https://www.youtube.com/embed/Q0hi9d1W3Ag'
+        assert asset.promo_video == expected_embed_url
