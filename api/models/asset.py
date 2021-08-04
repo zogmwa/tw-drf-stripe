@@ -94,18 +94,22 @@ class Asset(models.Model):
         if video_url is None:
             return video_url
 
+        if not video_url.startswith("https://") and not video_url.startswith(
+                "http://"):  # furl doesn't work properly if there is no http or https in the video url
+            video_url = "https://" + video_url
+
         """ Takes a URL string for a video and converts it into an embeddeable video link """
         f = furl(video_url)
 
         if 'youtu.be' in f.netloc:
             # For youtu.be links the video id is in the path
-            embed_url = 'https://www.youtube.com/embed' + f.path
+            embed_url = 'https://www.youtube.com/embed' + str(f.path)
         elif 'youtube.com' in f.netloc and not str(f.path).startswith('/embed'):
             vid = f.args['v']
             embed_url = 'https://www.youtube.com/embed/{}'.format(vid)
-        elif "vimeo.com" in f.netloc:
+        elif "vimeo.com" in f.netloc and not str(f.path).startswith('/video'):
             # Vimeo also keeps video id in the path
-            embed_url = 'https://player.vimeo.com/video' + f.path
+            embed_url = 'https://player.vimeo.com/video' + str(f.path)
         else:
             embed_url = video_url
 
