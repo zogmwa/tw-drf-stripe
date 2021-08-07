@@ -20,9 +20,17 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.auth_views import GoogleLogin
-from api.views import AssetViewSet, autocomplete_tags, AssetQuestionViewSet, AssetClickThroughCounterRedirectView, \
-    AssetVoteViewSet, UserViewSet, PricePlanViewSet, AssetAttributeViewSet
+from api.views.asset import AssetViewSet
+from api.views.asset_attributes import AssetAttributeViewSet
+from api.views.common import autocomplete_tags
+
+from api.views.asset_questions import AssetQuestionViewSet
+from api.views.analytics import  AssetClickThroughCounterRedirectView
+from api.views.asset_votes import AssetVoteViewSet
 from dj_rest_auth.views import PasswordResetConfirmView
+
+from api.views.price_plans import PricePlanViewSet
+from api.views.user import UserViewSet
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)

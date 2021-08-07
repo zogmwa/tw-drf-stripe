@@ -4,9 +4,9 @@ from django.conf import settings
 
 class Attribute(models.Model):
     """
-    An asset attribute is something that describes an asset like 'Easy to Use'. It's different from a tag
-    in that rather than being a category tag it is kind of like a feature or highlight that
-    acts as an adjective for the web service it is used on.
+    Asset Attributes are key asset highlights - which includes both features and key qualities of that asset.
+    Like 'Good APIs', 'Easy to use', etc. It's different from a tag in that rather than being representative of a
+    category it is kind of like a feature/quality highlight.
     """
     name = models.CharField(max_length=55, unique=True)
 

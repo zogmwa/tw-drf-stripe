@@ -1,5 +1,5 @@
 from api.models import Tag, Asset
-from api.views import AssetViewSet
+from api.views.asset import AssetViewSet
 
 
 class TestAssetViewSet:
