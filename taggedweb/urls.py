@@ -22,7 +22,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from api.auth_views import GoogleLogin
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet
-from api.views.common import autocomplete_tags
+from api.views.common import autocomplete_tags, autocomplete_assets_and_tags
 
 from api.views.asset_questions import AssetQuestionViewSet
 from api.views.analytics import  AssetClickThroughCounterRedirectView
@@ -43,7 +43,22 @@ router.register(r'asset_attributes', AssetAttributeViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
+
+    # (Deprecated): Replace this by `autocomplete-tags-and-assets` on the frontend.
     path('autocomplete-tags/', autocomplete_tags),
+
+    # This endpoint suggests both tags and assets. Response for a query like `/autocomplete-tags-and-assets/?q=ac` is:
+    # {
+    #   "tags": [
+    #     "accounting"
+    #   ],
+    #   "assets": [
+    #     "Accern",
+    #     "Acobot",
+    #     "Actionable Science"
+    #   ]
+    # }
+    path('autocomplete-tags-and-assets/', autocomplete_assets_and_tags),
 
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
