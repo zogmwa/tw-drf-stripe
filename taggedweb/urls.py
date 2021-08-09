@@ -19,7 +19,7 @@ from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from api.auth_views import GoogleLogin
+from api.views.auth import GoogleLogin, LinkedInLogin
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet
 from api.views.common import autocomplete_tags, autocomplete_assets_and_tags
@@ -67,7 +67,11 @@ urlpatterns = [
     # Authentication
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
+    # Social Authentication
     path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login'),
+    # https://django-allauth.readthedocs.io/en/latest/providers.html?highlight=LinkedIn#linkedin
+    path('dj-rest-auth/linkedin/', LinkedInLogin.as_view(), name='linkedin_login'),
+
     path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
     path('accounts/', include('allauth.urls')),
@@ -76,6 +80,7 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
+    # For links clickthrough counts
     path(
         'r/assets/<slug:slug>',
         AssetClickThroughCounterRedirectView.as_view(),
