@@ -23,7 +23,6 @@ class GroupSerializer(HyperlinkedModelSerializer):
 
 
 class TagSerializer(HyperlinkedModelSerializer):
-
     class Meta:
         model = Tag
         fields = ['slug', 'name']
@@ -34,21 +33,18 @@ class TagSerializer(HyperlinkedModelSerializer):
 
 
 class AssetAttributeSerializer(ModelSerializer):
-
     class Meta:
         model = Attribute
         fields = ['name', 'is_con']
 
 
 class PricePlanSerializer(ModelSerializer):
-
     class Meta:
         model = PricePlan
         fields = ['asset', 'name', 'summary', 'currency', 'price', 'per', 'features']
 
 
 class AssetQuestionSerializer(ModelSerializer):
-
     class Meta:
         model = AssetQuestion
         fields = ['asset', 'question', 'answer', 'upvote_count']
@@ -66,6 +62,14 @@ class AssetSerializer(HyperlinkedModelSerializer):
     # Represents a masked url that should be used instead of affiliate_link so that click-throughs are tracked.
     tweb_url = serializers.URLField(read_only=True)
     upvotes_count = serializers.IntegerField(read_only=True)
+
+    def create(self, validated_data):
+        logged_in_user = self.context['request'].user
+        if logged_in_user:
+            # Only set submitted_by if we have a reference to a logged in user instance
+            validated_data['submitted_by'] = self.context['request'].user
+
+        return super(AssetSerializer, self).create(validated_data)
 
     class Meta:
         model = Asset

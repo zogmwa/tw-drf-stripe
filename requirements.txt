@@ -29,7 +29,8 @@ ipython
 # Testing only requirements
 pytest==6.2.4
 pytest-django==4.4.0
-
+pytest-mock>=3.6.1
+Faker>=8.11.0
 
 # Data Load Requirements
 git+https://github.com/erikriver/opengraph.git@e2322563004c923a4c1ce136733a44efe5fc8caa
