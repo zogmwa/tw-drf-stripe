@@ -3,7 +3,7 @@ from email.headerregistry import Group
 from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 
-from api.models import User, Tag, Asset, AssetQuestion, PricePlan, AssetVote, Attribute
+from api.models import User, Tag, Asset, AssetQuestion, PricePlan, AssetVote, Attribute, AttributeVote
 
 
 class UserSerializer(HyperlinkedModelSerializer):
@@ -33,9 +33,25 @@ class TagSerializer(HyperlinkedModelSerializer):
 
 
 class AssetAttributeSerializer(ModelSerializer):
+    # Upvotes count for asset in content
+    upvotes_count = serializers.SerializerMethodField(method_name='get_upvote_counts_for_asset_in_request')
+
     class Meta:
         model = Attribute
-        fields = ['name', 'is_con']
+        fields = ['name', 'is_con', 'upvotes_count']
+
+    def get_upvote_counts_for_asset_in_request(self, instance):
+        request = self.context.get('request')
+        asset_slug = request.query_params.get('asset', '')
+        asset_slug = asset_slug.strip()
+
+        if asset_slug:
+            asset = Asset.objects.get(slug=asset_slug)
+            upvote_count_for_given_asset_attribute = AttributeVote.objects.filter(
+                is_upvote=True, asset=asset, attribute=instance
+            ).count()
+            return upvote_count_for_given_asset_attribute
+        return 'Cannot be calculated (asset unknown)'
 
 
 class PricePlanSerializer(ModelSerializer):
@@ -91,3 +107,23 @@ class AssetVoteSerializer(ModelSerializer):
         fields = [
             'id', 'user', 'asset', 'voted_on',
         ]
+
+
+class AssetAttributeVoteSerializer(ModelSerializer):
+
+    # Read-Only because this isn't explicitly provided by the user
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = AttributeVote
+        fields = [
+            'is_upvote', 'user', 'attribute', 'asset', 'voted_on',
+        ]
+
+    def create(self, validated_data):
+        request = self.context['request']
+        if request.user and request.user.is_authenticated:
+            # Set the user to the logged in user, because that is whom the asset attribute vote will be associated with
+            validated_data['user'] = request.user
+
+        return super().create(validated_data)

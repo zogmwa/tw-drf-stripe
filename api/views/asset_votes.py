@@ -15,7 +15,8 @@ class AssetVoteViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             # /api/votes/ (List View)
             # Returns all votes associated with the currently logged in user, filtering by asset allowed using the
-            # asset GET parameter.
+            # asset GET parameter. We only return currently logged in user's votes because, the aggregate vote
+            # counts are already returned at the asset level and each vote instance need not be returned.
 
             asset_slug = self.request.query_params.get('asset', '')
             asset_slug = asset_slug.strip()

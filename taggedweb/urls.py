@@ -19,6 +19,7 @@ from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.auth import GoogleLogin, LinkedInLogin
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet
@@ -39,6 +40,7 @@ router.register(r'questions', AssetQuestionViewSet)
 router.register(r'price_plans', PricePlanViewSet)
 router.register(r'upvotes', AssetVoteViewSet)
 router.register(r'asset_attributes', AssetAttributeViewSet)
+router.register(r'asset_attribute_votes', AssetAttributeVoteViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
