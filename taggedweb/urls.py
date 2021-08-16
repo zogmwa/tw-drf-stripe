@@ -65,8 +65,7 @@ urlpatterns = [
     path('', include(router.urls)),
 
     #swaggerAPI
-    path('docs/', schema_view.with_ui('swagger', cache_timeout=0),
-         name='schema-swagger-ui'),
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 
     # (Deprecated): Replace this by `autocomplete-tags-and-assets` on the frontend.
     path('autocomplete-tags/', autocomplete_tags),
