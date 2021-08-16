@@ -33,6 +33,24 @@ from dj_rest_auth.views import PasswordResetConfirmView
 from api.views.price_plans import PricePlanViewSet
 from api.views.user import UserViewSet
 
+# Swagger code starts here
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+schema_view = get_schema_view(
+    openapi.Info(
+        title="TaggedWeb API",
+        default_version='v1',
+        description="Welcome to the world of TaggedWeb Backend",
+        terms_of_service="https://www.taggedweb.com",
+        contact=openapi.Contact(email=""),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=False,
+    permission_classes=(permissions.IsAdminUser,),
+)
+# ends here
+
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'assets', AssetViewSet)
@@ -45,6 +63,9 @@ router.register(r'asset_attribute_votes', AssetAttributeVoteViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
+
+    #swaggerAPI
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 
     # (Deprecated): Replace this by `autocomplete-tags-and-assets` on the frontend.
     path('autocomplete-tags/', autocomplete_tags),

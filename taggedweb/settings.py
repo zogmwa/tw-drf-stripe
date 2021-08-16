@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
+    'drf_yasg',
     # 3P Apps
     'corsheaders',
     'guardian',
