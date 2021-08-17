@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 
 from api.models import PricePlan
-from api.serializers import PricePlanSerializer
+from api.serializers.price_plan import PricePlanSerializer
 
 
 class PricePlanViewSet(viewsets.ModelViewSet):

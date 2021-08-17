@@ -2,7 +2,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 
 from api.models import AssetVote, Asset, AttributeVote
-from api.serializers import AssetVoteSerializer, AssetAttributeVoteSerializer
+from api.serializers.asset_attribute_vote import AssetAttributeVoteSerializer
+from api.serializers.asset_vote import AssetVoteSerializer
+AssetAttributeVoteSerializer
 
 
 class AssetAttributeVoteViewSet(viewsets.ModelViewSet):

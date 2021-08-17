@@ -34,7 +34,14 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-For changing any local only settings (for your computer), don't directly edit settings.py, update over
+For changing any local only settings (for your computer), don't directly edit settings.py, copy over override_settings.py.dist,
+to override_settings.py and update that.
+
+```bash
+cp override_settings.py.dist override_settings.py
+```
+
+Now, you can add any custom settings you want to use specifically for local only (without affecting prod) to override_settings.
 
 ### ElasticSearch
 

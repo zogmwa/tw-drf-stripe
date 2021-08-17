@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 
 from api.models import Attribute
-from api.serializers import AssetAttributeSerializer
+from api.serializers.asset_attribute import AssetAttributeSerializer
 
 
 class AssetAttributeViewSet(viewsets.ModelViewSet):

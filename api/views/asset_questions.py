@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 
 from api.models import AssetQuestion
-from api.serializers import AssetQuestionSerializer
+from api.serializers.asset_question import AssetQuestionSerializer
 
 
 class AssetQuestionViewSet(viewsets.ModelViewSet):

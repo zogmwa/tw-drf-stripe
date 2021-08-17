@@ -4,7 +4,7 @@ from rest_framework import viewsets, permissions
 
 from api.documents import AssetDocument
 from api.models import Asset, Tag
-from api.serializers import AssetSerializer
+from api.serializers.asset import AssetSerializer
 
 
 class AssetViewSet(viewsets.ModelViewSet):
