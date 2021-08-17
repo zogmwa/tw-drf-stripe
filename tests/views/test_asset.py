@@ -61,7 +61,10 @@ def test_update_counter_of_tag_used_for_filtering_assets(user_and_password):
     assert_counter(1)
 
 
-@pytest.mark.parametrize("tag, tag_name, query,", [('database', 'data', 'data'), ('data', 'data', 'database')])
+@pytest.mark.parametrize("tag, tag_name, query,", [
+    ('database', 'data', 'data'),
+    ('data', 'data', 'database')
+])
 def test_update_counter_of_tag_when_exactly_matched_with_searched_tag(user_and_password, tag, tag_name, query):
     # When the user searches for assets by some tags, counter of those tags should only be incremented
     # which matches exactly with the searched tags. For example: if user searches 'database', then the counter

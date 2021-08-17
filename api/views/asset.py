@@ -15,9 +15,9 @@ class AssetViewSet(viewsets.ModelViewSet):
     serializer_class = AssetSerializer
     lookup_field = 'slug'
 
-    def update_counter(self, search_query):
+    def _update_tag_used_in_search_counter(self, search_query):
         tags = search_query.split()
-        Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter')+1)
+        Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter') + 1)
         return
 
     @staticmethod
@@ -53,7 +53,7 @@ class AssetViewSet(viewsets.ModelViewSet):
                 # If no tags are provided return nothing, no more returning of default sample
                 return []
 
-            self.update_counter(search_query)
+            self._update_tag_used_in_search_counter(search_query)
 
             es_query = MultiMatch(
                 query=search_query,
