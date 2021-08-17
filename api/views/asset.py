@@ -1,4 +1,4 @@
-from django.db.models import QuerySet, Count
+from django.db.models import QuerySet, Count, F
 from elasticsearch_dsl.query import MultiMatch
 from rest_framework import viewsets, permissions
 
@@ -14,6 +14,11 @@ class AssetViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = AssetSerializer
     lookup_field = 'slug'
+
+    def update_counter(self, search_query):
+        tags = search_query.split()
+        Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter')+1)
+        return
 
     @staticmethod
     def _filter_assets_matching_tags_exact(tag_slugs: list) -> QuerySet:
@@ -47,6 +52,8 @@ class AssetViewSet(viewsets.ModelViewSet):
             if search_query is None:
                 # If no tags are provided return nothing, no more returning of default sample
                 return []
+
+            self.update_counter(search_query)
 
             es_query = MultiMatch(
                 query=search_query,
