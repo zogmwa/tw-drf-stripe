@@ -139,7 +139,7 @@ class Asset(models.Model):
                 furled_url = furl(self.website)
                 self.logo_url = 'https://logo.clearbit.com/{}'.format(furled_url.netloc)
 
-        super(Asset, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Web Service'
