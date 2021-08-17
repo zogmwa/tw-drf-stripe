@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import UniqueConstraint
 
 from api.models import Asset
 
 
 class AssetReview(models.Model):
-    review_range = range(1, 11)    # 1 to 10 (11 excluded)
-    RATING_CHOICES = tuple(zip(review_range, map(str, review_range)))
+    RATING_RANGE = range(1, 11)    # 1 to 10 (11 excluded)
+    RATING_CHOICES = tuple(zip(RATING_RANGE, map(str, RATING_RANGE)))
 
     asset = models.ForeignKey(Asset, related_name='reviews', on_delete=models.CASCADE)
     user = models.ForeignKey(
@@ -24,5 +25,10 @@ class AssetReview(models.Model):
         return "{}: {}: {}".format(self.asset, self.user, self.rating)
 
     class Meta:
-        verbose_name = 'Review'
-        verbose_name_plural = 'Reviews'
+        # One user should not be able to vote on the same asset/web-service more than once
+        constraints = [
+            UniqueConstraint(fields=['asset', 'user'], name='user_asset_review')
+        ]
+
+        verbose_name = 'Web Service Review'
+        verbose_name_plural = 'Web Service Reviews'

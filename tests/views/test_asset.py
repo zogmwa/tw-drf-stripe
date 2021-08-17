@@ -1,16 +1,6 @@
-from api.models import Asset, User, Tag
+from api.models import Asset, Tag
 from django.test.client import Client
 import pytest
-
-
-@pytest.fixture()
-def user_and_password():
-    username = 'username'
-    password = 'password'
-    user = User.objects.create(username=username)
-    user.set_password(password)
-    user.save()
-    return user, password
 
 
 def check_login_user(user_and_password):
