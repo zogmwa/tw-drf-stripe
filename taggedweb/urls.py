@@ -20,6 +20,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
+from api.views.asset_reviews import AssetReviewViewSet
 from api.views.auth import GoogleLogin, LinkedInLogin
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet
@@ -59,6 +60,10 @@ router.register(r'price_plans', PricePlanViewSet)
 router.register(r'upvotes', AssetVoteViewSet)
 router.register(r'asset_attributes', AssetAttributeViewSet)
 router.register(r'asset_attribute_votes', AssetAttributeVoteViewSet)
+
+# E.g. To filter ratings where asset__slug=makemymails and rating is 10
+# GET: /asset_reviews/?asset__slug=makemymails&rating=10
+router.register(r'asset_reviews', AssetReviewViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -56,12 +56,13 @@ INSTALLED_APPS = [
     # 3P Apps
     'corsheaders',
     'guardian',
-    'rest_framework',
-    'rest_framework.authtoken',
     'storages',
     'django_elasticsearch_dsl',
     'django_extensions',
+    'django_filters',
     'phonenumber_field',
+    'rest_framework',
+    'rest_framework.authtoken',
 
     ## Authentication
     'dj_rest_auth',
