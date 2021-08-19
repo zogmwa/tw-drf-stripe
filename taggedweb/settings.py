@@ -203,7 +203,9 @@ AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATICFILES_LOCATION = 'static'
-STATICFILES_STORAGE = 'api.custom_storages.StaticStorage'
+STATICFILES_STORAGE = 'api.storage_backends.S3StaticStorage'
+DEFAULT_FILE_STORAGE = 'api.storage_backends.S3StaticStorage'
+
 AWS_S3_REGION_NAME = 'us-east-1'
 STATIC_URL = "https://{}/{}/".format(AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
 AWS_QUERYSTRING_AUTH = False

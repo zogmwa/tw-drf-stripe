@@ -1,3 +1,4 @@
+import os
 import logging
 from urllib.error import HTTPError
 
@@ -11,6 +12,12 @@ from opengraphio import OpenGraphIO
 
 from .asset_attribute import Attribute
 from .tag import Tag
+
+
+def _upload_to_for_logos(instance, filename):
+    path = "images/logos/"
+    filename_with_extension = "{}.{}".format(instance.slug, instance.logo.file.image.format.lower())
+    return os.path.join(path, filename_with_extension)
 
 
 class Asset(models.Model):
@@ -31,6 +38,11 @@ class Asset(models.Model):
     # Later on we can have image field as well but for now to avoid storing images
     # we can pull the logo directly from the respective site
     logo_url = models.URLField(max_length=2048, null=True, blank=True)
+
+    # To be used as a fallback for logo_url if it's unset.
+    # User's should both be able to upload a logo or specify a logo_url
+    logo = models.ImageField(null=True, blank=True, upload_to=_upload_to_for_logos)
+
     pricing_url = models.URLField(
         max_length=200,
         null=True,

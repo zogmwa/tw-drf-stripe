@@ -31,7 +31,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Asset
         fields = [
-            'id', 'slug', 'name', 'logo_url', 'website', 'affiliate_link', 'short_description', 'description',
+            'id', 'slug', 'name', 'logo_url', 'logo', 'website', 'affiliate_link', 'short_description', 'description',
             'promo_video', 'tags', 'attributes', 'tweb_url', 'upvotes_count', 'og_image_url', 'price_plans',
         ]
         lookup_field = 'slug'
