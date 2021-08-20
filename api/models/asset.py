@@ -12,6 +12,7 @@ from opengraphio import OpenGraphIO
 
 from .asset_attribute import Attribute
 from .tag import Tag
+from .organization import Organization
 
 
 def _upload_to_for_logos(instance, filename):
@@ -81,6 +82,13 @@ class Asset(models.Model):
     )
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
+
+    organization = models.ForeignKey(
+        Organization,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='assets',
+    )
 
     @property
     def upvotes_count(self):

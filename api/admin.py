@@ -8,6 +8,7 @@ from guardian.admin import GuardedModelAdmin
 from api.models import Tag, Asset, User, AssetQuestion, PricePlan, AssetVote, Attribute
 from api.models.asset_review import AssetReview
 from api.models.attribute_vote import AttributeVote
+from api.models.organization import Organization
 
 
 class TagInline(admin.TabularInline):
@@ -50,12 +51,18 @@ class PricePlanAdmin(admin.ModelAdmin):
     search_fields = ['asset__name', 'name']
 
 
+class OrganizationAdmin(admin.ModelAdmin):
+    model = Organization
+    search_fields = ['name']
+
+
 class AssetAdmin(GuardedModelAdmin):
     model = Asset
     user_owned_objects_field = 'owner'
     user_can_access_owned_objects_only = False
     list_display = ('name', 'slug', 'website', 'short_description', 'owner')
     search_fields = ['name', ]
+    autocomplete_fields = ['organization', 'submitted_by', 'owner']
     prepopulated_fields = {'slug': ('name',), }
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '128'})},
@@ -97,6 +104,7 @@ admin.site.site_header = 'TaggedWeb Admin'
 # Register Models
 admin.site.register(User, UserAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(AssetQuestion, AssetQuestionAdmin)
 admin.site.register(PricePlan, PricePlanAdmin)
