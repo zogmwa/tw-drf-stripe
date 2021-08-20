@@ -1,6 +1,8 @@
 from django.db.models import QuerySet, Count, F
 from elasticsearch_dsl.query import MultiMatch
 from rest_framework import viewsets, permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 
 from api.documents import AssetDocument
 from api.models import Asset, Tag
@@ -13,6 +15,9 @@ class AssetViewSet(viewsets.ModelViewSet):
     queryset = Asset.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = AssetSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = {'avg_rating': ['gte', 'lte']}
+    ordering_fields = ['avg_rating']
     lookup_field = 'slug'
 
     def _update_tag_used_in_search_counter(self, search_query):
@@ -29,7 +34,9 @@ class AssetViewSet(viewsets.ModelViewSet):
 
         # First create a query which filters having at-least as many tags as those in the desired list
         # Then filter the assets which have each of the desired tag.
-        assets = Asset.objects.annotate(c=Count('tags')).filter(c__gte=len(desired_tags))
+        assets = Asset.objects.annotate(c=Count('tags')).filter(
+            c__gte=len(desired_tags)
+        )
         for tag in desired_tags:
             assets = assets.filter(tags__in=[tag])
         return assets
@@ -39,11 +46,17 @@ class AssetViewSet(viewsets.ModelViewSet):
             # /api/assets/?q=<Search Keywords> (List View)
             # Eventually deprecate tags query and move to q, since q can be any keywords including asset name
             # not just tags.
-            search_query = self.request.query_params.get('tags') or self.request.query_params.get('q')
+            search_query = self.request.query_params.get(
+                'tags'
+            ) or self.request.query_params.get('q')
 
             # A max of num_results_per_page results will be returned
             num_results_per_page = min(
-                int(self.request.query_params.get('n', self.DEFAULT_SEARCH_RESULTS_COUNT)),
+                int(
+                    self.request.query_params.get(
+                        'n', self.DEFAULT_SEARCH_RESULTS_COUNT
+                    )
+                ),
                 # No more than 100 results should be returned regardless of n, to protect from API query load
                 100,
             )
@@ -51,7 +64,7 @@ class AssetViewSet(viewsets.ModelViewSet):
 
             if search_query is None:
                 # If no tags are provided return nothing, no more returning of default sample
-                return []
+                return Asset.objects.none()
 
             self._update_tag_used_in_search_counter(search_query)
 
@@ -65,9 +78,10 @@ class AssetViewSet(viewsets.ModelViewSet):
 
             es_search = AssetDocument.search().query(es_query)
             start_page = page * num_results_per_page
-            es_search = es_search[start_page:start_page+num_results_per_page]
+            es_search = es_search[start_page : start_page + num_results_per_page]
             assets_db_queryset = es_search.to_queryset()
             assets_db_queryset = assets_db_queryset.filter(is_published=True)
+
             return assets_db_queryset
 
         elif self.action == 'retrieve':

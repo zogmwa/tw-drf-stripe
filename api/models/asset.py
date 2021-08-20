@@ -82,6 +82,8 @@ class Asset(models.Model):
     )
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
+    avg_rating = models.DecimalField(default=0, decimal_places=7, max_digits=10)
+    reviews_count = models.IntegerField(default=0)
 
     organization = models.ForeignKey(
         Organization,
