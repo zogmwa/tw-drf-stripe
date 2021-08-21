@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import UniqueConstraint, F
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 
 from api.models import Asset
@@ -38,21 +38,25 @@ class AssetReview(models.Model):
         verbose_name_plural = 'Web Service Reviews'
 
 
-@receiver(post_save, sender=AssetReview)
-def asset_review_avg_rating_update(sender, instance=None, **kwargs):
+@receiver(pre_save, sender=AssetReview)
+def avg_rating_and_count_update_for_new_review(sender, instance=None, **kwargs):
     """
-    When new review is added, the average rating of the asset is recalculated & 'avg-rating' and 'reviews_count'
+    When new review is added, the average rating of the asset is recalculated & 'avg_rating' and 'reviews_count'
     for the asset is updated
     """
-    Asset.objects.filter(id=instance.asset_id).update(
-        avg_rating=(F('avg_rating') * F('reviews_count') + instance.rating)
-        / (F('reviews_count') + 1),
-        reviews_count=F('reviews_count') + 1,
-    )
+    try:
+        # Try to get an old reference to this instance.
+        instance_old = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        Asset.objects.filter(id=instance.asset_id).update(
+            avg_rating=(F('avg_rating') * F('reviews_count') + instance.rating)
+            / (F('reviews_count') + 1),
+            reviews_count=F('reviews_count') + 1,
+        )
 
 
 @receiver(post_delete, sender=AssetReview)
-def asset_review_avg_rating_update(sender, instance=None, **kwargs):
+def avg_rating_and_count_update_on_delete(sender, instance=None, **kwargs):
     Asset.objects.filter(id=instance.asset_id).update(
         avg_rating=(F('avg_rating') * F('reviews_count') - instance.rating)
         / (F('reviews_count') - 1),

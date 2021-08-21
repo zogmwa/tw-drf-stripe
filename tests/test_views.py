@@ -9,11 +9,16 @@ class TestAssetViewSet:
         asset_makemymails = Asset.objects.create(name='MakeMyMails')
         asset_mailchimp = Asset.objects.create(name='MailChimp')
 
-        email_marketing_tag = Tag(slug=email_marketing_tag_slug, name='Email Marketing')
-        aws_ses_tag = Tag(slug=aws_ses_tag_slug, name='ses')
-        Tag.objects.bulk_create([email_marketing_tag, aws_ses_tag])
+        email_marketing_tag = Tag.objects.create(
+            slug=email_marketing_tag_slug, name='Email Marketing'
+        )
+        aws_ses_tag = Tag.objects.create(slug=aws_ses_tag_slug, name='ses')
+        email_marketing_tag.save()
+
         asset_makemymails.tags.set([email_marketing_tag, aws_ses_tag])
         asset_mailchimp.tags.set([email_marketing_tag])
 
-        assets = AssetViewSet._filter_assets_matching_tags_exact([email_marketing_tag_slug, aws_ses_tag_slug])
+        assets = AssetViewSet._filter_assets_matching_tags_exact(
+            [email_marketing_tag_slug, aws_ses_tag_slug]
+        )
         assert assets.get().name == asset_makemymails.name

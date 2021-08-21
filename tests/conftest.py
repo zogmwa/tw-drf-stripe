@@ -4,6 +4,19 @@ from django.test import Client
 from api.models import Asset, User
 
 
+@pytest.fixture(autouse=True)
+def enable_db_access_for_all_tests(db):
+    pass
+
+
+@pytest.fixture(autouse=True)
+def patch_elasticsearch(mocker):
+    # Patch elasticsearch so that whenever a db save happens an elastic search index update request does not fail
+    # in the tests. Later on figure out how to patch this in a better way with some data so that we can still have a
+    # mock index that can be used for testing search flows.
+    mocker.patch('elasticsearch.Transport.perform_request')
+
+
 @pytest.fixture
 def example_asset():
     return Asset.objects.create(
