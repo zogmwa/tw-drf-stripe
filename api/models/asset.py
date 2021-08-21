@@ -17,7 +17,9 @@ from .organization import Organization
 
 def _upload_to_for_logos(instance, filename):
     path = "images/logos/"
-    filename_with_extension = "{}.{}".format(instance.slug, instance.logo.file.image.format.lower())
+    filename_with_extension = "{}.{}".format(
+        instance.slug, instance.logo.file.image.format.lower()
+    )
     return os.path.join(path, filename_with_extension)
 
 
@@ -25,6 +27,7 @@ class Asset(models.Model):
     """
     Asset for now represents a web asset such as a website, software, application or web offering.
     """
+
     slug = models.SlugField(null=True, unique=True)
     name = models.CharField(max_length=255, unique=True)
     website = models.URLField(max_length=2048, null=True, blank=True)
@@ -55,10 +58,13 @@ class Asset(models.Model):
 
     short_description = models.CharField(max_length=512, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    has_free_trial = models.BooleanField(default=False)
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
 
     # An attribute is kind of like a feature tag or a highlight, example "Easy to Use" is an attribute
-    attributes = models.ManyToManyField(Attribute, through='LinkedAttribute', related_name='assets')
+    attributes = models.ManyToManyField(
+        Attribute, through='LinkedAttribute', related_name='assets'
+    )
     # questions: to fetch all questions related to this asset
 
     promo_video = models.URLField(max_length=2048, null=True, blank=True)
@@ -69,14 +75,16 @@ class Asset(models.Model):
     # Which user owns this Asset/Web Service (intended for web service owners)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         related_name='owned_assets',
     )
 
     submitted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         related_name='submitted_assets',
     )
@@ -87,7 +95,8 @@ class Asset(models.Model):
 
     organization = models.ForeignKey(
         Organization,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         related_name='assets',
     )
@@ -98,7 +107,7 @@ class Asset(models.Model):
 
     @property
     def tweb_url(self):
-        """ A masked TaggedWeb URL to allow tracking how many clicks each affiliate link/website is getting """
+        """A masked TaggedWeb URL to allow tracking how many clicks each affiliate link/website is getting"""
         final_url = self.affiliate_link or self.website
         if final_url:
             # /r/assets/{slug} stands for redirect asset with the given slug from this to third party url
@@ -151,7 +160,9 @@ class Asset(models.Model):
                     # Some websites have same origin policy even for accessing OGP tags so trying to parse
                     # from their url may result in a forbidden error
                     logging.exception(e)
-                    opengraph = OpenGraphIO({'app_id': '8046bf50-dd39-4e7f-8988-8e8667387ff9'})
+                    opengraph = OpenGraphIO(
+                        {'app_id': '8046bf50-dd39-4e7f-8988-8e8667387ff9'}
+                    )
                     site_info = opengraph.get_site_info(passed_url=self.website)
                     hybrid_graph_dict = site_info['hybridGraph']
                     self.description = hybrid_graph_dict.get('description', '')

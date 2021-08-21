@@ -12,6 +12,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
     This is the serializer for the listing page, not all fields are to be returned
     on the listing page.
     """
+
     tags = TagSerializer(read_only=True, many=True)
     attributes = AssetAttributeSerializer(read_only=True, many=True)
     price_plans = PricePlanSerializer(read_only=True, many=True)
@@ -19,7 +20,9 @@ class AssetSerializer(HyperlinkedModelSerializer):
     # Represents a masked url that should be used instead of affiliate_link so that click-throughs are tracked.
     tweb_url = serializers.URLField(read_only=True)
     upvotes_count = serializers.IntegerField(read_only=True)
-    avg_rating = serializers.DecimalField(read_only=True, max_digits=10, decimal_places=7)
+    avg_rating = serializers.DecimalField(
+        read_only=True, max_digits=10, decimal_places=7
+    )
     reviews_count = serializers.IntegerField(read_only=True)
 
     def create(self, validated_data):
@@ -33,11 +36,25 @@ class AssetSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Asset
         fields = [
-            'id', 'slug', 'name', 'logo_url', 'logo', 'website', 'affiliate_link', 'short_description', 'description',
-            'promo_video', 'tags', 'attributes', 'tweb_url', 'upvotes_count', 'og_image_url', 'price_plans',
-            'avg_rating', 'reviews_count',
+            'id',
+            'slug',
+            'name',
+            'logo_url',
+            'logo',
+            'website',
+            'affiliate_link',
+            'short_description',
+            'description',
+            'promo_video',
+            'tags',
+            'attributes',
+            'tweb_url',
+            'upvotes_count',
+            'og_image_url',
+            'price_plans',
+            'avg_rating',
+            'reviews_count',
+            'has_free_trial',
         ]
         lookup_field = 'slug'
-        extra_kwargs = {
-            'url': {'lookup_field': 'slug'}
-        }
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
