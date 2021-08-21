@@ -1,8 +1,8 @@
 name: TaggedWeb CI (Setup Dependencies and Run PyTest)
 
 on:
-  push:
-    branches: [ main ]
+#  push:
+#    branches: [ main ]
   pull_request:
     branches: [ main ]
 
