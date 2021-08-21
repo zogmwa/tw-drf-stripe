@@ -12,7 +12,12 @@ class AssetReviewSerializer(ModelSerializer):
     class Meta:
         model = AssetReview
         fields = [
-            'id', 'user', 'asset', 'content', 'rating', 'created',
+            'id',
+            'user',
+            'asset',
+            'content',
+            'rating',
+            'created',
         ]
 
     def _inject_logged_in_user_into_validated_data(self, validated_data: dict):

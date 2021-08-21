@@ -6,7 +6,9 @@ from api.models import Attribute, Asset, AttributeVote
 
 class AssetAttributeSerializer(ModelSerializer):
     # Upvotes count for asset in content
-    upvotes_count = serializers.SerializerMethodField(method_name='get_upvote_counts_for_asset_in_request')
+    upvotes_count = serializers.SerializerMethodField(
+        method_name='get_upvote_counts_for_asset_in_request'
+    )
 
     class Meta:
         model = Attribute

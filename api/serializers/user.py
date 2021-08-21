@@ -10,9 +10,7 @@ class UserSerializer(HyperlinkedModelSerializer):
         model = User
         fields = ['id', 'username', 'avatar']
         lookup_field = 'username'
-        extra_kwargs = {
-            'url': {'lookup_field': 'username'}
-        }
+        extra_kwargs = {'url': {'lookup_field': 'username'}}
 
 
 class GroupSerializer(HyperlinkedModelSerializer):

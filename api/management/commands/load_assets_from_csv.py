@@ -47,9 +47,14 @@ def process(tag_name: str, csv_filepath: str) -> None:
 class Command(BaseCommand):
     def handle(self, **options):
         default_csv_path = "../data/web-assets-list.csv"
-        csv_filepath = input("Enter CSV relative path or leave blank for default ({}):\n".format(
-            default_csv_path)
-        ) or default_csv_path
+        csv_filepath = (
+            input(
+                "Enter CSV relative path or leave blank for default ({}):\n".format(
+                    default_csv_path
+                )
+            )
+            or default_csv_path
+        )
 
         tag_name = input("Enter a tag name:\n")
         process(tag_name, csv_filepath)

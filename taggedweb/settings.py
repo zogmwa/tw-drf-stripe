@@ -28,7 +28,13 @@ DEBUG = True
 TAGGEDWEB_ELASTIC_IP = '18.213.87.2'
 
 BASE_API_URL = 'api.taggedweb.com'
-ALLOWED_HOSTS = [TAGGEDWEB_ELASTIC_IP, BASE_API_URL, 'taggedweb.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    TAGGEDWEB_ELASTIC_IP,
+    BASE_API_URL,
+    'taggedweb.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 # Difference between ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS:
 # https://stackoverflow.com/a/47229671/1819254
@@ -36,7 +42,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://taggedweb.com",
     "https://www.taggedweb.com",
     "https://{}".format(BASE_API_URL),
-
     # This is temporary, just for making local development easy on port 3000
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -63,7 +68,6 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework',
     'rest_framework.authtoken',
-
     ## Authentication
     'dj_rest_auth',
     'dj_rest_auth.registration',
@@ -72,7 +76,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.linkedin_oauth2',
-
     # Project Apps
     'api',
 ]
@@ -87,13 +90,10 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
-        }
+        },
     },
     'linkedin': {
-        'SCOPE': [
-            'r_basicprofile',
-            'r_emailaddress'
-        ],
+        'SCOPE': ['r_basicprofile', 'r_emailaddress'],
         'PROFILE_FIELDS': [
             'id',
             'first-name',
@@ -101,8 +101,8 @@ SOCIALACCOUNT_PROVIDERS = {
             'email-address',
             'picture-url',
             'public-profile-url',
-        ]
-    }
+        ],
+    },
 }
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
@@ -226,7 +226,6 @@ GUARDIAN_MONKEY_PATCH = False
 GUARDIAN_GET_INIT_ANONYMOUS_USER = 'api.models.get_anonymous_user_instance'
 
 REST_FRAMEWORK = {
-
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -234,32 +233,26 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         "dj_rest_auth.utils.JWTCookieAuthentication",
     ],
-
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
-
     'DEFAULT_THROTTLE_CLASSES': [
         # 'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
         'api.throttling.SubscriptionDailyRateThrottle',
     ],
-
     'DEFAULT_THROTTLE_RATES': {
         # 'anon': '10000/day',
         'user': '2000/day',
         'subscription': '2000/day',
     },
-
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': 'localhost:9200'
-    },
+    'default': {'hosts': 'localhost:9200'},
 }
 
 try:

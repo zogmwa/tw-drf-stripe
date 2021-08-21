@@ -2,7 +2,6 @@ from api.models import Asset
 
 
 class TestAsset:
-
     def test_create_asset_updates_promo_video_to_embedable_url(self):
         non_embedable_promo_video_link = 'http://www.youtube.com/watch?v=Q0hi9d1W3Ag'
         expected_embedable_link = 'https://www.youtube.com/embed/Q0hi9d1W3Ag'

@@ -36,7 +36,9 @@ class UserAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     model = Tag
     search_fields = ['name']
-    prepopulated_fields = {'slug': ('name',), }
+    prepopulated_fields = {
+        'slug': ('name',),
+    }
 
 
 class AssetQuestionAdmin(admin.ModelAdmin):
@@ -61,17 +63,17 @@ class AssetAdmin(GuardedModelAdmin):
     user_owned_objects_field = 'owner'
     user_can_access_owned_objects_only = False
     list_display = ('name', 'slug', 'website', 'short_description', 'owner')
-    search_fields = ['name', ]
+    search_fields = [
+        'name',
+    ]
     autocomplete_fields = ['organization', 'submitted_by', 'owner']
-    prepopulated_fields = {'slug': ('name',), }
+    prepopulated_fields = {
+        'slug': ('name',),
+    }
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '128'})},
     }
-    inlines = [
-        TagInline,
-        AttributeInline,
-        PricePlanInline
-    ]
+    inlines = [TagInline, AttributeInline, PricePlanInline]
 
 
 class AssetReviewAdmin(admin.ModelAdmin):

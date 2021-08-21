@@ -7,6 +7,7 @@ class SubscriptionDailyRateThrottle(UserRateThrottle):
     """
     To impose a different throttle rate for different users.
     """
+
     # Define a custom scope name to be referenced by DRF in settings.py
     scope = "subscription"
 

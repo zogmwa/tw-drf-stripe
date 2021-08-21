@@ -17,7 +17,9 @@ def clean_asset_descriptions() -> None:
 
         if asset.short_description is not None:
             if "_x000D_" in asset.short_description:
-                asset.short_description = asset.short_description.replace("_x000D_", "\n")
+                asset.short_description = asset.short_description.replace(
+                    "_x000D_", "\n"
+                )
 
             if "x000D" in asset.short_description:
                 asset.short_description = asset.short_description.replace("x000D", "\n")

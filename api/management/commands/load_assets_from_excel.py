@@ -11,7 +11,7 @@ from api.models import Tag, Asset
 
 
 def _get_slug_name(tag_name: str) -> str:
-    """ Get slug from the tag name """
+    """Get slug from the tag name"""
     # This is the list of special tags in which the slugs are special
     SPECIAL_TAGS = {
         'Machine Learning (ML)': 'machine-learning',
@@ -62,18 +62,24 @@ def process(excel_path: str) -> None:
 
         promo_video_field_name = Asset.promo_video.field.attname
 
-        if row.get(short_description_field_name) and not pd.isnull(row[short_description_field_name]):
+        if row.get(short_description_field_name) and not pd.isnull(
+            row[short_description_field_name]
+        ):
             asset.short_description = row[short_description_field_name].strip()
 
             if "_x000D_" in asset.short_description:
                 # Replaces _X000D_ character in short description if there
-                asset.short_description = asset.short_description.replace("_x000D_", "\n")
+                asset.short_description = asset.short_description.replace(
+                    "_x000D_", "\n"
+                )
 
             if "x000D" in asset.short_description:
                 # Replaces X000D character in short description if there
                 asset.short_description = asset.short_description.replace("x000D", "\n")
 
-        if row.get(description_field_name) and not pd.isnull(row[description_field_name]):
+        if row.get(description_field_name) and not pd.isnull(
+            row[description_field_name]
+        ):
             asset.description = row[description_field_name].strip()
 
             if "_x000D_" in asset.description:
@@ -84,7 +90,9 @@ def process(excel_path: str) -> None:
                 # Replaces X000D character in description if there
                 asset.description = asset.description.replace("x000D", "\n")
 
-        if row.get(promo_video_field_name) and not pd.isnull(row[promo_video_field_name]):
+        if row.get(promo_video_field_name) and not pd.isnull(
+            row[promo_video_field_name]
+        ):
             asset.promo_video = row[promo_video_field_name].strip()
 
         asset.website = website
@@ -114,8 +122,13 @@ def process(excel_path: str) -> None:
 class Command(BaseCommand):
     def handle(self, **options):
         default_excel_path = "../data/web-services.xlsx"
-        excel_filepath = input("Enter XLS/XLSX relative path or leave blank for default ({}):\n".format(
-            default_excel_path)
-        ) or default_excel_path
+        excel_filepath = (
+            input(
+                "Enter XLS/XLSX relative path or leave blank for default ({}):\n".format(
+                    default_excel_path
+                )
+            )
+            or default_excel_path
+        )
 
         process(excel_filepath)

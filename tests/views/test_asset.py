@@ -2,7 +2,9 @@ from api.models import Asset, Tag
 import pytest
 
 
-def test_submitted_by_is_set_to_logged_in_user_when_saving_asset(user_and_password, authenticated_client):
+def test_submitted_by_is_set_to_logged_in_user_when_saving_asset(
+    user_and_password, authenticated_client
+):
     # Create a mock request with the user object set (simulating a logged in user)
     asset_url = 'http://127.0.0.1:8000/assets/'
     asset_slug = 'test_slug'
@@ -16,7 +18,7 @@ def test_submitted_by_is_set_to_logged_in_user_when_saving_asset(user_and_passwo
             'name': asset_name,
             'description': asset_description,
             'short_description': asset_short_description,
-        }
+        },
     )
     assert response.status_code == 201
 
@@ -46,11 +48,13 @@ def test_update_counter_of_tag_used_for_filtering_assets(authenticated_client):
     assert_counter(1)
 
 
-@pytest.mark.parametrize("tag, tag_name, query,", [
-    ('database', 'data', 'data'),
-    ('data', 'data', 'database')
-])
-def test_update_counter_of_tag_when_exactly_matched_with_searched_tag(authenticated_client, tag, tag_name, query):
+@pytest.mark.parametrize(
+    "tag, tag_name, query,",
+    [('database', 'data', 'data'), ('data', 'data', 'database')],
+)
+def test_update_counter_of_tag_when_exactly_matched_with_searched_tag(
+    authenticated_client, tag, tag_name, query
+):
     # When the user searches for assets by some tags, counter of those tags should only be incremented
     # which matches exactly with the searched tags. For example: if user searches 'database', then the counter
     # of a tag 'data' should not be incremented

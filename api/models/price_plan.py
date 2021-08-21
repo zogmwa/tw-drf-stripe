@@ -8,8 +8,13 @@ class PricePlan(models.Model):
     A price plan associated with an asset. An asset can have one or more price plans. If the price is 0,
     then the plan is free, if price is not set then the plan is a CUSTOM plan.
     """
-    asset = models.ForeignKey(Asset, related_name='price_plans', on_delete=models.CASCADE)
-    name = models.CharField(max_length=128, null=False, blank=False, help_text='Name of the Price Plan')
+
+    asset = models.ForeignKey(
+        Asset, related_name='price_plans', on_delete=models.CASCADE
+    )
+    name = models.CharField(
+        max_length=128, null=False, blank=False, help_text='Name of the Price Plan'
+    )
     summary = models.CharField(max_length=1024, blank=True, null=True)
 
     currency = models.CharField(max_length=3, default='USD')
@@ -28,4 +33,6 @@ class PricePlan(models.Model):
         verbose_name_plural = 'Price Plans'
 
     def __str__(self):
-        return "{}: {} - {} {} per {}".format(self.asset.name, self.name, self.currency, self.price, self.per)
+        return "{}: {} - {} {} per {}".format(
+            self.asset.name, self.name, self.currency, self.price, self.per
+        )

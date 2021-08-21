@@ -12,7 +12,7 @@ html_strip = analyzer(
     'html_strip',
     tokenizer="standard",
     filter=["lowercase", "stop", "snowball"],
-    char_filter=["html_strip"]
+    char_filter=["html_strip"],
 )
 
 
@@ -21,14 +21,14 @@ class TagDocument(Document):
     """
     Tag Elasticsearch Document
     """
+
     name = fields.SearchAsYouTypeField()
 
     class Index:
         # Name of the Elasticsearch index
         name = 'tag'
         # See Elasticsearch Indices API reference for available settings
-        settings = {'number_of_shards': 1,
-                    'number_of_replicas': 0}
+        settings = {'number_of_shards': 1, 'number_of_replicas': 0}
 
     class Django:
         model = Tag
@@ -55,13 +55,11 @@ class AssetDocument(Document):
     """
 
     short_description = fields.TextField(
-        analyzer=html_strip,
-        fields={'raw': fields.KeywordField()}
+        analyzer=html_strip, fields={'raw': fields.KeywordField()}
     )
 
     description = fields.TextField(
-        analyzer=html_strip,
-        fields={'raw': fields.KeywordField()}
+        analyzer=html_strip, fields={'raw': fields.KeywordField()}
     )
 
     tags = fields.NestedField(
@@ -78,8 +76,7 @@ class AssetDocument(Document):
         # Name of the Elasticsearch index
         name = 'asset'
         # See Elasticsearch Indices API reference for available settings
-        settings = {'number_of_shards': 1,
-                    'number_of_replicas': 0}
+        settings = {'number_of_shards': 1, 'number_of_replicas': 0}
 
     class Django:
         model = Asset
@@ -102,7 +99,11 @@ class AssetDocument(Document):
         # queryset_pagination = 5000
 
     def get_queryset(self):
-        return super(AssetDocument, self).get_queryset().prefetch_related('tags', 'attributes')
+        return (
+            super(AssetDocument, self)
+            .get_queryset()
+            .prefetch_related('tags', 'attributes')
+        )
 
     def get_instances_from_related(self, related_instance):
         if isinstance(related_instance, Asset):

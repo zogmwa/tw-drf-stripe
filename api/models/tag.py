@@ -6,7 +6,9 @@ def validate_positive_number(value):
     if value >= 0:
         return value
     else:
-        raise ValidationError("Value of counter can not be negative, please check overflow condition")
+        raise ValidationError(
+            "Value of counter can not be negative, please check overflow condition"
+        )
 
 
 class Tag(models.Model):

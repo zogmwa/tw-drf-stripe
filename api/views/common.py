@@ -10,7 +10,7 @@ class ProviderViewSetPagination(PageNumberPagination):
 
 
 def _extract_results_from_matching_query(es_search: Search, case='tag') -> list:
-    """ From a matching es_search_query extract relevant results """
+    """From a matching es_search_query extract relevant results"""
     results = set()
     max_unique_items = 7
 
@@ -42,9 +42,7 @@ def autocomplete_tags(request):
     else:
         results = []
 
-    return JsonResponse({
-        'results': results
-    })
+    return JsonResponse({'results': results})
 
 
 def autocomplete_assets_and_tags(request):
@@ -57,7 +55,9 @@ def autocomplete_assets_and_tags(request):
         es_search_assets = AssetDocument.search().query('match_phrase_prefix', name=q)
         results_dict = {
             'tags': _extract_results_from_matching_query(es_search_tags, case='tag'),
-            'assets': _extract_results_from_matching_query(es_search_assets, case='asset')
+            'assets': _extract_results_from_matching_query(
+                es_search_assets, case='asset'
+            ),
         }
     else:
         results_dict = {'tag_slugs': [], 'asset_names': []}

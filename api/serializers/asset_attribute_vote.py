@@ -12,7 +12,11 @@ class AssetAttributeVoteSerializer(ModelSerializer):
     class Meta:
         model = AttributeVote
         fields = [
-            'is_upvote', 'user', 'attribute', 'asset', 'voted_on',
+            'is_upvote',
+            'user',
+            'attribute',
+            'asset',
+            'voted_on',
         ]
 
     def create(self, validated_data):

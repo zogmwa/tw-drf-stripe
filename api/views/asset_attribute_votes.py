@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from api.models import AssetVote, Asset, AttributeVote
 from api.serializers.asset_attribute_vote import AssetAttributeVoteSerializer
 from api.serializers.asset_vote import AssetVoteSerializer
+
 AssetAttributeVoteSerializer
 
 
@@ -11,6 +12,7 @@ class AssetAttributeVoteViewSet(viewsets.ModelViewSet):
     """
     Views to filter and return attribute votes i.e. votes on a specific feature/attribute of an asset.
     """
+
     queryset = AttributeVote.objects.filter(is_upvote=True)
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AssetAttributeVoteSerializer
@@ -38,6 +40,8 @@ class AssetAttributeVoteViewSet(viewsets.ModelViewSet):
 
         elif self.action == 'retrieve':
             asset_attribute_vote_id = self.kwargs['pk']
-            return AttributeVote.objects.filter(id=asset_attribute_vote_id, is_upvote=True)
+            return AttributeVote.objects.filter(
+                id=asset_attribute_vote_id, is_upvote=True
+            )
         else:
             super(AssetAttributeVoteViewSet, self).get_queryset()

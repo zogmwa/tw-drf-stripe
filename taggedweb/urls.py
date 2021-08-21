@@ -27,7 +27,7 @@ from api.views.asset_attributes import AssetAttributeViewSet
 from api.views.common import autocomplete_tags, autocomplete_assets_and_tags
 
 from api.views.asset_questions import AssetQuestionViewSet
-from api.views.analytics import  AssetClickThroughCounterRedirectView
+from api.views.analytics import AssetClickThroughCounterRedirectView
 from api.views.asset_votes import AssetVoteViewSet
 from dj_rest_auth.views import PasswordResetConfirmView
 
@@ -38,6 +38,7 @@ from api.views.user import UserViewSet
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+
 schema_view = get_schema_view(
     openapi.Info(
         title="TaggedWeb API",
@@ -68,13 +69,14 @@ router.register(r'asset_reviews', AssetReviewViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-
-    #swaggerAPI
-    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-
+    # swaggerAPI
+    path(
+        'docs/',
+        schema_view.with_ui('swagger', cache_timeout=0),
+        name='schema-swagger-ui',
+    ),
     # (Deprecated): Replace this by `autocomplete-tags-and-assets` on the frontend.
     path('autocomplete-tags/', autocomplete_tags),
-
     # This endpoint suggests both tags and assets. Response for a query like `/autocomplete-tags-and-assets/?q=ac` is:
     # {
     #   "tags": [
@@ -87,11 +89,9 @@ urlpatterns = [
     #   ]
     # }
     path('autocomplete-tags-and-assets/', autocomplete_assets_and_tags),
-
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),
-
     # Authentication
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
@@ -99,15 +99,15 @@ urlpatterns = [
     path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login'),
     # https://django-allauth.readthedocs.io/en/latest/providers.html?highlight=LinkedIn#linkedin
     path('dj-rest-auth/linkedin/', LinkedInLogin.as_view(), name='linkedin_login'),
-
-    path('password/reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-
+    path(
+        'password/reset/confirm/<uidb64>/<token>/',
+        PasswordResetConfirmView.as_view(),
+        name='password_reset_confirm',
+    ),
     path('accounts/', include('allauth.urls')),
-
     # DRF JWT Token Views (Preferable over Standard Tokens as these are more performant as they don't involve the db)
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
     # For links clickthrough counts
     path(
         'r/assets/<slug:slug>',

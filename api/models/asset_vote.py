@@ -7,7 +7,9 @@ from api.models import Asset
 
 class AssetVote(models.Model):
     # For now we will only have upvotes, no downvotes
-    is_upvote = models.BooleanField(default=True, help_text='Whether this is an Upvote=true (or Downvote=false)')
+    is_upvote = models.BooleanField(
+        default=True, help_text='Whether this is an Upvote=true (or Downvote=false)'
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='votes',

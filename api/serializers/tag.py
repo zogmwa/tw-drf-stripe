@@ -8,6 +8,4 @@ class TagSerializer(HyperlinkedModelSerializer):
         model = Tag
         fields = ['slug', 'name']
         lookup_field = 'slug'
-        extra_kwargs = {
-            'url': {'lookup_field': 'slug'}
-        }
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
