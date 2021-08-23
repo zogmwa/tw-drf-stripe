@@ -3,15 +3,22 @@ from elasticsearch_dsl.query import MultiMatch
 from rest_framework import viewsets, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import LimitOffsetPagination
 
 from api.documents import AssetDocument
 from api.models import Asset, Tag
 from api.serializers.asset import AssetSerializer
 
 
+class AssetViewSetPagination(LimitOffsetPagination):
+    default_limit = 20
+    limit_query_param = "limit"
+    offset_query_param = "offset"
+    max_limit = 100
+
+
 class AssetViewSet(viewsets.ModelViewSet):
 
-    DEFAULT_SEARCH_RESULTS_COUNT = 20
     queryset = Asset.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = AssetSerializer
@@ -19,6 +26,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     filterset_fields = {'avg_rating': ['gte', 'lte']}
     ordering_fields = ['avg_rating']
     lookup_field = 'slug'
+    pagination_class = AssetViewSetPagination
 
     def _update_tag_used_in_search_counter(self, search_query):
         tags = search_query.split()
@@ -50,18 +58,6 @@ class AssetViewSet(viewsets.ModelViewSet):
                 'tags'
             ) or self.request.query_params.get('q')
 
-            # A max of num_results_per_page results will be returned
-            num_results_per_page = min(
-                int(
-                    self.request.query_params.get(
-                        'n', self.DEFAULT_SEARCH_RESULTS_COUNT
-                    )
-                ),
-                # No more than 100 results should be returned regardless of n, to protect from API query load
-                100,
-            )
-            page = int(self.request.query_params.get('p', 0))
-
             if search_query is None:
                 # If no tags are provided return nothing, no more returning of default sample
                 return Asset.objects.none()
@@ -77,8 +73,6 @@ class AssetViewSet(viewsets.ModelViewSet):
             )
 
             es_search = AssetDocument.search().query(es_query)
-            start_page = page * num_results_per_page
-            es_search = es_search[start_page : start_page + num_results_per_page]
             assets_db_queryset = es_search.to_queryset()
             assets_db_queryset = assets_db_queryset.filter(is_published=True)
 
