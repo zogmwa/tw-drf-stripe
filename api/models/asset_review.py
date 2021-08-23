@@ -57,8 +57,15 @@ def avg_rating_and_count_update_for_new_review(sender, instance=None, **kwargs):
 
 @receiver(post_delete, sender=AssetReview)
 def avg_rating_and_count_update_on_delete(sender, instance=None, **kwargs):
-    Asset.objects.filter(id=instance.asset_id).update(
-        avg_rating=(F('avg_rating') * F('reviews_count') - instance.rating)
-        / (F('reviews_count') - 1),
-        reviews_count=F('reviews_count') - 1,
-    )
+    asset_qs = Asset.objects.filter(id=instance.asset_id)
+    if asset_qs[0].reviews_count == 1:
+        asset_qs.update(
+            avg_rating=0,
+            reviews_count=0,
+        )
+    else:
+        asset_qs.update(
+            avg_rating=(F('avg_rating') * F('reviews_count') - instance.rating)
+            / (F('reviews_count') - 1),
+            reviews_count=F('reviews_count') - 1,
+        )

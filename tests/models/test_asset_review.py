@@ -64,10 +64,9 @@ class TestAssetReviewAggregates:
         review2.delete()
         self._validate_avg_rating_and_count(example_asset, 8, 1)
 
-        # TODO: Currently there is a bug division by zero bug for last review being deleted.
-        # https://github.com/taggedweb/taggedweb/issues/133
-        # review1.delete()
-        # _validate_avg_rating_and_counts(example_asset, 0, 0)
+        # If the last review of an asset is deleted, the reviews_count and avg_rating should be zero
+        review1.delete()
+        self._validate_avg_rating_and_count(example_asset, 0, 0)
 
     def test_saving_the_same_review_again_should_not_update_avg_rating_or_count(
         self,
