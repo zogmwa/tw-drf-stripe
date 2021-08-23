@@ -22,12 +22,6 @@ def test_asset_review_is_unique_for_user_and_asset(example_asset, user_and_passw
     assert 'unique constraint' in e.value.args[0].lower()
 
 
-@pytest.mark.skip(
-    # One possibility why this is failing in Github Actions and not local:
-    # - One the db being used in Github actions is SQLite which has different locking behaviour than PostgreSQL.
-    # - The other is some sort of async behaviour in signal receivers where the field is not updated by the time we run the assertion
-    reason="This is currently failing in Github actions and passing in local, something to explore."
-)
 class TestAssetReviewAggregates:
     def _validate_avg_rating_and_count(self, asset, expected_avg, expected_count):
         # To refresh the asset and make sure it's fields are updated

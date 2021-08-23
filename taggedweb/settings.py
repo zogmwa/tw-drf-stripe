@@ -148,12 +148,16 @@ WSGI_APPLICATION = 'taggedweb.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',
+        'HOST': 'localhost',
+        'USER': 'postgres',
+        # Replace with decrypted secret for prod overrides/and your local postgres password for local overrides.
+        'PASSWORD': 'postgres',
+        'PORT': '5432',
+    },
 }
 
 AUTH_USER_MODEL = 'api.User'
