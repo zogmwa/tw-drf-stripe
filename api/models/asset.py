@@ -93,12 +93,21 @@ class Asset(models.Model):
     avg_rating = models.DecimalField(default=0, decimal_places=7, max_digits=10)
     reviews_count = models.IntegerField(default=0)
 
-    organization = models.ForeignKey(
+    # Which organization owns this Asset (different from the owner which is a specific user at the organization
+    # which owns this)
+    owner_organization = models.ForeignKey(
         Organization,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
         related_name='assets',
+    )
+
+    # Which organizations are the customers of this asset
+    customer_organizations = models.ManyToManyField(
+        Organization,
+        through='OrganizationUsingAsset',
+        related_name='assets_used',
     )
 
     @property

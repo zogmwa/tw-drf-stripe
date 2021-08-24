@@ -15,6 +15,8 @@ from .linked_tag import LinkedTag
 from .attribute_vote import AttributeVote
 from .linked_attribute import LinkedAttribute
 from .asset_review import AssetReview
+from .organization import Organization
+from .organization import OrganizationUsingAsset
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

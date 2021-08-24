@@ -16,6 +16,11 @@ class TagInline(admin.TabularInline):
     autocomplete_fields = ['tag']
 
 
+class CustomerOrganizationInLine(admin.TabularInline):
+    model = Asset.customer_organizations.through
+    autocomplete_fields = ['organization']
+
+
 class AttributeInline(admin.TabularInline):
     model = Asset.attributes.through
     autocomplete_fields = ['attribute']
@@ -66,14 +71,14 @@ class AssetAdmin(GuardedModelAdmin):
     search_fields = [
         'name',
     ]
-    autocomplete_fields = ['organization', 'submitted_by', 'owner']
+    autocomplete_fields = ['owner_organization', 'submitted_by', 'owner']
     prepopulated_fields = {
         'slug': ('name',),
     }
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '128'})},
     }
-    inlines = [TagInline, AttributeInline, PricePlanInline]
+    inlines = [TagInline, AttributeInline, PricePlanInline, CustomerOrganizationInLine]
 
 
 class AssetReviewAdmin(admin.ModelAdmin):
