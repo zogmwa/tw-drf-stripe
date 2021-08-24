@@ -1,7 +1,7 @@
 import pytest
 from django.test import Client
 
-from api.models import Asset, User
+from api.models import Asset, User, Tag
 
 
 @pytest.fixture(autouse=True)
@@ -26,6 +26,14 @@ def example_asset():
         short_description='bla bla',
         description='bla bla bla',
         promo_video='https://www.youtube.com/embed/Q0hi9d1W3Ag',
+    )
+
+
+@pytest.fixture
+def example_tag():
+    return Tag.objects.create(
+        slug='tag',
+        name='tag_name',
     )
 
 

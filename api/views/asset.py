@@ -1,4 +1,4 @@
-from django.db.models import QuerySet, Count, F
+from django.db.models import QuerySet, Count, F, Q
 from elasticsearch_dsl.query import MultiMatch
 from rest_framework import viewsets, permissions
 from django_filters.rest_framework import DjangoFilterBackend
@@ -6,7 +6,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 
 from api.documents import AssetDocument
-from api.models import Asset, Tag
+from api.models import Asset, Tag, AssetVote
 from api.serializers.asset import AssetSerializer
 
 
@@ -32,6 +32,19 @@ class AssetViewSet(viewsets.ModelViewSet):
         tags = search_query.split()
         Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter') + 1)
         return
+
+    def _order_by_upvotes_count(self, query: QuerySet) -> QuerySet:
+        # Calculates the total upvotes for the asset
+        total_upvotes = Count('votes', filter=Q(votes__is_upvote=True))
+        query = query.annotate(total_upvotes=total_upvotes).order_by('-total_upvotes')
+        return query
+
+    @staticmethod
+    def _get_assets_db_qs_from_es_query(es_query: MultiMatch) -> QuerySet:
+        es_search = AssetDocument.search().query(es_query)
+        assets_db_queryset = es_search.to_queryset()
+        assets_db_queryset = assets_db_queryset.filter(is_published=True)
+        return assets_db_queryset
 
     @staticmethod
     def _filter_assets_matching_tags_exact(tag_slugs: list) -> QuerySet:
@@ -72,10 +85,12 @@ class AssetViewSet(viewsets.ModelViewSet):
                 minimum_should_match='3<75%',
             )
 
-            es_search = AssetDocument.search().query(es_query)
-            assets_db_queryset = es_search.to_queryset()
-            assets_db_queryset = assets_db_queryset.filter(is_published=True)
+            assets_db_queryset = self._get_assets_db_qs_from_es_query(es_query)
 
+            # The feature for sorting results based on upvotes count can not be added directly to ordering_fields
+            # because it is not a column of a database by which we are sorting.
+            if self.request.query_params.get('ordering') == 'upvotes':
+                assets_db_queryset = self._order_by_upvotes_count(assets_db_queryset)
             return assets_db_queryset
 
         elif self.action == 'retrieve':
