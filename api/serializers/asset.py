@@ -3,6 +3,7 @@ from rest_framework.serializers import HyperlinkedModelSerializer
 
 from api.models import Asset
 from api.serializers.asset_attribute import AssetAttributeSerializer
+from api.serializers.organization import OrganizationSerializer
 from api.serializers.price_plan import PricePlanSerializer
 from api.serializers.tag import TagSerializer
 
@@ -14,6 +15,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
     """
 
     tags = TagSerializer(read_only=True, many=True)
+    customer_organizations = OrganizationSerializer(required=False, many=True)
     attributes = AssetAttributeSerializer(read_only=True, many=True)
     price_plans = PricePlanSerializer(read_only=True, many=True)
 
@@ -52,6 +54,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
             'upvotes_count',
             'og_image_url',
             'price_plans',
+            'customer_organizations',
             'avg_rating',
             'reviews_count',
             'has_free_trial',

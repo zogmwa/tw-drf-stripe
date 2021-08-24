@@ -108,6 +108,7 @@ class Asset(models.Model):
         Organization,
         through='OrganizationUsingAsset',
         related_name='assets_used',
+        blank=True,
     )
 
     @property
