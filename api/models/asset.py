@@ -92,6 +92,7 @@ class Asset(models.Model):
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
     avg_rating = models.DecimalField(default=0, decimal_places=7, max_digits=10)
     reviews_count = models.IntegerField(default=0)
+    upvotes_count = models.IntegerField(default=0)
 
     # Which organization owns this Asset (different from the owner which is a specific user at the organization
     # which owns this)
@@ -110,10 +111,6 @@ class Asset(models.Model):
         related_name='assets_used',
         blank=True,
     )
-
-    @property
-    def upvotes_count(self):
-        return self.votes.filter(is_upvote=True).count()
 
     @property
     def tweb_url(self):

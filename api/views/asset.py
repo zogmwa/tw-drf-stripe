@@ -24,7 +24,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     serializer_class = AssetSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = {'avg_rating': ['gte', 'lte']}
-    ordering_fields = ['avg_rating']
+    ordering_fields = ['avg_rating', 'upvotes_count']
     lookup_field = 'slug'
     pagination_class = AssetViewSetPagination
 
@@ -32,12 +32,6 @@ class AssetViewSet(viewsets.ModelViewSet):
         tags = search_query.split()
         Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter') + 1)
         return
-
-    def _order_by_upvotes_count(self, query: QuerySet) -> QuerySet:
-        # Calculates the total upvotes for the asset
-        total_upvotes = Count('votes', filter=Q(votes__is_upvote=True))
-        query = query.annotate(total_upvotes=total_upvotes).order_by('-total_upvotes')
-        return query
 
     @staticmethod
     def _get_assets_db_qs_from_es_query(es_query: MultiMatch) -> QuerySet:
@@ -86,11 +80,6 @@ class AssetViewSet(viewsets.ModelViewSet):
             )
 
             assets_db_queryset = self._get_assets_db_qs_from_es_query(es_query)
-
-            # The feature for sorting results based on upvotes count can not be added directly to ordering_fields
-            # because it is not a column of a database by which we are sorting.
-            if self.request.query_params.get('ordering') == 'upvotes':
-                assets_db_queryset = self._order_by_upvotes_count(assets_db_queryset)
             return assets_db_queryset
 
         elif self.action == 'retrieve':
