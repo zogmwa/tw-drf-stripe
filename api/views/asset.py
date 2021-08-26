@@ -1,12 +1,14 @@
 from django.db.models import QuerySet, Count, F, Q
 from elasticsearch_dsl.query import MultiMatch
-from rest_framework import viewsets, permissions
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, permissions, generics, status
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 from api.documents import AssetDocument
-from api.models import Asset, Tag, AssetVote
+from api.models import Asset, Tag
 from api.serializers.asset import AssetSerializer
 
 
@@ -28,17 +30,10 @@ class AssetViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     pagination_class = AssetViewSetPagination
 
-    def _update_tag_used_in_search_counter(self, search_query):
+    def _update_tag_search_counts_for_tags_used_in_search_query(self, search_query):
         tags = search_query.split()
         Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter') + 1)
         return
-
-    @staticmethod
-    def _get_assets_db_qs_from_es_query(es_query: MultiMatch) -> QuerySet:
-        es_search = AssetDocument.search().query(es_query)
-        assets_db_queryset = es_search.to_queryset()
-        assets_db_queryset = assets_db_queryset.filter(is_published=True)
-        return assets_db_queryset
 
     @staticmethod
     def _filter_assets_matching_tags_exact(tag_slugs: list) -> QuerySet:
@@ -56,30 +51,37 @@ class AssetViewSet(viewsets.ModelViewSet):
             assets = assets.filter(tags__in=[tag])
         return assets
 
+    @staticmethod
+    def _get_assets_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
+        """
+        Given a search query string uses that to perform a MultiMatch search query against ElasticSearch indexes.
+        """
+        es_query = MultiMatch(
+            query=search_query,
+            fields=['tags.slug^2', 'short_description', 'description', 'name^3'],
+            # If number of tokenized words/clauses in query is less than or equal to 3, they are all required,
+            # after that this will even return results if the threshold % of the tags/clauses are present.
+            minimum_should_match='3<75%',
+        )
+        es_search = AssetDocument.search().query(es_query)
+        assets_db_queryset = es_search.to_queryset()
+        assets_db_queryset = assets_db_queryset.filter(is_published=True)
+        return assets_db_queryset
+
     def get_queryset(self):
         if self.action == 'list':
             # /api/assets/?q=<Search Keywords> (List View)
-            # Eventually deprecate tags query and move to q, since q can be any keywords including asset name
-            # not just tags.
-            search_query = self.request.query_params.get(
-                'tags'
-            ) or self.request.query_params.get('q')
+            # q is the search query containing space separated tag slugs or a product name
+            search_query = self.request.query_params.get('q')
 
             if search_query is None:
-                # If no tags are provided return nothing, no more returning of default sample
                 return Asset.objects.none()
 
-            self._update_tag_used_in_search_counter(search_query)
+            self._update_tag_search_counts_for_tags_used_in_search_query(search_query)
 
-            es_query = MultiMatch(
-                query=search_query,
-                fields=['tags.slug^2', 'short_description', 'description', 'name^3'],
-                # If number of tokenized words/clauses in query is less than or equal to 3, they are all required,
-                # after that this will even return results if the threshold % of the tags/clauses are present.
-                minimum_should_match='3<75%',
+            assets_db_queryset = self._get_assets_db_qs_via_elasticsearch_query(
+                search_query
             )
-
-            assets_db_queryset = self._get_assets_db_qs_from_es_query(es_query)
             return assets_db_queryset
 
         elif self.action == 'retrieve':
@@ -87,3 +89,45 @@ class AssetViewSet(viewsets.ModelViewSet):
             return Asset.objects.filter(slug=slug, is_published=True)
         else:
             super(AssetViewSet, self).get_queryset()
+
+    @action(detail=False)
+    def similar(self, request, *args, **kwargs):
+        """
+        Example(s):
+        - /assets/similar/?name=mailchimp
+        - /assets/similar/?name=mailchimp&include_self=1
+
+        The resulting wil may also have the asset being searched for
+        """
+        asset_name_query = self.request.query_params.get('name')
+
+        # By default the self asset is not included unless a self=1 GET parameter is passed
+        include_self = int(self.request.query_params.get('include_self', '0'))
+        if asset_name_query is None:
+            return Response(
+                data={"detail": "name GET containing asset name must be provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        asset = (
+            Asset.objects.filter(name__istartswith=asset_name_query)
+            .prefetch_related('tags')
+            .get()
+        )
+
+        q = ' '.join(tag.slug for tag in asset.tags.all())
+        assets_db_qs = self._get_assets_db_qs_via_elasticsearch_query(q)
+
+        if not include_self:
+            assets_db_qs = assets_db_qs.filter(~Q(id=asset.id))
+        else:
+            assets_db_qs = assets_db_qs | Asset.objects.filter(id=asset.id)
+
+        page = self.paginate_queryset(assets_db_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(assets_db_qs, many=True)
+        return Response(serializer.data)
