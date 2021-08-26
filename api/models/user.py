@@ -2,6 +2,7 @@ import os
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from guardian.mixins import GuardianUserMixin
+from .organization import Organization
 
 
 def _upload_to_for_avatars(instance, filename):
@@ -21,6 +22,13 @@ class User(AbstractUser, GuardianUserMixin):
 
     api_daily_rate_limit = models.IntegerField(default=2000)
     avatar = models.ImageField(null=True, blank=True, upload_to='images/avatars/')
+    organization = models.ForeignKey(
+        Organization,
+        null=True,
+        blank=True,
+        related_name='users',
+        on_delete=models.SET_NULL,
+    )
 
     def __str__(self):
         return '{}'.format(
