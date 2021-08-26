@@ -101,8 +101,8 @@ class AssetViewSet(viewsets.ModelViewSet):
         """
         asset_name_query = self.request.query_params.get('name')
 
-        # By default the self asset is not included unless a self=1 GET parameter is passed
-        include_self = int(self.request.query_params.get('include_self', '0'))
+        # By default the self asset is included unless a include_self=0 GET parameter is passed to exclude it
+        include_self = int(self.request.query_params.get('include_self', '1'))
         if asset_name_query is None:
             return Response(
                 data={"detail": "name GET containing asset name must be provided"},

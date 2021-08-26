@@ -51,11 +51,11 @@ def test_update_counter_of_tag_used_for_filtering_assets(authenticated_client):
 
 
 @pytest.mark.parametrize(
-    "tag, tag_name, query,",
+    "tag_slug, tag_name, query,",
     [('database', 'data', 'data'), ('data', 'data', 'database')],
 )
 def test_update_counter_of_tag_when_exactly_matched_with_searched_tag(
-    authenticated_client, tag, tag_name, query
+    authenticated_client, tag_slug, tag_name, query
 ):
     # When the user searches for assets by some tags, counter of those tags should only be incremented
     # which matches exactly with the searched tags. For example: if user searches 'database', then the counter
@@ -63,12 +63,53 @@ def test_update_counter_of_tag_when_exactly_matched_with_searched_tag(
     # Further, counter of those tags should also not increment whose name matches with the searched keyword
     asset_query = 'http://127.0.0.1:8000/assets/?q=' + query
     Tag.objects.create(
-        slug=tag,
+        slug=tag_slug,
         name=tag_name,
     )
-    assert Tag.objects.get(slug=tag).counter == 0
+    assert Tag.objects.get(slug=tag_slug).counter == 0
 
     response = authenticated_client.get(asset_query)
     assert response.status_code == 200
 
-    assert Tag.objects.get(slug=tag).counter == 0
+    assert Tag.objects.get(slug=tag_slug).counter == 0
+
+
+class TestAssetViewSetSimilarServices:
+    @pytest.mark.parametrize(
+        "include_self",
+        ['0', '1'],
+    )
+    def test_similar_services(
+        self, authenticated_client, example_asset, include_self, mocker
+    ):
+        similar_asset = Asset.objects.create(
+            name='Simiar to Example Asset',
+            slug='example-assset-similar',
+            short_description='test',
+            description='test',
+        )
+        similar_asset.tags.set(example_asset.tags.all())
+        similar_asset.save()
+
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        asset_query = (
+            'http://127.0.0.1:8000/assets/similar/?name={}&include_self={}'.format(
+                example_asset.name, include_self
+            )
+        )
+
+        response = authenticated_client.get(asset_query)
+
+        assert response.status_code == 200
+        results = response.data['results']
+
+        if int(include_self):
+            assert len(results) == 2
+        else:
+            assert len(results) == 1
+            assert results[0]['id'] == similar_asset.id
