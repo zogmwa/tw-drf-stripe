@@ -2,14 +2,15 @@ from django.http import JsonResponse
 from django_elasticsearch_dsl.search import Search
 from rest_framework.pagination import PageNumberPagination
 
-from api.documents import TagDocument, AssetDocument
+from api.documents.asset import AssetDocument
+from api.documents.tag import TagDocument
 
 
 class ProviderViewSetPagination(PageNumberPagination):
     page_size = 50
 
 
-def _extract_results_from_matching_query(es_search: Search, case='tag') -> list:
+def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
     """From a matching es_search_query extract relevant results"""
     results = set()
     max_unique_items = 7
@@ -38,7 +39,7 @@ def autocomplete_tags(request):
     q = request.GET.get('q')
     if q and len(q) >= 3:
         es_search = TagDocument.search().query('match_phrase_prefix', name=q)
-        results = _extract_results_from_matching_query(es_search)
+        results = extract_results_from_matching_query(es_search)
     else:
         results = []
 
@@ -54,8 +55,8 @@ def autocomplete_assets_and_tags(request):
         es_search_tags = TagDocument.search().query('match_phrase_prefix', name=q)
         es_search_assets = AssetDocument.search().query('match_phrase_prefix', name=q)
         results_dict = {
-            'tags': _extract_results_from_matching_query(es_search_tags, case='tag'),
-            'assets': _extract_results_from_matching_query(
+            'tags': extract_results_from_matching_query(es_search_tags, case='tag'),
+            'assets': extract_results_from_matching_query(
                 es_search_assets, case='asset'
             ),
         }

@@ -31,6 +31,7 @@ from api.views.analytics import AssetClickThroughCounterRedirectView
 from api.views.asset_votes import AssetVoteViewSet
 from dj_rest_auth.views import PasswordResetConfirmView
 
+from api.views.organization import autocomplete_organizations
 from api.views.price_plans import PricePlanViewSet
 from api.views.user import UserViewSet
 
@@ -89,6 +90,7 @@ urlpatterns = [
     #   ]
     # }
     path('autocomplete-tags-and-assets/', autocomplete_assets_and_tags),
+    path('autocomplete-organizations/', autocomplete_organizations),
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),

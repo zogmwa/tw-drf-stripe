@@ -7,8 +7,8 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
-from api.documents import AssetDocument
 from api.models import Asset, Tag
+from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer
 
 
