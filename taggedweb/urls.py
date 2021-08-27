@@ -24,7 +24,7 @@ from api.views.asset_reviews import AssetReviewViewSet
 from api.views.auth import GoogleLogin, LinkedInLogin
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet
-from api.views.common import autocomplete_tags, autocomplete_assets_and_tags
+from api.views.tag import autocomplete_tags, autocomplete_assets_and_tags
 
 from api.views.asset_questions import AssetQuestionViewSet
 from api.views.analytics import AssetClickThroughCounterRedirectView

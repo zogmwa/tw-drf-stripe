@@ -1,13 +1,4 @@
-from django.http import JsonResponse
 from django_elasticsearch_dsl.search import Search
-from rest_framework.pagination import PageNumberPagination
-
-from api.documents.asset import AssetDocument
-from api.documents.tag import TagDocument
-
-
-class ProviderViewSetPagination(PageNumberPagination):
-    page_size = 50
 
 
 def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
@@ -28,39 +19,3 @@ def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
             else:
                 results.add(hit.name)
     return list(results)
-
-
-def autocomplete_tags(request):
-    """
-    (To be deprecated: Use autocomplete_assets_and_tags instead of this)
-    The view serves as an endpoint to autocomplete tags and uses an elasticsearch index.
-    """
-    # TODO: For now this is open but require an API key to use this endpoint as well for proper rate limiting.
-    q = request.GET.get('q')
-    if q and len(q) >= 3:
-        es_search = TagDocument.search().query('match_phrase_prefix', name=q)
-        results = extract_results_from_matching_query(es_search)
-    else:
-        results = []
-
-    return JsonResponse({'results': results})
-
-
-def autocomplete_assets_and_tags(request):
-    """
-    The view serves as an endpoint to autocomplete asset names and tags and uses an elasticsearch index.
-    """
-    q = request.GET.get('q')
-    if q and len(q) >= 2:
-        es_search_tags = TagDocument.search().query('match_phrase_prefix', name=q)
-        es_search_assets = AssetDocument.search().query('match_phrase_prefix', name=q)
-        results_dict = {
-            'tags': extract_results_from_matching_query(es_search_tags, case='tag'),
-            'assets': extract_results_from_matching_query(
-                es_search_assets, case='asset'
-            ),
-        }
-    else:
-        results_dict = {'tag_slugs': [], 'asset_names': []}
-
-    return JsonResponse(results_dict)
