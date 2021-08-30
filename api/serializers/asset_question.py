@@ -1,9 +1,10 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import AssetQuestion
+from api.models import AssetQuestion, AssetQuestionVote
 
 
 class AssetQuestionSerializer(ModelSerializer):
     class Meta:
         model = AssetQuestion
-        fields = ['asset', 'question', 'answer', 'upvote_count']
+        fields = ['asset', 'title', 'primary_answer', 'upvotes_count']

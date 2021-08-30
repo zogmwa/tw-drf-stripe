@@ -27,6 +27,7 @@ from api.views.asset_attributes import AssetAttributeViewSet
 from api.views.tag import autocomplete_tags, autocomplete_assets_and_tags
 
 from api.views.asset_questions import AssetQuestionViewSet
+from api.views.asset_question_votes import AssetQuestionVoteViewSet
 from api.views.analytics import AssetClickThroughCounterRedirectView
 from api.views.asset_votes import AssetVoteViewSet
 from dj_rest_auth.views import PasswordResetConfirmView
@@ -58,6 +59,7 @@ router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'assets', AssetViewSet)
 router.register(r'questions', AssetQuestionViewSet)
+router.register(r'question_votes', AssetQuestionVoteViewSet)
 router.register(r'price_plans', PricePlanViewSet)
 router.register(r'upvotes', AssetVoteViewSet)
 router.register(r'asset_attributes', AssetAttributeViewSet)

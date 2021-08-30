@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer
 
-from api.models import Asset
+from api.models import Asset, AssetQuestion
 from api.serializers.asset_attribute import AssetAttributeSerializer
+from api.serializers.asset_question import AssetQuestionSerializer
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.price_plan import PricePlanSerializer
 from api.serializers.tag import TagSerializer
@@ -18,6 +19,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
     customer_organizations = OrganizationSerializer(required=False, many=True)
     attributes = AssetAttributeSerializer(read_only=True, many=True)
     price_plans = PricePlanSerializer(read_only=True, many=True)
+    questions = AssetQuestionSerializer(read_only=True, many=True)
 
     # Represents a masked url that should be used instead of affiliate_link so that click-throughs are tracked.
     tweb_url = serializers.URLField(read_only=True)
@@ -54,6 +56,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
             'upvotes_count',
             'og_image_url',
             'price_plans',
+            'questions',
             'customer_organizations',
             'avg_rating',
             'reviews_count',

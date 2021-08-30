@@ -11,9 +11,12 @@ class AssetQuestion(models.Model):
     """
 
     asset = models.ForeignKey(Asset, related_name='questions', on_delete=models.CASCADE)
-    question = models.TextField()
+    title = models.TextField()
+
     # There might be an open question that is not answered yet
-    answer = models.TextField(null=True, blank=True)
+    # This is the primary answer because later we may introduce a separate answer model with multiple answers possible
+    # for the same question. This is the answer which will be highlighted below the question.
+    primary_answer = models.TextField(null=True, blank=True)
 
     # The user who submitted this question, if this is submitted by a moderator or is anonymous, this can be blank
     submitted_by = models.ForeignKey(
@@ -22,11 +25,11 @@ class AssetQuestion(models.Model):
 
     # Number of users who have shown interest in this question by up-voting it (one user should only be able to upvote
     # this once - probably need a separate model to track UpVotes, this is just a summary count)
-    upvote_count = models.IntegerField(default=0)
+    upvotes_count = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = 'Question'
         verbose_name_plural = 'Questions'
 
     def __str__(self):
-        return "{}: {}".format(self.asset.name, self.question)
+        return "{}: {}".format(self.asset.name, self.title)
