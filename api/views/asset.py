@@ -88,7 +88,7 @@ class AssetViewSet(viewsets.ModelViewSet):
             slug = self.kwargs['slug']
             return Asset.objects.filter(slug=slug, is_published=True)
         else:
-            super(AssetViewSet, self).get_queryset()
+            super().get_queryset()
 
     @action(detail=False)
     def similar(self, request, *args, **kwargs):

@@ -32,7 +32,7 @@ class Asset(models.Model):
     name = models.CharField(max_length=255, unique=True)
     website = models.URLField(max_length=2048, null=True, blank=True)
 
-    # OpenGraph og:image url
+    # OpenGraph og:image url. This can be used as the primary snapshot url
     og_image_url = models.URLField(max_length=2048, null=True, blank=True)
 
     # This is a referral link to that asset, to be used in preference over regular web link

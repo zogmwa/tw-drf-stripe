@@ -16,6 +16,7 @@ from api.models import (
     AssetQuestionVote,
 )
 from api.models.asset_review import AssetReview
+from api.models.asset_snapshot import AssetSnapshot
 from api.models.attribute_vote import AttributeVote
 from api.models.organization import Organization
 
@@ -33,6 +34,13 @@ class CustomerOrganizationInLine(admin.TabularInline):
 class AttributeInline(admin.TabularInline):
     model = Asset.attributes.through
     autocomplete_fields = ['attribute']
+
+
+class AssetSnapshotInline(admin.TabularInline):
+    model = AssetSnapshot
+    # For other fields the detailed PricePlanAdmin will be used
+    # Restricting number of inline fields to make the admin display compact
+    fields = ['url']
 
 
 class PricePlanInline(admin.TabularInline):
@@ -87,7 +95,13 @@ class AssetAdmin(GuardedModelAdmin):
     formfield_overrides = {
         models.CharField: {'widget': TextInput(attrs={'size': '128'})},
     }
-    inlines = [TagInline, AttributeInline, PricePlanInline, CustomerOrganizationInLine]
+    inlines = [
+        TagInline,
+        AttributeInline,
+        AssetSnapshotInline,
+        PricePlanInline,
+        CustomerOrganizationInLine,
+    ]
 
 
 class AssetReviewAdmin(admin.ModelAdmin):
