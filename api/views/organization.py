@@ -1,7 +1,21 @@
 from django.http import JsonResponse
+from rest_framework import viewsets, permissions
 
 from api.documents.organization import OrganizationDocument
 from api.views.common import extract_results_from_matching_query
+from api.models.organization import Organization
+from api.serializers.organization import OrganizationSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Organization.objects.all()
+    serializer_class = OrganizationSerializer
+    lookup_field = 'name'
 
 
 def autocomplete_organizations(request):

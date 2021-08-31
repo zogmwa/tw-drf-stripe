@@ -7,3 +7,6 @@ class OrganizationSerializer(ModelSerializer):
     class Meta:
         model = Organization
         fields = ['name']
+        extra_kwargs = {
+            'name': {'validators': []},
+        }
