@@ -113,6 +113,10 @@ class Asset(models.Model):
     )
 
     @property
+    def users_count(self):
+        return self.users.count()
+
+    @property
     def tweb_url(self):
         """A masked TaggedWeb URL to allow tracking how many clicks each affiliate link/website is getting"""
         final_url = self.affiliate_link or self.website

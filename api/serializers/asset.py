@@ -30,6 +30,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
     # Represents a masked url that should be used instead of affiliate_link so that click-throughs are tracked.
     tweb_url = serializers.URLField(read_only=True)
     upvotes_count = serializers.IntegerField(read_only=True)
+    users_count = serializers.IntegerField(read_only=True)
     avg_rating = serializers.DecimalField(
         read_only=True, max_digits=10, decimal_places=7
     )
@@ -102,6 +103,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
             'reviews_count',
             'has_free_trial',
             'snapshots',
+            'users_count',
         ]
         lookup_field = 'slug'
         extra_kwargs = {'url': {'lookup_field': 'slug'}}
