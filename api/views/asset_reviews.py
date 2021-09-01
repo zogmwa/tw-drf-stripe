@@ -9,12 +9,14 @@ from api.serializers.asset_review import AssetReviewSerializer
 
 class AssetReviewViewSet(viewsets.ModelViewSet):
     queryset = AssetReview.objects.filter()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = AssetReviewSerializer
     filter_backends = [DjangoFilterBackend]
-
-    # TODO: https://github.com/taggedweb/taggedweb/issues/113 (Figure out how to do gte/lte filtering on rating)
-    filterset_fields = ['asset__slug', 'user__username', 'rating']
+    filterset_fields = {
+        'rating': ['gte', 'lte'],
+        'asset__slug': ['exact'],
+        'user__username': ['exact'],
+    }
     # create/update methods for this are overriden at serializer level
 
     def destroy(self, request, *args, **kwargs):

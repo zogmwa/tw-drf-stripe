@@ -14,7 +14,7 @@ class UserSerializer(HyperlinkedModelSerializer):
         lookup_field = 'username'
         extra_kwargs = {'url': {'lookup_field': 'username'}}
 
-    def _create_organization_and_link_user(self, organization_dict, user):
+    def _create_organization_and_link_user(self, organization_dict, user) -> None:
         organization, is_created = Organization.objects.get_or_create(
             **organization_dict
         )
