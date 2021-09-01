@@ -35,23 +35,46 @@ class AssetSerializer(HyperlinkedModelSerializer):
     )
     reviews_count = serializers.IntegerField(read_only=True)
 
-    def create(self, validated_data):
-        # Set submitted_by to logged-in user if we have one
-        logged_in_user = self.context['request'].user
-        if logged_in_user:
-            validated_data['submitted_by'] = self.context['request'].user
-
-        # Nested objects in DRF are not supported/are-read only by default so we have to pop this and create snapshot
-        # objects and associate them with the asset separately after creation of the asset.
-        snapshots_dicts = validated_data.pop('snapshots', [])
-
-        asset = super().create(validated_data)
-
-        for snapshot_dict in snapshots_dicts:
+    @staticmethod
+    def _create_snapshots_and_associate_with_asset(
+        snapshots: dict,
+        asset: Asset,
+    ) -> None:
+        for snapshot_dict in snapshots:
             AssetSnapshot.objects.get_or_create(
                 **snapshot_dict,
                 asset=asset,
             )
+
+    def _set_submitted_by_to_logged_in_user(self, validated_data):
+        # Mutate validated_data to set submitted_by to logged-in user if we have one
+        logged_in_user = self.context['request'].user
+        if logged_in_user:
+            validated_data['submitted_by'] = self.context['request'].user
+
+    def create(self, validated_data):
+        self._set_submitted_by_to_logged_in_user(validated_data)
+
+        # Nested objects in DRF are not supported/are-read only by default so we have to pop this and create snapshot
+        # objects and associate them with the asset separately after creation of the asset.
+        snapshots_dicts = validated_data.pop('snapshots', [])
+        asset = super().create(validated_data)
+
+        AssetSerializer._create_snapshots_and_associate_with_asset(
+            snapshots_dicts, asset
+        )
+
+        return asset
+
+    def update(self, instance, validated_data):
+        self._set_submitted_by_to_logged_in_user(validated_data)
+
+        snapshots_dicts = validated_data.pop('snapshots', [])
+        asset = super().update(instance, validated_data)
+        AssetSerializer._create_snapshots_and_associate_with_asset(
+            snapshots_dicts, asset
+        )
+
         return asset
 
     class Meta:

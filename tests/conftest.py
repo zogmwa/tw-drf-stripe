@@ -26,6 +26,7 @@ def example_asset():
         short_description='bla bla',
         description='bla bla bla',
         promo_video='https://www.youtube.com/embed/Q0hi9d1W3Ag',
+        is_published=True,
     )
 
 

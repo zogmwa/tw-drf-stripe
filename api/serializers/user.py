@@ -14,7 +14,7 @@ class UserSerializer(HyperlinkedModelSerializer):
         lookup_field = 'username'
         extra_kwargs = {'url': {'lookup_field': 'username'}}
 
-    def link_organization(self, organization_dict, user):
+    def _create_organization_and_link_user(self, organization_dict, user):
         organization, is_created = Organization.objects.get_or_create(
             **organization_dict
         )
@@ -24,14 +24,14 @@ class UserSerializer(HyperlinkedModelSerializer):
     def create(self, validated_data):
         organization_dict = validated_data.pop('organization', {})
         user = super().create(validated_data)
-        self.link_organization(organization_dict, user)
+        self._create_organization_and_link_user(organization_dict, user)
 
         return user
 
     def update(self, instance, validated_data):
         organization_dict = validated_data.pop('organization', {})
         user = super().update(instance, validated_data)
-        self.link_organization(organization_dict, user)
+        self._create_organization_and_link_user(organization_dict, user)
 
         return user
 

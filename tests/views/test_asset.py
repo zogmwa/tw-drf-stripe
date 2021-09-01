@@ -122,8 +122,8 @@ class TestAssetViewSetSimilarServices:
             assert results[0]['id'] == similar_asset.id
 
 
-class TestAssetCreate:
-    def test_create_with_nested_field_snapshots(
+class TestAssetCreateUpdateWithOneManyFieldSnapshots:
+    def test_create_asset_with_new_snapshots(
         self, authenticated_client, example_asset, mocker
     ):
         test_asset_data = {
@@ -148,3 +148,66 @@ class TestAssetCreate:
         # crated in the POST request to the asset endpoint
         gcp_gpu_snapshot = AssetSnapshot.objects.get(asset=asset_gcp_gpu)
         assert gcp_gpu_snapshot.asset == asset_gcp_gpu
+
+    def _verify_updated_asset_and_its_associated_snapshot(
+        self, example_asset, updated_asset, expected_snapshot_url
+    ):
+        assert updated_asset == example_asset
+        updated_asset_snapshot = updated_asset.snapshots.get()
+        assert updated_asset_snapshot.asset.id == example_asset.id
+        assert updated_asset_snapshot.url == expected_snapshot_url
+
+    @pytest.mark.parametrize('method', ['put', 'patch'])
+    def test_update_existing_asset_with_new_snapshots(
+        self, authenticated_client, example_asset, method
+    ):
+        test_asset_data = {
+            'slug': example_asset.slug,
+            'name': example_asset.name,
+            'snapshots': [
+                {'url': 'https://miro.medium.com/max/591/1*8r_Ru1Rnju6p8renaAdp5Q.jpeg'}
+            ],
+        }
+
+        put_endpoint = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+
+        # If all required fields e.g. 'name' are also passed in the data then 'put' can also be used instead of 'patch`
+        # For patch, only the pk/lookup field needs to be passed and the fields being updated
+        if method == 'put':
+            response = authenticated_client.put(
+                put_endpoint, test_asset_data, content_type='application/json'
+            )
+        else:
+            response = authenticated_client.patch(
+                put_endpoint, test_asset_data, content_type='application/json'
+            )
+
+        assert response.status_code == 200
+        updated_asset = Asset.objects.get(id=example_asset.id)
+        self._verify_updated_asset_and_its_associated_snapshot(
+            example_asset, updated_asset, test_asset_data['snapshots'][0]['url']
+        )
+
+    def test_update_existing_asset_with_existing_snapshots(
+        self,
+        authenticated_client,
+        example_asset,
+    ):
+
+        existing_asset_snapshot = AssetSnapshot.objects.create(
+            url='https://miro.medium.com/max/591/1*8r_Ru1Rnju6p8renaAdp5Q.jpeg'
+        )
+        test_asset_data = {
+            'slug': example_asset.slug,
+            'snapshots': [{'url': existing_asset_snapshot.url}],
+        }
+
+        put_endpoint = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = authenticated_client.patch(
+            put_endpoint, test_asset_data, content_type='application/json'
+        )
+        assert response.status_code == 200
+        updated_asset = Asset.objects.get(id=example_asset.id)
+        self._verify_updated_asset_and_its_associated_snapshot(
+            example_asset, updated_asset, test_asset_data['snapshots'][0]['url']
+        )

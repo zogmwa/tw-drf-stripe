@@ -31,7 +31,7 @@ class TestUserOrganizationLinking:
             username, Organization.objects.get(name=organization_name).id
         )
 
-    def test_when_user_update_by_creating_new_organization(
+    def test_when_an_existing_user_is_updated_to_add_a_new_organization(
         self, user_and_password, authenticated_client
     ):
         organization_name = 'organization-name'
@@ -53,7 +53,7 @@ class TestUserOrganizationLinking:
             Organization.objects.get(name=organization_name).id,
         )
 
-    def test_when_user_update_by_choosing_organization(
+    def test_existing_user_is_updated_by_using_an_existing_organization_suggestion(
         self, user_and_password, authenticated_client, example_organization
     ):
         organization_name = example_organization.name
@@ -75,7 +75,7 @@ class TestUserOrganizationLinking:
             example_organization.id,
         )
 
-    def test_when_user_is_created_by_choosing_organization(
+    def test_new_user_is_created_by_using_an_existing_organization_suggestion(
         self, user_and_password, authenticated_client, example_organization
     ):
         username = 'test_user'
