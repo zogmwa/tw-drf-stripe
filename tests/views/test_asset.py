@@ -2,6 +2,7 @@ from api.models import Asset, Tag, AssetVote, LinkedTag
 import pytest
 
 from api.models.asset_snapshot import AssetSnapshot
+from api.models.user import User, UserAssetLink
 from api.views.asset import AssetViewSet
 
 ASSETS_BASE_ENDPOINT = 'http://127.0.0.1:8000/assets/'
@@ -210,4 +211,62 @@ class TestAssetCreateUpdateWithOneManyFieldSnapshots:
         updated_asset = Asset.objects.get(id=example_asset.id)
         self._verify_updated_asset_and_its_associated_snapshot(
             example_asset, updated_asset, test_asset_data['snapshots'][0]['url']
+        )
+
+
+class TestAssetUsedByUser:
+    def _test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+        self, asset, expected_count
+    ):
+        assert asset.users.count() == expected_count
+
+    @pytest.mark.parametrize(
+        "asset_used, expected_count",
+        [('true', 1), ('false', 0)],
+    )
+    def test_if_user_marks_asset_as_used_then_there_should_be_one_row_present_this(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_asset,
+        asset_used,
+        expected_count,
+    ):
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = authenticated_client.patch(
+            asset_url, {'used_by_me': asset_used}, 'application/json'
+        )
+        response.status_code == 200
+        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+            example_asset, expected_count
+        )
+
+    def test_if_user_first_marks_asset_as_used_then_unmarks_it(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_asset,
+    ):
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = authenticated_client.patch(
+            asset_url, {'used_by_me': 'true'}, 'application/json'
+        )
+        response.status_code == 200
+        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+            example_asset, 1
+        )
+
+        # None should not change anything
+        response = authenticated_client.patch(asset_url, {}, 'application/json')
+        response.status_code == 200
+        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+            example_asset, 1
+        )
+
+        response = authenticated_client.patch(
+            asset_url, {'used_by_me': 'false'}, 'application/json'
+        )
+        response.status_code == 200
+        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+            example_asset, 0
         )

@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer
 
 from api.models import Asset, AssetQuestion
+from api.models.user import User, UserAssetLink
 from api.models.asset_snapshot import AssetSnapshot
 from api.serializers.asset_attribute import AssetAttributeSerializer
 from api.serializers.asset_question import AssetQuestionSerializer
@@ -34,6 +35,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
     avg_rating = serializers.DecimalField(
         read_only=True, max_digits=10, decimal_places=7
     )
+    used_by_me = serializers.BooleanField(write_only=True, required=False)
     reviews_count = serializers.IntegerField(read_only=True)
 
     @staticmethod
@@ -54,8 +56,8 @@ class AssetSerializer(HyperlinkedModelSerializer):
             validated_data['submitted_by'] = self.context['request'].user
 
     def create(self, validated_data):
+        validated_data.pop('used_by_me', None)
         self._set_submitted_by_to_logged_in_user(validated_data)
-
         # Nested objects in DRF are not supported/are-read only by default so we have to pop this and create snapshot
         # objects and associate them with the asset separately after creation of the asset.
         snapshots_dicts = validated_data.pop('snapshots', [])
@@ -67,11 +69,26 @@ class AssetSerializer(HyperlinkedModelSerializer):
 
         return asset
 
-    def update(self, instance, validated_data):
-        self._set_submitted_by_to_logged_in_user(validated_data)
+    def _get_filter_kwargs_for_asset_user_link_queryset(self, asset_id):
+        kwargs = {"asset_id": asset_id, "user_id": self.context['request'].user.id}
+        return kwargs
 
+    def update(self, instance, validated_data):
+        asset_used = validated_data.pop('used_by_me', None)
+        self._set_submitted_by_to_logged_in_user(validated_data)
         snapshots_dicts = validated_data.pop('snapshots', [])
         asset = super().update(instance, validated_data)
+
+        if asset_used is not None:
+            if asset_used:
+                UserAssetLink.objects.get_or_create(
+                    **self._get_filter_kwargs_for_asset_user_link_queryset(asset.id)
+                )
+            if not asset_used:
+                UserAssetLink.objects.filter(
+                    **self._get_filter_kwargs_for_asset_user_link_queryset(asset.id)
+                ).delete()
+
         AssetSerializer._create_snapshots_and_associate_with_asset(
             snapshots_dicts, asset
         )
@@ -104,6 +121,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
             'has_free_trial',
             'snapshots',
             'users_count',
+            'used_by_me',
         ]
         lookup_field = 'slug'
         extra_kwargs = {'url': {'lookup_field': 'slug'}}
