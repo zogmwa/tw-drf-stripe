@@ -25,6 +25,7 @@ class User(AbstractUser, GuardianUserMixin):
 
     api_daily_rate_limit = models.IntegerField(default=2000)
     avatar = models.ImageField(null=True, blank=True, upload_to='images/avatars/')
+    is_professional = models.BooleanField(default=False)
     organization = models.ForeignKey(
         Organization,
         null=True,
