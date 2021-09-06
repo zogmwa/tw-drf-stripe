@@ -18,6 +18,7 @@ class AssetReviewSerializer(ModelSerializer):
             'content',
             'rating',
             'created',
+            'video_url',
         ]
 
     def _inject_logged_in_user_into_validated_data(self, validated_data: dict):

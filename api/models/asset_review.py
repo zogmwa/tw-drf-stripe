@@ -24,6 +24,7 @@ class AssetReview(models.Model):
     rating = models.IntegerField(choices=RATING_CHOICES)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    video_url = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return "{}: {}: {}".format(self.asset, self.user, self.rating)
