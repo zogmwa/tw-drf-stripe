@@ -11,6 +11,7 @@ class UserSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'avatar', 'organization']
+        read_only_fields = ['is_business_user']
         lookup_field = 'username'
         extra_kwargs = {'url': {'lookup_field': 'username'}}
 
