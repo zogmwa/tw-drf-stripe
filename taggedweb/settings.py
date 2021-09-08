@@ -82,6 +82,14 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
+
+# Authentication Settings
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+
+
+# Note: These may not be used if the taggedweb-frontend Next app decides to directly hit LinkedIn
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -104,6 +112,9 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
     },
 }
+
+
+# Other Settings
 
 EMAIL_BACKEND = 'django_ses.SESBackend'
 DEFAULT_FROM_EMAIL = 'noreply@taggedweb.com'
