@@ -20,7 +20,7 @@ elasticsearch==7.14.0
 elasticsearch-dsl==7.4.0
 drf_yasg==1.20.0
 # Need for image processing/managing photo uploads, etc
-Pillow==8.3.1
+Pillow==8.3.2
 
 # Prod Only Requirements
 gunicorn==20.1.0
