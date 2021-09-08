@@ -21,7 +21,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
-from api.views.auth import GoogleLogin, LinkedInLogin
+from api.views.auth import (
+    GoogleLogin,
+    LinkedInLogin,
+    linkedin_oauth2_access_token_from_auth_code,
+)
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet
 from api.views.tag import autocomplete_tags, autocomplete_assets_and_tags
@@ -36,7 +40,6 @@ from api.views.organization import autocomplete_organizations
 from api.views.price_plans import PricePlanViewSet
 from api.views.user import UserViewSet
 
-# Swagger code starts here
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -72,7 +75,6 @@ router.register(r'asset_reviews', AssetReviewViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    # swaggerAPI
     path(
         'docs/',
         schema_view.with_ui('swagger', cache_timeout=0),
@@ -101,7 +103,14 @@ urlpatterns = [
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     # Social Authentication
     path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login'),
+    # Tweb endpint to allow a frontend app to exchange auth-code for a LinkedIn authtoken
+    path(
+        'tweb-auth/linkedin/authtoken-from-code',
+        linkedin_oauth2_access_token_from_auth_code,
+        name='linkedin_auth_token',
+    ),
     # https://django-allauth.readthedocs.io/en/latest/providers.html?highlight=LinkedIn#linkedin
+    # Exchange LinkedIn Auth token, code, client_id for TaggedWeb auth_token
     path('dj-rest-auth/linkedin/', LinkedInLogin.as_view(), name='linkedin_login'),
     path(
         'password/reset/confirm/<uidb64>/<token>/',
