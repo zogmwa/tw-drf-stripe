@@ -48,6 +48,28 @@ def user_and_password():
     return user, password
 
 
+@pytest.fixture
+def admin_user_and_password():
+    username = 'admin'
+    password = 'password'
+    user = User.objects.create(username=username)
+    user.set_password(password)
+    user.is_superuser = True
+    user.save()
+    return user, password
+
+
+@pytest.fixture
+def staff_user_and_password():
+    username = 'staff'
+    password = 'password'
+    user = User.objects.create(username=username)
+    user.set_password(password)
+    user.is_staff = True
+    user.save()
+    return user, password
+
+
 @pytest.fixture()
 def authenticated_client(user_and_password):
     client = Client()

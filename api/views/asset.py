@@ -30,10 +30,16 @@ class AssetViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     pagination_class = AssetViewSetPagination
 
+    def _is_staff_or_admin(self) -> bool:
+        return self.request.user.is_staff or self.request.user.is_superuser
+
     def _update_tag_search_counts_for_tags_used_in_search_query(self, search_query):
         tags = search_query.split()
         Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter') + 1)
         return
+
+    def _published_or_submitted_by_filter(self, queryset: QuerySet) -> QuerySet:
+        return queryset.filter(Q(is_published=True) | Q(submitted_by=self.request.user))
 
     @staticmethod
     def _filter_assets_matching_tags_exact(tag_slugs: list) -> QuerySet:
@@ -65,7 +71,6 @@ class AssetViewSet(viewsets.ModelViewSet):
         )
         es_search = AssetDocument.search().query(es_query)
         assets_db_queryset = es_search.to_queryset()
-        assets_db_queryset = assets_db_queryset.filter(is_published=True)
         return assets_db_queryset
 
     def get_queryset(self):
@@ -78,15 +83,24 @@ class AssetViewSet(viewsets.ModelViewSet):
                 return Asset.objects.none()
 
             self._update_tag_search_counts_for_tags_used_in_search_query(search_query)
-
             assets_db_queryset = self._get_assets_db_qs_via_elasticsearch_query(
                 search_query
             )
+
+            if not self._is_staff_or_admin():
+                assets_db_queryset = self._published_or_submitted_by_filter(
+                    assets_db_queryset
+                )
+
             return assets_db_queryset
 
         elif self.action == 'retrieve':
             slug = self.kwargs['slug']
-            return Asset.objects.filter(slug=slug, is_published=True)
+            asset = Asset.objects.filter(slug=slug)
+
+            if not self._is_staff_or_admin():
+                asset = self._published_or_submitted_by_filter(asset)
+            return asset
         else:
             # self.action == 'update' or something else
             return super().get_queryset()
