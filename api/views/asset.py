@@ -30,7 +30,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     pagination_class = AssetViewSetPagination
 
-    def _is_staff_or_admin(self) -> bool:
+    def _is_staff_or_superuser(self) -> bool:
         return self.request.user.is_staff or self.request.user.is_superuser
 
     def _update_tag_search_counts_for_tags_used_in_search_query(self, search_query):
@@ -39,7 +39,13 @@ class AssetViewSet(viewsets.ModelViewSet):
         return
 
     def _published_or_submitted_by_filter(self, queryset: QuerySet) -> QuerySet:
-        return queryset.filter(Q(is_published=True) | Q(submitted_by=self.request.user))
+
+        if not self.request.user.is_anonymous:
+            return queryset.filter(
+                Q(is_published=True) | Q(submitted_by=self.request.user)
+            )
+        else:
+            return queryset.filter(is_published=True)
 
     @staticmethod
     def _filter_assets_matching_tags_exact(tag_slugs: list) -> QuerySet:
@@ -87,10 +93,9 @@ class AssetViewSet(viewsets.ModelViewSet):
                 search_query
             )
 
-            if not self._is_staff_or_admin():
-                assets_db_queryset = self._published_or_submitted_by_filter(
-                    assets_db_queryset
-                )
+            assets_db_queryset = self._published_or_submitted_by_filter(
+                assets_db_queryset
+            )
 
             return assets_db_queryset
 
@@ -98,7 +103,8 @@ class AssetViewSet(viewsets.ModelViewSet):
             slug = self.kwargs['slug']
             asset = Asset.objects.filter(slug=slug)
 
-            if not self._is_staff_or_admin():
+            if not self._is_staff_or_superuser():
+
                 asset = self._published_or_submitted_by_filter(asset)
             return asset
         else:

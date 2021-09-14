@@ -59,7 +59,7 @@ class TestUnpublishedAsset:
         asset.save()
         return asset
 
-    def _test_access_to_unpublished_asset(
+    def _validate_access_to_unpublished_asset(
         self, client: Client, should_have_access: bool, example_tag, asset, mocker
     ):
         if should_have_access:
@@ -75,11 +75,6 @@ class TestUnpublishedAsset:
             return_value=Asset.objects.all(),
         )
 
-        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
-        response = client.get(asset_list_url)
-        assert response.status_code == 200
-        assert response.data['count'] == expected_count
-
         asset_retrive_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, asset.slug)
         response = client.get(asset_retrive_url)
         assert response.status_code == status_code
@@ -91,7 +86,7 @@ class TestUnpublishedAsset:
         asset = self._link_tag(example_tag, Asset.objects.get(id=response.data['id']))
         assert asset.is_published is False
 
-        self._test_access_to_unpublished_asset(
+        self._validate_access_to_unpublished_asset(
             authenticated_client, True, example_tag, asset, mocker
         )
 
@@ -102,7 +97,7 @@ class TestUnpublishedAsset:
         asset = self._link_tag(example_tag, Asset.objects.get(id=response.data['id']))
         assert asset.is_published is False
 
-        self._test_access_to_unpublished_asset(
+        self._validate_access_to_unpublished_asset(
             authenticated_client, False, example_tag, asset, mocker
         )
 
@@ -120,13 +115,27 @@ class TestUnpublishedAsset:
 
         users_and_password = [admin_user_and_password, staff_user_and_password]
         for user_and_password in users_and_password:
-            self._test_access_to_unpublished_asset(
+            self._validate_access_to_unpublished_asset(
                 _authenticated_client(user_and_password),
                 True,
                 example_tag,
                 asset,
                 mocker,
             )
+
+    def test_anonymous_user_should_be_able_to_access_list_of_assets(
+        self, unauthenticated_client, example_tag, mocker, example_asset
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
+        response = unauthenticated_client.get(asset_list_url)
+        assert response.status_code == 200
+        assert response.data['count'] == 1
 
 
 class AssetTagSearchCounter:
