@@ -5,7 +5,7 @@ from allauth.socialaccount.providers.linkedin_oauth2.provider import (
     LinkedInOAuth2Provider,
 )
 from allauth.socialaccount.providers.linkedin_oauth2.views import LinkedInOAuth2Adapter
-from dj_rest_auth.registration.views import SocialLoginView
+from dj_rest_auth.registration.views import SocialLoginView, SocialConnectView
 from django.http import JsonResponse
 
 
@@ -13,7 +13,15 @@ class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
 
+class GoogleConnect(SocialConnectView):
+    adapter_class = GoogleOAuth2Adapter
+
+
 class LinkedInLogin(SocialLoginView):
+    adapter_class = LinkedInOAuth2Adapter
+
+
+class LinkedInConnect(SocialConnectView):
     adapter_class = LinkedInOAuth2Adapter
 
 

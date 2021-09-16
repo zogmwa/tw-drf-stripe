@@ -25,6 +25,8 @@ from api.views.auth import (
     GoogleLogin,
     LinkedInLogin,
     linkedin_oauth2_access_token_from_auth_code,
+    LinkedInConnect,
+    GoogleConnect,
 )
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet
@@ -103,6 +105,11 @@ urlpatterns = [
     path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
     # Social Authentication
     path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login'),
+    path(
+        'dj-rest-auth/google/connect/',
+        GoogleConnect.as_view(),
+        name='google_connect',
+    ),
     # Tweb endpint to allow a frontend app to exchange auth-code for a LinkedIn authtoken
     path(
         'tweb-auth/linkedin/authtoken-from-code',
@@ -112,6 +119,11 @@ urlpatterns = [
     # https://django-allauth.readthedocs.io/en/latest/providers.html?highlight=LinkedIn#linkedin
     # Exchange LinkedIn Auth token, code, client_id for TaggedWeb auth_token
     path('dj-rest-auth/linkedin/', LinkedInLogin.as_view(), name='linkedin_login'),
+    path(
+        'dj-rest-auth/linkedin/connect/',
+        LinkedInConnect.as_view(),
+        name='linkedin_connect',
+    ),
     path(
         'password/reset/confirm/<uidb64>/<token>/',
         PasswordResetConfirmView.as_view(),
