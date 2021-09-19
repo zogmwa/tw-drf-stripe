@@ -1,7 +1,27 @@
 from api.models import User, Organization
+from tests.views.test_asset import create_asset
 import pytest
 
 USER_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
+
+
+class TestSubmittedAssetsIsVisibleInProfilePage:
+    def test_when_user_hits_profile_page_submitted_assets_should_be_visible_whether_published_or_not(
+        self, authenticated_client, user_and_password
+    ):
+        asset_create_response = create_asset(authenticated_client)
+        assert asset_create_response.status_code == 201
+
+        user_profile_url = '{}{}/'.format(
+            USER_BASE_ENDPOINT, user_and_password[0].username
+        )
+        response = authenticated_client.get(user_profile_url)
+        assert response.status_code == 200
+        assert len(response.data['submitted_assets']) == 1
+        assert (
+            response.data['submitted_assets'][0]['id']
+            == asset_create_response.data['id']
+        )
 
 
 class TestUserOrganizationLinking:

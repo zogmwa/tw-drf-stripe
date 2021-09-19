@@ -38,11 +38,15 @@ class AssetViewSet(viewsets.ModelViewSet):
         Tag.objects.filter(slug__in=tags).distinct().update(counter=F('counter') + 1)
         return
 
-    def _published_or_submitted_by_filter(self, queryset: QuerySet) -> QuerySet:
+    def _published_or_submitted_by_or_owner_filter(
+        self, queryset: QuerySet
+    ) -> QuerySet:
 
         if not self.request.user.is_anonymous:
             return queryset.filter(
-                Q(is_published=True) | Q(submitted_by=self.request.user)
+                Q(is_published=True)
+                | Q(submitted_by=self.request.user)
+                | Q(owner=self.request.user)
             )
         else:
             return queryset.filter(is_published=True)
@@ -93,9 +97,8 @@ class AssetViewSet(viewsets.ModelViewSet):
                 search_query
             )
 
-            assets_db_queryset = self._published_or_submitted_by_filter(
-                assets_db_queryset
-            )
+            # For list, we will not show assets submitted by the logged in user or if user own an asset because it might deceive them into believing that their asset is published
+            assets_db_queryset = assets_db_queryset.filter(is_published=True)
 
             return assets_db_queryset
 
@@ -105,7 +108,7 @@ class AssetViewSet(viewsets.ModelViewSet):
 
             if not self._is_staff_or_superuser():
 
-                asset = self._published_or_submitted_by_filter(asset)
+                asset = self._published_or_submitted_by_or_owner_filter(asset)
             return asset
         else:
             # self.action == 'update' or something else

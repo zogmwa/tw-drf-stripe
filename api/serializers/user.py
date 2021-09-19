@@ -1,16 +1,26 @@
 from email.headerregistry import Group
+from rest_framework import serializers
 
 from rest_framework.serializers import HyperlinkedModelSerializer
+from api.serializers.asset import AssetSerializer
 from .organization import OrganizationSerializer
 from api.models import User, Organization
 
 
 class UserSerializer(HyperlinkedModelSerializer):
     organization = OrganizationSerializer(many=False, required=False)
+    # TODO: later try to send submitted_asssets only when asked by the user by some additional parameter
+    submitted_assets = AssetSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'avatar', 'organization']
+        fields = [
+            'id',
+            'username',
+            'avatar',
+            'organization',
+            'submitted_assets',
+        ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'
         extra_kwargs = {'url': {'lookup_field': 'username'}}
