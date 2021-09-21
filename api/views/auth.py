@@ -7,6 +7,7 @@ from allauth.socialaccount.providers.linkedin_oauth2.provider import (
 from allauth.socialaccount.providers.linkedin_oauth2.views import LinkedInOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView, SocialConnectView
 from django.http import JsonResponse
+from rest_framework.permissions import AllowAny
 
 
 class GoogleLogin(SocialLoginView):
@@ -14,6 +15,7 @@ class GoogleLogin(SocialLoginView):
 
 
 class GoogleConnect(SocialConnectView):
+    permission_classes = [AllowAny]
     adapter_class = GoogleOAuth2Adapter
 
 
@@ -22,6 +24,8 @@ class LinkedInLogin(SocialLoginView):
 
 
 class LinkedInConnect(SocialConnectView):
+    # TODO: Make sure we check that a TaggedWeb user's email is verified before we allow them to connect accounts.
+    permission_classes = [AllowAny]
     adapter_class = LinkedInOAuth2Adapter
 
 
