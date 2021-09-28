@@ -14,6 +14,7 @@ from api.models import (
     AssetVote,
     Attribute,
     AssetQuestionVote,
+    ClaimAsset,
 )
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot

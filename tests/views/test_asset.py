@@ -5,6 +5,7 @@ from django.test import Client
 from api.models.asset_snapshot import AssetSnapshot
 from api.models.user import User, UserAssetLink
 from api.views.asset import AssetViewSet
+from tests.common import login_client
 
 ASSETS_BASE_ENDPOINT = 'http://127.0.0.1:8000/assets/'
 
@@ -18,14 +19,7 @@ def patch_elasticsearch(mocker):
     )
 
 
-def _authenticated_client(user_and_password):
-    client = Client()
-    client.login(username=user_and_password[0].username, password=user_and_password[1])
-    assert client.session['_auth_user_id'] == str(user_and_password[0].id)
-    return client
-
-
-def create_asset(client: Client):
+def _create_asset(client: Client):
     asset_slug = 'test_slug'
     asset_name = 'test_asset'
     asset_description = 'Some test description'
@@ -46,7 +40,7 @@ def test_submitted_by_is_set_to_logged_in_user_when_saving_asset(
 ):
     # Create a mock request with the user object set (simulating a logged in user)
     asset_slug = 'test_slug'
-    response = create_asset(authenticated_client)
+    response = _create_asset(authenticated_client)
     assert response.status_code == 201
 
     asset = Asset.objects.get(slug=asset_slug)
@@ -82,7 +76,7 @@ class TestUnpublishedAsset:
     def test_unpublished_asset_should_be_visible_to_user_who_submitted_it_in_list_and_retrieve(
         self, authenticated_client, example_tag, mocker
     ):
-        response = create_asset(authenticated_client)
+        response = _create_asset(authenticated_client)
         asset = self._link_tag(example_tag, Asset.objects.get(id=response.data['id']))
         assert asset.is_published is False
 
@@ -91,9 +85,9 @@ class TestUnpublishedAsset:
         )
 
     def test_other_users_can_not_see_unpublished_assets(
-        self, authenticated_client, admin_user_and_password, example_tag, mocker
+        self, admin_client, example_tag, mocker, authenticated_client
     ):
-        response = create_asset(_authenticated_client(admin_user_and_password))
+        response = _create_asset(admin_client)
         asset = self._link_tag(example_tag, Asset.objects.get(id=response.data['id']))
         assert asset.is_published is False
 
@@ -109,14 +103,14 @@ class TestUnpublishedAsset:
         example_tag,
         mocker,
     ):
-        response = create_asset(authenticated_client)
+        response = _create_asset(authenticated_client)
         asset = self._link_tag(example_tag, Asset.objects.get(id=response.data['id']))
         assert asset.is_published is False
 
         users_and_password = [admin_user_and_password, staff_user_and_password]
         for user_and_password in users_and_password:
             self._validate_access_to_unpublished_asset(
-                _authenticated_client(user_and_password),
+                login_client(user_and_password),
                 True,
                 example_tag,
                 asset,

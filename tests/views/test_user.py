@@ -1,5 +1,5 @@
 from api.models import User, Organization
-from tests.views.test_asset import create_asset
+from tests.views.test_asset import _create_asset
 import pytest
 
 USER_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
@@ -9,7 +9,7 @@ class TestSubmittedAssetsIsVisibleInProfilePage:
     def test_when_user_hits_profile_page_submitted_assets_should_be_visible_whether_published_or_not(
         self, authenticated_client, user_and_password
     ):
-        asset_create_response = create_asset(authenticated_client)
+        asset_create_response = _create_asset(authenticated_client)
         assert asset_create_response.status_code == 201
 
         user_profile_url = '{}{}/'.format(

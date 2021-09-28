@@ -6,14 +6,14 @@ from rest_framework.response import Response
 import api.permissions
 from api.models import Asset, AssetReview
 from api.permissions.allow_anonymous_reads_and_owner_writes import (
-    AllowAnonymousReadsAndOwnerWrites,
+    AllowAnonymousReadsAndOwnerOrAdminWrites,
 )
 from api.serializers.asset_review import AssetReviewSerializer
 
 
 class AssetReviewViewSet(viewsets.ModelViewSet):
     queryset = AssetReview.objects.filter()
-    permission_classes = [AllowAnonymousReadsAndOwnerWrites]
+    permission_classes = [AllowAnonymousReadsAndOwnerOrAdminWrites]
     serializer_class = AssetReviewSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
