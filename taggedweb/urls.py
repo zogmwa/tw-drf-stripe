@@ -96,7 +96,6 @@ urlpatterns = [
     #     "Actionable Science"
     #   ]
     # }
-    # path(r'logout/', 'django.contrib.auth.views.logout', {'next_page': '/login'}),
     path('autocomplete-tags-and-assets/', autocomplete_assets_and_tags),
     path('autocomplete-organizations/', autocomplete_organizations),
     # DRF Standard Token Auth Views

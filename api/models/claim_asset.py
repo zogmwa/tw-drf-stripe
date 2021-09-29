@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.db.models import UniqueConstraint
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
 from api.models import Asset
 
@@ -32,3 +34,15 @@ class ClaimAsset(models.Model):
         ]
         verbose_name = 'Web Service Claim Request'
         verbose_name_plural = 'Web Service Claim Requests'
+
+
+@receiver(pre_save, sender=ClaimAsset)
+def set_owner_of_asset_if_claim_asset_request_is_accepted(
+    sender, instance=None, **kwargs
+):
+    """
+    If the asset claim request of the user is accepted by admin/staff user, the ownership of the asset should be given
+    to the user.
+    """
+    if instance.status == 'Accepted':
+        Asset.objects.filter(id=instance.asset.id).update(owner=instance.user)

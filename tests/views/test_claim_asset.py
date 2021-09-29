@@ -1,5 +1,5 @@
 import pytest
-from api.models.user import User
+from api.models.user import User, Asset
 from api.views.claim_asset import ClaimAssetViewSet
 from tests.common import login_client
 from django.test import Client
@@ -29,16 +29,50 @@ def _create_claim_asset_request_by_staff(staff_user_and_password, example_asset)
     return response
 
 
-def _create_asset_claim_request(client, user_ans_password, asset):
+def _create_asset_claim_request(client, asset):
     response = client.post(
         CLAIM_ASSET_BASE_ENDPOINT,
         {
             'asset': asset.id,
-            'comment': 'claim request by' + user_ans_password[0].username,
+            'comment': 'claim request by',
         },
     )
     assert response.status_code == 201
     return response
+
+
+class TestOwnershipOfAsset:
+    @pytest.mark.parametrize(
+        "status_value",
+        [('Accepted'), ('Pending'), ('Denied')],
+    )
+    def test_when_the_claim_asset_request_is_accepted_give_ownership_of_that_asset(
+        self, admin_client, example_asset, status_value
+    ):
+        assert example_asset.owner is None
+        response = _create_asset_claim_request(admin_client, example_asset)
+        assert response.data['status'] == 'Pending'
+
+        claim_asset_object_url = '{}{}/'.format(
+            CLAIM_ASSET_BASE_ENDPOINT, response.data['id']
+        )
+
+        response = admin_client.patch(
+            claim_asset_object_url,
+            {
+                'status': status_value,
+            },
+            content_type='application/json',
+        )
+        assert response.status_code == 200
+        assert response.data['status'] == status_value
+
+        asset = Asset.objects.get(id=example_asset.id)
+
+        if status_value == 'Accepted':
+            assert admin_client.session['_auth_user_id'] == str(asset.owner.id)
+        else:
+            assert asset.owner is None
 
 
 class TestClaimAssetListAndRetrieve:
@@ -62,9 +96,7 @@ class TestClaimAssetListAndRetrieve:
         _create_claim_asset_request_by_staff,
         example_asset,
     ):
-        _create_asset_claim_request(
-            authenticated_client, user_and_password, example_asset
-        )
+        _create_asset_claim_request(authenticated_client, example_asset)
 
         response = authenticated_client.get(CLAIM_ASSET_BASE_ENDPOINT)
         assert response.status_code == 200
@@ -74,9 +106,7 @@ class TestClaimAssetListAndRetrieve:
     def test_user_can_not_change_status_of_asset_claim_request(
         self, authenticated_client, user_and_password, example_asset
     ):
-        response = _create_asset_claim_request(
-            authenticated_client, user_and_password, example_asset
-        )
+        response = _create_asset_claim_request(authenticated_client, example_asset)
 
         claim_asset_object_url = '{}{}/'.format(
             CLAIM_ASSET_BASE_ENDPOINT, response.data['id']
@@ -99,9 +129,7 @@ class TestClaimAssetListAndRetrieve:
         _create_claim_asset_request_by_staff,
         example_asset,
     ):
-        response = _create_asset_claim_request(
-            authenticated_client, user_and_password, example_asset
-        )
+        response = _create_asset_claim_request(authenticated_client, example_asset)
 
         claim_asset_object_url = '{}{}/'.format(
             CLAIM_ASSET_BASE_ENDPOINT, response.data['id']
