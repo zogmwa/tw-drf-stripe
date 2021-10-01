@@ -12,7 +12,7 @@ class AssetAttributeSerializer(ModelSerializer):
 
     class Meta:
         model = Attribute
-        fields = ['name', 'is_con', 'upvotes_count']
+        fields = ['id', 'name', 'is_con', 'upvotes_count']
 
     def get_upvote_counts_for_asset_in_request(self, instance):
         request = self.context.get('request')
