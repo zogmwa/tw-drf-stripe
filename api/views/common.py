@@ -13,9 +13,12 @@ def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
         if len(results) > max_unique_items or i >= max_processed_items:
             break
         else:
-            # We are using the tag slug for suggestions for tags and name for assets
+            # We are using the tag slug for suggestions for tags and returning both slug and name for assets
             if case == 'tag':
                 results.add(hit.slug)
-            else:
+            elif case == 'organization':
                 results.add(hit.name)
+            else:
+                # case == 'asset_name_and_slug':
+                results.add((hit.name, hit.slug))
     return list(results)
