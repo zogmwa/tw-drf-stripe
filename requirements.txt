@@ -19,6 +19,7 @@ django-ses==2.2.1
 elasticsearch==7.14.0
 elasticsearch-dsl==7.4.0
 drf_yasg==1.20.0
+pytest-lazy-fixture==0.6.3
 # Need for image processing/managing photo uploads, etc
 Pillow==8.3.2
 
@@ -45,3 +46,4 @@ git+https://github.com/erikriver/opengraph.git@e2322563004c923a4c1ce136733a44efe
 furl==2.1.2
 # 3P OpenGraph API used as a fallback (Paid API)
 opengraphio==1.0.5
+

@@ -1,5 +1,3 @@
-import logging
-
 from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer
 
@@ -36,7 +34,7 @@ class AssetSerializer(HyperlinkedModelSerializer):
     avg_rating = serializers.DecimalField(
         read_only=True, max_digits=10, decimal_places=7
     )
-    used_by_me = serializers.BooleanField(write_only=True, required=False)
+    used_by_me = serializers.BooleanField(read_only=True, required=False)
     reviews_count = serializers.IntegerField(read_only=True)
 
     @staticmethod
@@ -70,26 +68,11 @@ class AssetSerializer(HyperlinkedModelSerializer):
 
         return asset
 
-    def _get_filter_kwargs_for_asset_user_link_queryset(self, asset_id):
-        kwargs = {"asset_id": asset_id, "user_id": self.context['request'].user.id}
-        return kwargs
-
     def update(self, instance, validated_data):
-        asset_used = validated_data.pop('used_by_me', None)
+        # asset_used = validated_data.pop('used_by_me', None)
         self._set_submitted_by_to_logged_in_user(validated_data)
         snapshots_dicts = validated_data.pop('snapshots', [])
         asset = super().update(instance, validated_data)
-
-        if asset_used is not None:
-            if asset_used:
-                UserAssetUsage.objects.get_or_create(
-                    **self._get_filter_kwargs_for_asset_user_link_queryset(asset.id)
-                )
-            if not asset_used:
-                UserAssetUsage.objects.filter(
-                    **self._get_filter_kwargs_for_asset_user_link_queryset(asset.id)
-                ).delete()
-
         AssetSerializer._create_snapshots_and_associate_with_asset(
             snapshots_dicts, asset
         )

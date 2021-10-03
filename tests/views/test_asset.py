@@ -1,4 +1,6 @@
-from api.models import Asset, Tag, AssetVote, LinkedTag
+from rest_framework import status
+
+from api.models import Asset, Tag
 import pytest
 from django.test import Client
 
@@ -11,7 +13,6 @@ from tests.common import login_client
 ASSETS_BASE_ENDPOINT = 'http://127.0.0.1:8000/assets/'
 
 
-# @pytest.fixture
 def patch_elasticsearch(mocker):
     mocker.patch.object(
         AssetViewSet,
@@ -46,6 +47,101 @@ def test_submitted_by_is_set_to_logged_in_user_when_saving_asset(
 
     asset = Asset.objects.get(slug=asset_slug)
     assert asset.submitted_by == user_and_password[0]
+
+
+class TestViewEditPermissionOfAsset:
+    def _validate_patch_put_delete_request(
+        self, client: Client, asset_slug, should_pass: bool, mocker
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, asset_slug)
+
+        if should_pass is False:
+            response = client.patch(
+                asset_url, {'name': 'new name'}, content_type='application/json'
+            )
+            assert response.status_code == 403
+
+            response = client.put(
+                asset_url, {'name': 'new name'}, content_type='application/json'
+            )
+            assert response.status_code == 403
+
+            response = client.delete(asset_url)
+            assert response.status_code == 403
+        else:
+            response = client.patch(
+                asset_url, {'name': 'new name'}, content_type='application/json'
+            )
+            assert response.status_code == 200
+
+            response = client.put(
+                asset_url, {'name': 'new name'}, content_type='application/json'
+            )
+            assert response.status_code == 200
+
+            response = client.delete(asset_url)
+            assert response.status_code == 204
+
+    def test_anonymous_user_should_be_able_to_access_list_of_assets_or_particular_asset(
+        self, unauthenticated_client, example_tag, mocker, example_asset
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
+        response = unauthenticated_client.get(asset_list_url)
+        assert response.status_code == 200
+        assert response.data['count'] == 1
+
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = unauthenticated_client.get(asset_url)
+        assert response.status_code == 200
+        assert response.data['slug'] == example_asset.slug
+
+    def test_user_can_not_make_patch_put_delete_request(
+        self, authenticated_client, example_asset, mocker
+    ):
+        self._validate_patch_put_delete_request(
+            authenticated_client, example_asset.slug, False, mocker
+        )
+
+    def test_owner_not_present_submitted_by_user_can_edit_asset(
+        self, authenticated_client, mocker
+    ):
+        response = _create_asset(authenticated_client)
+        self._validate_patch_put_delete_request(
+            authenticated_client, response.data['slug'], True, mocker
+        )
+
+    def test_owner_is_present_submitted_by_user_can_not_edit_asset(
+        self, authenticated_client, admin_user_and_password, mocker
+    ):
+        response = _create_asset(authenticated_client)
+        Asset.objects.filter(slug=response.data['slug']).update(
+            owner=admin_user_and_password[0]
+        )
+        self._validate_patch_put_delete_request(
+            authenticated_client, response.data['slug'], False, mocker
+        )
+
+    def test_owner_can_edit_asset(
+        self, authenticated_client, user_and_password, admin_client, mocker
+    ):
+        response = _create_asset(admin_client)
+        Asset.objects.filter(slug=response.data['slug']).update(
+            owner=user_and_password[0]
+        )
+        self._validate_patch_put_delete_request(
+            authenticated_client, response.data['slug'], True, mocker
+        )
 
 
 class TestUnpublishedAsset:
@@ -117,20 +213,6 @@ class TestUnpublishedAsset:
                 asset,
                 mocker,
             )
-
-    def test_anonymous_user_should_be_able_to_access_list_of_assets(
-        self, unauthenticated_client, example_tag, mocker, example_asset
-    ):
-        mocker.patch.object(
-            AssetViewSet,
-            '_get_assets_db_qs_via_elasticsearch_query',
-            return_value=Asset.objects.all(),
-        )
-
-        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
-        response = unauthenticated_client.get(asset_list_url)
-        assert response.status_code == 200
-        assert response.data['count'] == 1
 
 
 class AssetTagSearchCounter:
@@ -260,10 +342,26 @@ class TestAssetCreateUpdateWithOneManyFieldSnapshots:
         assert updated_asset_snapshot.asset.id == example_asset.id
         assert updated_asset_snapshot.url == expected_snapshot_url
 
-    @pytest.mark.parametrize('method', ['put', 'patch'])
+    @pytest.mark.parametrize(
+        "method, auth_client, is_owner, is_admin",
+        [
+            ('put', pytest.lazy_fixture("authenticated_client"), True, False),
+            ('patch', pytest.lazy_fixture("authenticated_client"), True, False),
+            ('put', pytest.lazy_fixture("authenticated_client"), False, False),
+            ('patch', pytest.lazy_fixture("authenticated_client"), False, False),
+            ('patch', pytest.lazy_fixture("admin_client"), False, True),
+            ('put', pytest.lazy_fixture("admin_client"), False, True),
+        ],
+    )
+    # @pytest.mark.parametrize('method', ['put', 'patch'])
     def test_update_existing_asset_with_new_snapshots(
-        self, authenticated_client, example_asset, method
+        self, user_and_password, example_asset, method, auth_client, is_owner, is_admin
     ):
+        if is_owner:
+            Asset.objects.filter(slug=example_asset.slug).update(
+                owner=user_and_password[0]
+            )
+
         test_asset_data = {
             'slug': example_asset.slug,
             'name': example_asset.name,
@@ -277,25 +375,43 @@ class TestAssetCreateUpdateWithOneManyFieldSnapshots:
         # If all required fields e.g. 'name' are also passed in the data then 'put' can also be used instead of 'patch`
         # For patch, only the pk/lookup field needs to be passed and the fields being updated
         if method == 'put':
-            response = authenticated_client.put(
+            response = auth_client.put(
                 put_endpoint, test_asset_data, content_type='application/json'
             )
         else:
-            response = authenticated_client.patch(
+            response = auth_client.patch(
                 put_endpoint, test_asset_data, content_type='application/json'
             )
+        if is_owner or is_admin:
+            assert response.status_code == 200
+            updated_asset = Asset.objects.get(id=example_asset.id)
+            self._verify_updated_asset_and_its_associated_snapshot(
+                example_asset, updated_asset, test_asset_data['snapshots'][0]['url']
+            )
+        else:
+            assert response.status_code == status.HTTP_403_FORBIDDEN
 
-        assert response.status_code == 200
-        updated_asset = Asset.objects.get(id=example_asset.id)
-        self._verify_updated_asset_and_its_associated_snapshot(
-            example_asset, updated_asset, test_asset_data['snapshots'][0]['url']
-        )
-
+    @pytest.mark.parametrize(
+        "auth_client, is_owner, is_admin",
+        [
+            (pytest.lazy_fixture("authenticated_client"), True, False),
+            (pytest.lazy_fixture("authenticated_client"), False, False),
+            (pytest.lazy_fixture("admin_client"), False, True),
+        ],
+    )
     def test_update_existing_asset_with_existing_snapshots(
         self,
-        authenticated_client,
         example_asset,
+        user_and_password,
+        auth_client,
+        is_owner,
+        is_admin,
     ):
+
+        if is_owner:
+            Asset.objects.filter(slug=example_asset.slug).update(
+                owner=user_and_password[0]
+            )
 
         existing_asset_snapshot = AssetSnapshot.objects.create(
             url='https://miro.medium.com/max/591/1*8r_Ru1Rnju6p8renaAdp5Q.jpeg'
@@ -306,14 +422,17 @@ class TestAssetCreateUpdateWithOneManyFieldSnapshots:
         }
 
         put_endpoint = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
-        response = authenticated_client.patch(
+        response = auth_client.patch(
             put_endpoint, test_asset_data, content_type='application/json'
         )
-        assert response.status_code == 200
-        updated_asset = Asset.objects.get(id=example_asset.id)
-        self._verify_updated_asset_and_its_associated_snapshot(
-            example_asset, updated_asset, test_asset_data['snapshots'][0]['url']
-        )
+        if is_owner or is_admin:
+            assert response.status_code == 200
+            updated_asset = Asset.objects.get(id=example_asset.id)
+            self._verify_updated_asset_and_its_associated_snapshot(
+                example_asset, updated_asset, test_asset_data['snapshots'][0]['url']
+            )
+        else:
+            assert response.status_code is status.HTTP_403_FORBIDDEN
 
 
 class TestAssetUsedByUser:
@@ -322,11 +441,17 @@ class TestAssetUsedByUser:
     ):
         assert asset.users.count() == expected_count
 
+    def _asset_used_endpoint(self, asset, used_by_me: str):
+        url = '{}{}/{}/?used_by_me={}'.format(
+            ASSETS_BASE_ENDPOINT, asset.slug, 'used_by_me', used_by_me
+        )
+        return url
+
     @pytest.mark.parametrize(
         "asset_used, expected_count",
         [('true', 1), ('false', 0)],
     )
-    def test_if_user_marks_asset_as_used_then_there_should_be_one_row_present_this(
+    def test_if_user_marks_asset_as_used_then_there_should_be_one_row_presenting_this(
         self,
         user_and_password,
         authenticated_client,
@@ -335,10 +460,13 @@ class TestAssetUsedByUser:
         expected_count,
     ):
         asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
-        response = authenticated_client.patch(
-            asset_url, {'used_by_me': asset_used}, 'application/json'
+        response = authenticated_client.post(
+            self._asset_used_endpoint(example_asset, asset_used),
         )
-        assert response.status_code == 200
+        if asset_used == 'true':
+            assert response.status_code == status.HTTP_201_CREATED
+        else:
+            assert response.status_code == status.HTTP_204_NO_CONTENT
         self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, expected_count
         )
@@ -350,25 +478,27 @@ class TestAssetUsedByUser:
         example_asset,
     ):
         asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
-        response = authenticated_client.patch(
-            asset_url, {'used_by_me': 'true'}, 'application/json'
+        response = authenticated_client.post(
+            self._asset_used_endpoint(example_asset, 'true'),
         )
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_201_CREATED
         self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, 1
         )
 
         # None should not change anything
-        response = authenticated_client.patch(asset_url, {}, 'application/json')
-        assert response.status_code == 200
+        response = authenticated_client.post(
+            self._asset_used_endpoint(example_asset, '')
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, 1
         )
 
-        response = authenticated_client.patch(
-            asset_url, {'used_by_me': 'false'}, 'application/json'
+        response = authenticated_client.post(
+            self._asset_used_endpoint(example_asset, 'false')
         )
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, 0
         )

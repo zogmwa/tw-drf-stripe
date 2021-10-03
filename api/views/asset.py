@@ -1,15 +1,20 @@
+import logging
+
 from django.db.models import QuerySet, Count, F, Q
 from elasticsearch_dsl.query import MultiMatch
-from rest_framework import viewsets, permissions, generics, status
-from django_filters.rest_framework import DjangoFilterBackend, FilterSet
+from rest_framework import viewsets, status
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.models import Asset, Tag
+from api.models.user_asset_usage import UserAssetUsage
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer
+from api.permissions.asset_permissions import AssetPermissions
 
 
 class AssetViewSetPagination(LimitOffsetPagination):
@@ -22,7 +27,7 @@ class AssetViewSetPagination(LimitOffsetPagination):
 class AssetViewSet(viewsets.ModelViewSet):
 
     queryset = Asset.objects.all()
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [AssetPermissions]
     serializer_class = AssetSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = {'avg_rating': ['gte', 'lte']}
@@ -113,6 +118,46 @@ class AssetViewSet(viewsets.ModelViewSet):
         else:
             # self.action == 'update' or something else
             return super().get_queryset()
+
+    def _get_filter_kwargs_for_asset_user_link_queryset(self, asset_slug):
+        kwargs = {
+            "asset": Asset.objects.get(slug=asset_slug),
+            "user_id": self.request.user.pk,
+        }
+        return kwargs
+
+    @action(detail=True, permission_classes=[IsAuthenticated], methods=['post'])
+    def used_by_me(self, request, *args, **kwargs):
+        """
+        If the user wants to mark the asset as I've used this, the user needs to hit endpoint like:
+        http://127.0.0.1:8000/assets/domo/used_by_me/?used_by_me=true
+        similar for unmark asset as used except write false instead of true
+        """
+        try:
+            asset_used = self.request.query_params.get('used_by_me')
+
+            if asset_used is not None:
+
+                if asset_used == 'true':
+                    UserAssetUsage.objects.get_or_create(
+                        **self._get_filter_kwargs_for_asset_user_link_queryset(
+                            kwargs['slug']
+                        )
+                    )
+                    return Response(status=status.HTTP_201_CREATED)
+
+                if asset_used == 'false':
+                    UserAssetUsage.objects.filter(
+                        **self._get_filter_kwargs_for_asset_user_link_queryset(
+                            kwargs['slug']
+                        )
+                    ).delete()
+                    return Response(status=status.HTTP_204_NO_CONTENT)
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            logging.error(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False)
     def similar(self, request, *args, **kwargs):
