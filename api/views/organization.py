@@ -7,7 +7,7 @@ from api.models.organization import Organization
 from api.serializers.organization import OrganizationSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class OrganizationViewSet(viewsets.ModelViewSet):
     """
     This viewset automatically provides `list` and `retrieve` actions.
     """

@@ -1,6 +1,7 @@
 from rest_framework import generics
 from django.views.generic.detail import SingleObjectMixin
 from rest_framework import viewsets, permissions, mixins, generics
+from rest_framework.decorators import action
 
 from api.models import User, Organization
 from api.serializers.user import UserSerializer

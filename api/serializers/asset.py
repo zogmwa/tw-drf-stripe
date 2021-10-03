@@ -4,7 +4,8 @@ from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer
 
 from api.models import Asset, AssetQuestion
-from api.models.user import User, UserAssetLink
+from api.models.user import User
+from api.models.user_asset_usage import UserAssetUsage
 from api.models.asset_snapshot import AssetSnapshot
 from api.serializers.asset_attribute import AssetAttributeSerializer
 from api.serializers.asset_question import AssetQuestionSerializer
@@ -81,11 +82,11 @@ class AssetSerializer(HyperlinkedModelSerializer):
 
         if asset_used is not None:
             if asset_used:
-                UserAssetLink.objects.get_or_create(
+                UserAssetUsage.objects.get_or_create(
                     **self._get_filter_kwargs_for_asset_user_link_queryset(asset.id)
                 )
             if not asset_used:
-                UserAssetLink.objects.filter(
+                UserAssetUsage.objects.filter(
                     **self._get_filter_kwargs_for_asset_user_link_queryset(asset.id)
                 ).delete()
 

@@ -3,7 +3,8 @@ import pytest
 from django.test import Client
 
 from api.models.asset_snapshot import AssetSnapshot
-from api.models.user import User, UserAssetLink
+from api.models.user import User
+from api.models.user_asset_usage import UserAssetUsage
 from api.views.asset import AssetViewSet
 from tests.common import login_client
 
@@ -316,7 +317,7 @@ class TestAssetCreateUpdateWithOneManyFieldSnapshots:
 
 
 class TestAssetUsedByUser:
-    def _test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+    def _check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
         self, asset, expected_count
     ):
         assert asset.users.count() == expected_count
@@ -337,8 +338,8 @@ class TestAssetUsedByUser:
         response = authenticated_client.patch(
             asset_url, {'used_by_me': asset_used}, 'application/json'
         )
-        response.status_code == 200
-        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+        assert response.status_code == 200
+        self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, expected_count
         )
 
@@ -352,22 +353,22 @@ class TestAssetUsedByUser:
         response = authenticated_client.patch(
             asset_url, {'used_by_me': 'true'}, 'application/json'
         )
-        response.status_code == 200
-        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+        assert response.status_code == 200
+        self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, 1
         )
 
         # None should not change anything
         response = authenticated_client.patch(asset_url, {}, 'application/json')
-        response.status_code == 200
-        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+        assert response.status_code == 200
+        self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, 1
         )
 
         response = authenticated_client.patch(
             asset_url, {'used_by_me': 'false'}, 'application/json'
         )
-        response.status_code == 200
-        self._test_if_a_row_is_present_in_userassetlink_with_current_user_and_asset(
+        assert response.status_code == 200
+        self._check_if_useer_asset_usage_record_exists_for_currrent_user_and_asset(
             example_asset, 0
         )

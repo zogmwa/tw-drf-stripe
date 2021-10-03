@@ -1,6 +1,6 @@
 import pytest
-from api.models.user import User, Asset
-from api.views.claim_asset import ClaimAssetViewSet
+
+from api.models import Asset
 from tests.common import login_client
 from django.test import Client
 
