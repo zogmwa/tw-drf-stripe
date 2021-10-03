@@ -28,6 +28,8 @@ class PricePlan(models.Model):
     # This will contain bulleted features to be stored in Markdown format
     features = models.TextField(null=True, blank=True)
 
+    most_popular = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Price Plan'
         verbose_name_plural = 'Price Plans'
