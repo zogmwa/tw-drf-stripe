@@ -30,7 +30,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     permission_classes = [AssetPermissions]
     serializer_class = AssetSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = {'avg_rating': ['gte', 'lte']}
+    filterset_fields = {'avg_rating': ['gte', 'lte'], 'has_free_trial': ['exact']}
     ordering_fields = ['avg_rating', 'upvotes_count']
     lookup_field = 'slug'
     pagination_class = AssetViewSetPagination
