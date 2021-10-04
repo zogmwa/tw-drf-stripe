@@ -46,10 +46,20 @@ def avg_rating_and_count_update_for_new_review(sender, instance=None, **kwargs):
     for the asset is updated
     """
     try:
-        # Update operation (an existing review is neing updated case)
+        # Update operation (an existing review is being updated case)
         # Try to get an old reference to this instance.
         instance_old = sender.objects.get(pk=instance.pk)
-        # TODO: Even for an existing review update the avg_rating in case the user changes
+        if instance_old.rating != instance.rating:
+            Asset.objects.filter(id=instance.asset_id).update(
+                avg_rating=(
+                    F('avg_rating') * F('reviews_count')
+                    - instance_old.rating
+                    + instance.rating
+                )
+                / (F('reviews_count')),
+                reviews_count=F('reviews_count'),
+            )
+
     except sender.DoesNotExist:
         # New review is being added
         Asset.objects.filter(id=instance.asset_id).update(

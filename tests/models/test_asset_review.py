@@ -80,3 +80,21 @@ class TestAssetReviewAggregates:
         # Second save should not increase the count
         review1.save()
         self._validate_avg_rating_and_count(example_asset, 7, 1)
+
+    def test_if_rating_is_updated_for_a_review_avg_rating_should_change_accordingly(
+        self, example_asset, user_and_password
+    ):
+        assert AssetReview.objects.count() == 0
+        self._validate_avg_rating_and_count(example_asset, 0, 0)
+        test_user = user_and_password[0]
+        review1 = AssetReview.objects.create(
+            asset=example_asset,
+            user=test_user,
+            rating=7,
+        )
+        self._validate_avg_rating_and_count(example_asset, 7, 1)
+
+        # Second save should not increase the count
+        review1.rating = 8
+        review1.save()
+        self._validate_avg_rating_and_count(example_asset, 8, 1)
