@@ -34,7 +34,9 @@ class AssetSerializer(HyperlinkedModelSerializer):
     avg_rating = serializers.DecimalField(
         read_only=True, max_digits=10, decimal_places=7
     )
-    used_by_me = serializers.BooleanField(read_only=True, required=False)
+    used_by_me = serializers.SerializerMethodField(
+        method_name="_get_asset_usage_status_in_request"
+    )
     reviews_count = serializers.IntegerField(read_only=True)
 
     @staticmethod
@@ -47,6 +49,17 @@ class AssetSerializer(HyperlinkedModelSerializer):
                 **snapshot_dict,
                 asset=asset,
             )
+
+    def _get_asset_usage_status_in_request(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return False
+
+        if not instance.users.filter(pk=logged_in_user.id):
+            return False
+
+        return True
 
     def _set_submitted_by_to_logged_in_user(self, validated_data):
         # Mutate validated_data to set submitted_by to logged-in user if we have one
