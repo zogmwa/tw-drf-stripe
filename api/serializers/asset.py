@@ -34,10 +34,44 @@ class AssetSerializer(HyperlinkedModelSerializer):
     avg_rating = serializers.DecimalField(
         read_only=True, max_digits=10, decimal_places=7
     )
+
+    reviews_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Asset
+        fields = [
+            'id',
+            'slug',
+            'name',
+            'logo_url',
+            'logo',
+            'website',
+            'affiliate_link',
+            'short_description',
+            'description',
+            'promo_video',
+            'tags',
+            'attributes',
+            'tweb_url',
+            'upvotes_count',
+            'og_image_url',
+            'price_plans',
+            'questions',
+            'customer_organizations',
+            'avg_rating',
+            'reviews_count',
+            'has_free_trial',
+            'snapshots',
+            'users_count',
+        ]
+        lookup_field = 'slug'
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
+
+
+class AuthenticatedAssetSerializer(AssetSerializer):
     used_by_me = serializers.SerializerMethodField(
         method_name="_get_asset_usage_status_in_request"
     )
-    reviews_count = serializers.IntegerField(read_only=True)
 
     @staticmethod
     def _create_snapshots_and_associate_with_asset(
@@ -68,57 +102,22 @@ class AssetSerializer(HyperlinkedModelSerializer):
             validated_data['submitted_by'] = self.context['request'].user
 
     def create(self, validated_data):
-        validated_data.pop('used_by_me', None)
         self._set_submitted_by_to_logged_in_user(validated_data)
         # Nested objects in DRF are not supported/are-read only by default so we have to pop this and create snapshot
         # objects and associate them with the asset separately after creation of the asset.
         snapshots_dicts = validated_data.pop('snapshots', [])
         asset = super().create(validated_data)
 
-        AssetSerializer._create_snapshots_and_associate_with_asset(
-            snapshots_dicts, asset
-        )
+        self._create_snapshots_and_associate_with_asset(snapshots_dicts, asset)
 
         return asset
 
     def update(self, instance, validated_data):
-        # asset_used = validated_data.pop('used_by_me', None)
-        self._set_submitted_by_to_logged_in_user(validated_data)
         snapshots_dicts = validated_data.pop('snapshots', [])
         asset = super().update(instance, validated_data)
-        AssetSerializer._create_snapshots_and_associate_with_asset(
-            snapshots_dicts, asset
-        )
+        self._create_snapshots_and_associate_with_asset(snapshots_dicts, asset)
 
         return asset
 
-    class Meta:
-        model = Asset
-        fields = [
-            'id',
-            'slug',
-            'name',
-            'logo_url',
-            'logo',
-            'website',
-            'affiliate_link',
-            'short_description',
-            'description',
-            'promo_video',
-            'tags',
-            'attributes',
-            'tweb_url',
-            'upvotes_count',
-            'og_image_url',
-            'price_plans',
-            'questions',
-            'customer_organizations',
-            'avg_rating',
-            'reviews_count',
-            'has_free_trial',
-            'snapshots',
-            'users_count',
-            'used_by_me',
-        ]
-        lookup_field = 'slug'
-        extra_kwargs = {'url': {'lookup_field': 'slug'}}
+    class Meta(AssetSerializer.Meta):
+        fields = AssetSerializer.Meta.fields + ['used_by_me']

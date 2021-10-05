@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from api.models import Asset, Tag
 from api.models.user_asset_usage import UserAssetUsage
 from api.documents.asset import AssetDocument
-from api.serializers.asset import AssetSerializer
+from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
 from api.permissions.asset_permissions import AssetPermissions
 
 
@@ -34,6 +34,12 @@ class AssetViewSet(viewsets.ModelViewSet):
     ordering_fields = ['avg_rating', 'upvotes_count']
     lookup_field = 'slug'
     pagination_class = AssetViewSetPagination
+
+    def get_serializer_class(self):
+        if self.request.user.is_anonymous:
+            return AssetSerializer
+        else:
+            return AuthenticatedAssetSerializer
 
     def _is_staff_or_superuser(self) -> bool:
         return self.request.user.is_staff or self.request.user.is_superuser
