@@ -44,7 +44,10 @@ def autocomplete_assets_and_tags(request):
             es_search_assets, case='asset_name_and_slug'
         )  # type: list[tuple]
         # asset_results contains something like [(asset1_name, asset1_slug), ...]
-        asset_names, asset_slugs = zip(*asset_results)
+        if len(asset_results) > 0:
+            asset_names, asset_slugs = zip(*asset_results)
+        else:
+            asset_names, asset_slugs = [], []
         results_dict[asset_names_key] = asset_names
         results_dict[asset_slugs_key] = asset_slugs
 
