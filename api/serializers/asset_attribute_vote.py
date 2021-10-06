@@ -12,6 +12,7 @@ class AssetAttributeVoteSerializer(ModelSerializer):
     class Meta:
         model = AttributeVote
         fields = [
+            'id',
             'is_upvote',
             'user',
             'attribute',
