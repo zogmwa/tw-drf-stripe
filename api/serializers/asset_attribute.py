@@ -26,3 +26,27 @@ class AssetAttributeSerializer(ModelSerializer):
             ).count()
             return upvote_count_for_given_asset_attribute
         return 'Cannot be calculated (asset unknown)'
+
+
+class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
+    """
+    Serializer for asset attributes for authenticated users
+    """
+
+    voted_by_me = serializers.SerializerMethodField(
+        method_name='_get_voted_status_by_me'
+    )
+
+    class Meta(AssetAttributeSerializer.Meta):
+        fields = AssetAttributeSerializer.Meta.fields + ['voted_by_me']
+
+    def _get_voted_status_by_me(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return False
+
+        if not instance.attribute_votes.filter(user=logged_in_user):
+            return False
+
+        return True
