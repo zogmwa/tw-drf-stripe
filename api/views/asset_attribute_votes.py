@@ -38,7 +38,7 @@ class AssetAttributeVoteViewSet(viewsets.ModelViewSet):
 
             return attribute_votes
 
-        elif self.action == 'retrieve':
+        elif self.action == 'retrieve' or self.action == 'destroy':
             asset_attribute_vote_id = self.kwargs['pk']
             return AttributeVote.objects.filter(
                 id=asset_attribute_vote_id, is_upvote=True
