@@ -2,7 +2,7 @@ from api.models import User, Organization, Asset
 from tests.views.test_asset import _create_asset
 import pytest
 
-USER_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
+USERS_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
 
 
 class TestSubmittedAndPendingAssetsOnUserDetailsEndpoint:
@@ -24,7 +24,7 @@ class TestSubmittedAndPendingAssetsOnUserDetailsEndpoint:
         expected_asset.save()
 
         user_profile_url = '{}{}/'.format(
-            USER_BASE_ENDPOINT, user_and_password[0].username
+            USERS_BASE_ENDPOINT, user_and_password[0].username
         )
 
         response = authenticated_client.get(user_profile_url)
@@ -58,7 +58,7 @@ class TestUserOrganizationLinking:
         username = 'test_user'
         organization_name = 'organization-name'
         response = authenticated_client.post(
-            USER_BASE_ENDPOINT,
+            USERS_BASE_ENDPOINT,
             {'username': username, 'organization': {'name': organization_name}},
             'application/json',
         )
@@ -73,7 +73,7 @@ class TestUserOrganizationLinking:
     ):
         organization_name = 'organization-name'
         user_update_url = '{}{}/'.format(
-            USER_BASE_ENDPOINT, user_and_password[0].username
+            USERS_BASE_ENDPOINT, user_and_password[0].username
         )
         response = authenticated_client.put(
             user_update_url,
@@ -95,7 +95,7 @@ class TestUserOrganizationLinking:
     ):
         organization_name = example_organization.name
         user_update_url = '{}{}/'.format(
-            USER_BASE_ENDPOINT, user_and_password[0].username
+            USERS_BASE_ENDPOINT, user_and_password[0].username
         )
         response = authenticated_client.put(
             user_update_url,
@@ -118,7 +118,7 @@ class TestUserOrganizationLinking:
         username = 'test_user'
         organization_name = example_organization.name
         response = authenticated_client.post(
-            USER_BASE_ENDPOINT,
+            USERS_BASE_ENDPOINT,
             {'username': username, 'organization': {'name': organization_name}},
             'application/json',
         )
