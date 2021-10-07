@@ -1,27 +1,44 @@
-from api.models import User, Organization
+from api.models import User, Organization, Asset
 from tests.views.test_asset import _create_asset
 import pytest
 
 USER_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
 
 
-class TestSubmittedAssetsIsVisibleInProfilePage:
-    def test_when_user_hits_profile_page_submitted_assets_should_be_visible_whether_published_or_not(
-        self, authenticated_client, user_and_password
+class TestSubmittedAndPendingAssetsOnUserDetailsEndpoint:
+    """
+    This is because when a user submits an asset they should be able to visit the details page to view and edit it.
+    Regardless of whether the asset is still pending approval.
+    """
+
+    @pytest.mark.parametrize('is_published', [True, False])
+    def test_user_is_able_to_see_submitted_assets_whether_published_or_not_and_pending_asset_ids_if_not_published(
+        self, authenticated_client, user_and_password, is_published
     ):
         asset_create_response = _create_asset(authenticated_client)
         assert asset_create_response.status_code == 201
+        expected_asset_id = asset_create_response.data['id']
+
+        expected_asset = Asset.objects.get(id=expected_asset_id)
+        expected_asset.is_published = is_published
+        expected_asset.save()
 
         user_profile_url = '{}{}/'.format(
             USER_BASE_ENDPOINT, user_and_password[0].username
         )
+
         response = authenticated_client.get(user_profile_url)
+
         assert response.status_code == 200
         assert len(response.data['submitted_assets']) == 1
-        assert (
-            response.data['submitted_assets'][0]['id']
-            == asset_create_response.data['id']
-        )
+        assert response.data['submitted_assets'][0]['id'] == expected_asset_id
+
+        pending_asset_ids = response.data['pending_asset_ids']
+        if is_published:
+            assert pending_asset_ids == []
+        else:
+            assert len(pending_asset_ids) == 1
+            assert pending_asset_ids[0] == expected_asset_id
 
 
 class TestUserOrganizationLinking:

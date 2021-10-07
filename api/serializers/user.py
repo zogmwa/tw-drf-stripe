@@ -9,8 +9,12 @@ from api.models import User, Organization
 
 class UserSerializer(HyperlinkedModelSerializer):
     organization = OrganizationSerializer(many=False, required=False)
+
     # TODO: later try to send submitted_asssets only when asked by the user by some additional parameter
     submitted_assets = AssetSerializer(many=True, read_only=True)
+    pending_asset_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=0)
+    )
 
     class Meta:
         model = User
@@ -19,7 +23,9 @@ class UserSerializer(HyperlinkedModelSerializer):
             'username',
             'avatar',
             'organization',
+            'used_assets',
             'submitted_assets',
+            'pending_asset_ids',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'

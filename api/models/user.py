@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from guardian.mixins import GuardianUserMixin
 
+from .asset import Asset
 from .organization import Organization
 
 
@@ -31,9 +32,16 @@ class User(AbstractUser, GuardianUserMixin):
         related_name='users',
         on_delete=models.SET_NULL,
     )
-    assets = models.ManyToManyField(
+    used_assets = models.ManyToManyField(
         'Asset', through='api.UserAssetUsage', related_name='users'
     )
+
+    @property
+    def pending_asset_ids(self):
+        return Asset.objects.filter(
+            submitted_by_id=self.id,
+            is_published=False,
+        ).values_list('id', flat=True)
 
     def __str__(self):
         return '{}'.format(

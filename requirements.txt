@@ -19,7 +19,6 @@ django-ses==2.2.1
 elasticsearch==7.14.0
 elasticsearch-dsl==7.4.0
 drf_yasg==1.20.0
-pytest-lazy-fixture==0.6.3
 # Need for image processing/managing photo uploads, etc
 Pillow==8.3.2
 
@@ -35,6 +34,7 @@ ipython
 pytest==6.2.4
 pytest-django==4.4.0
 pytest-mock>=3.6.1
+pytest-lazy-fixture==0.6.3
 Faker>=8.11.0
 
 # Code-Formatting (Local only but sometimes might be useful for remote)

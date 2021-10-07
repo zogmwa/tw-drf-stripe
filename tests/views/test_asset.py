@@ -5,10 +5,11 @@ import pytest
 from django.test import Client
 
 from api.models.asset_snapshot import AssetSnapshot
-from api.models.user import User
-from api.models.user_asset_usage import UserAssetUsage
+
 from api.views.asset import AssetViewSet
 from tests.common import login_client
+from pytest_lazyfixture import lazy_fixture
+
 
 ASSETS_BASE_ENDPOINT = 'http://127.0.0.1:8000/assets/'
 
