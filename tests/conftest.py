@@ -1,7 +1,7 @@
 import pytest
 from django.test import Client
 
-from api.models import Asset, User, Tag
+from api.models import Asset, User, Tag, AttributeVote
 
 
 @pytest.fixture(autouse=True)
@@ -27,6 +27,23 @@ def example_asset():
         description='bla bla bla',
         promo_video='https://www.youtube.com/embed/Q0hi9d1W3Ag',
         is_published=True,
+    )
+
+
+@pytest.fixture
+def example_asset_attribute(example_asset):
+    return example_asset.attributes.create(name='Test Asset Attribute')
+
+
+@pytest.fixture
+def example_asset_attribute_vote(
+    user_and_password, example_asset, example_asset_attribute
+):
+    user = user_and_password[0]
+    return AttributeVote.objects.create(
+        user=user,
+        asset=example_asset,
+        attribute=example_asset_attribute,
     )
 
 

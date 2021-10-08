@@ -9,7 +9,7 @@ from api.serializers.asset_attribute import (
 
 class AssetAttributeViewSet(viewsets.ModelViewSet):
     queryset = Attribute.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.request.user.is_anonymous:
