@@ -33,9 +33,7 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
     Serializer for asset attributes for authenticated users
     """
 
-    voted_by_me = serializers.SerializerMethodField(
-        method_name='_get_voted_by_me'
-    )
+    voted_by_me = serializers.SerializerMethodField(method_name='_get_voted_by_me')
 
     class Meta(AssetAttributeSerializer.Meta):
         fields = AssetAttributeSerializer.Meta.fields + ['voted_by_me']
