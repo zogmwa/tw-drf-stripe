@@ -34,13 +34,13 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
     """
 
     voted_by_me = serializers.SerializerMethodField(
-        method_name='_get_voted_status_by_me'
+        method_name='_get_voted_by_me'
     )
 
     class Meta(AssetAttributeSerializer.Meta):
         fields = AssetAttributeSerializer.Meta.fields + ['voted_by_me']
 
-    def _get_voted_status_by_me(self, instance):
+    def _get_voted_by_me(self, instance):
         logged_in_user = self.context['request'].user
 
         if not logged_in_user:
