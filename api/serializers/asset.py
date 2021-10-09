@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer
 
-from api.models import Asset, AssetQuestion
+from api.models import Asset, AssetVote
 from api.models.user import User
 from api.models.user_asset_usage import UserAssetUsage
 from api.models.asset_snapshot import AssetSnapshot
@@ -72,6 +72,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
     used_by_me = serializers.SerializerMethodField(
         method_name="_get_asset_usage_status_in_request"
     )
+    voted_by_me = serializers.SerializerMethodField(method_name="_get_voted_by_me")
 
     @staticmethod
     def _create_snapshots_and_associate_with_asset(
@@ -94,6 +95,18 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             return False
 
         return True
+
+    def _get_voted_by_me(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return None
+
+        votes = AssetVote.objects.filter(user=logged_in_user, asset=instance)
+        if not votes:
+            return None
+
+        return votes[0].id
 
     def _set_submitted_by_to_logged_in_user(self, validated_data):
         # Mutate validated_data to set submitted_by to logged-in user if we have one
@@ -120,4 +133,4 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         return asset
 
     class Meta(AssetSerializer.Meta):
-        fields = AssetSerializer.Meta.fields + ['used_by_me']
+        fields = AssetSerializer.Meta.fields + ['used_by_me', 'voted_by_me']
