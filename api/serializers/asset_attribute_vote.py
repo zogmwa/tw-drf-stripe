@@ -13,12 +13,12 @@ class AssetAttributeVoteSerializer(ModelSerializer):
         model = AttributeVote
         fields = [
             'id',
-            'is_upvote',
             'user',
             'attribute',
             'asset',
             'voted_on',
         ]
+        lookup_field = 'id'
 
     def create(self, validated_data):
         request = self.context['request']

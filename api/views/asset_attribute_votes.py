@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 
@@ -16,6 +17,8 @@ class AssetAttributeVoteViewSet(viewsets.ModelViewSet):
     queryset = AttributeVote.objects.filter(is_upvote=True)
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AssetAttributeVoteSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['asset__slug']
 
     def get_queryset(self):
         if self.action == 'list':
@@ -24,17 +27,10 @@ class AssetAttributeVoteViewSet(viewsets.ModelViewSet):
             # using the asset GET parameter (asset slug). We only return currently logged in user's votes because,
             # the aggregate vote counts are already returned at the attributes level. From a privacy standpoint, a user
             # should only be shown their attribute_votes
-
-            asset_slug = self.request.query_params.get('asset', '')
-            asset_slug = asset_slug.strip()
-
             attribute_votes = AttributeVote.objects.filter(
                 user=self.request.user,
                 is_upvote=True,
             )
-
-            if asset_slug:
-                attribute_votes = attribute_votes.filter(asset__slug__iexact=asset_slug)
 
             return attribute_votes
 
