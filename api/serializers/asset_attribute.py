@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import Attribute, Asset, AttributeVote
+from api.models import Attribute, Asset, AssetAttributeVote
 
 
 class AssetAttributeSerializer(ModelSerializer):
@@ -21,7 +21,7 @@ class AssetAttributeSerializer(ModelSerializer):
 
         if asset_slug:
             asset = Asset.objects.get(slug=asset_slug)
-            upvote_count_for_given_asset_attribute = AttributeVote.objects.filter(
+            upvote_count_for_given_asset_attribute = AssetAttributeVote.objects.filter(
                 is_upvote=True, asset=asset, attribute=instance
             ).count()
             return upvote_count_for_given_asset_attribute

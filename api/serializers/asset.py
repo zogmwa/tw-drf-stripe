@@ -1,9 +1,7 @@
 from rest_framework import serializers
-from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.serializers import ModelSerializer
 
 from api.models import Asset, AssetVote
-from api.models.user import User
-from api.models.user_asset_usage import UserAssetUsage
 from api.models.asset_snapshot import AssetSnapshot
 from api.serializers.asset_attribute import AssetAttributeSerializer
 from api.serializers.asset_question import AssetQuestionSerializer
@@ -13,7 +11,7 @@ from api.serializers.price_plan import PricePlanSerializer
 from api.serializers.tag import TagSerializer
 
 
-class AssetSerializer(HyperlinkedModelSerializer):
+class AssetSerializer(ModelSerializer):
     """
     This is the serializer for the listing page, not all fields are to be returned
     on the listing page.

@@ -1,22 +1,22 @@
 from rest_framework.serializers import ModelSerializer
 
-from api.models import AttributeVote
+from api.models import AssetAttributeVote
+from api.serializers.asset import AssetSerializer
 from api.serializers.user import UserSerializer
 
 
 class AssetAttributeVoteSerializer(ModelSerializer):
-
-    # Read-Only because this isn't explicitly provided by the user
-    user = UserSerializer(read_only=True)
-
     class Meta:
-        model = AttributeVote
+        model = AssetAttributeVote
         fields = [
             'id',
             'user',
             'attribute',
             'asset',
             'voted_on',
+        ]
+        read_only_fields = [
+            'user',
         ]
         lookup_field = 'id'
 

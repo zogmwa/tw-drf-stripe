@@ -5,7 +5,7 @@ from django.db.models import UniqueConstraint
 from api.models import Attribute, Asset
 
 
-class AttributeVote(models.Model):
+class AssetAttributeVote(models.Model):
     """
     A vote on a specific attribute on a specific asset (only one vote per user per attribute per asset).
     """

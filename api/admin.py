@@ -18,7 +18,7 @@ from api.models import (
 )
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
-from api.models.attribute_vote import AttributeVote
+from api.models.asset_attribute_vote import AssetAttributeVote
 from api.models.organization import Organization
 
 
@@ -124,7 +124,7 @@ class AttributeAdmin(admin.ModelAdmin):
 
 
 class AttributeVoteAdmin(admin.ModelAdmin):
-    model = AttributeVote
+    model = AssetAttributeVote
     autocomplete_fields = ['asset', 'user', 'attribute']
     search_fields = ['asset__name', 'attribute__name']
 
@@ -148,5 +148,5 @@ admin.site.register(PricePlan, PricePlanAdmin)
 admin.site.register(AssetReview, AssetReviewAdmin)
 admin.site.register(AssetVote, AssetVoteAdmin)
 admin.site.register(Attribute, AttributeAdmin)
-admin.site.register(AttributeVote, AttributeVoteAdmin)
+admin.site.register(AssetAttributeVote, AttributeVoteAdmin)
 admin.site.register(AssetQuestionVote, AssetQuestionVoteAdmin)

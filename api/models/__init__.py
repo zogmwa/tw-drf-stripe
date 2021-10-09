@@ -13,7 +13,7 @@ from .asset_question import AssetQuestion
 from .asset_question_vote import AssetQuestionVote
 from .asset_vote import AssetVote
 from .linked_tag import LinkedTag
-from .attribute_vote import AttributeVote
+from .asset_attribute_vote import AssetAttributeVote
 from .linked_attribute import LinkedAttribute
 from .asset_review import AssetReview
 from .organization import Organization
