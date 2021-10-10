@@ -9,9 +9,7 @@ class AssetVoteSerializer(ModelSerializer):
         model = AssetVote
         fields = [
             'id',
-            'user',
             'asset',
             'voted_on',
         ]
-        read_only_fields = ['user']
         lookup_field = 'id'

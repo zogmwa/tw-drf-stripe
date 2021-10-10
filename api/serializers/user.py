@@ -1,13 +1,12 @@
 from email.headerregistry import Group
 from rest_framework import serializers
-
-from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.serializers import ModelSerializer
 from api.serializers.asset import AssetSerializer
 from .organization import OrganizationSerializer
 from api.models import User, Organization
 
 
-class UserSerializer(HyperlinkedModelSerializer):
+class UserSerializer(ModelSerializer):
     organization = OrganizationSerializer(many=False, required=False)
 
     # TODO: later try to send submitted_asssets only when asked by the user by some additional parameter
@@ -54,7 +53,7 @@ class UserSerializer(HyperlinkedModelSerializer):
         return user
 
 
-class GroupSerializer(HyperlinkedModelSerializer):
+class GroupSerializer(ModelSerializer):
     class Meta:
         model = Group
         fields = ['url', 'name']
