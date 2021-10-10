@@ -42,9 +42,10 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
         logged_in_user = self.context['request'].user
 
         if not logged_in_user:
-            return False
+            return None
 
-        if not instance.attribute_votes.filter(user=logged_in_user):
-            return False
+        attribute_votes = instance.attribute_votes.filter(user=logged_in_user)
+        if not attribute_votes:
+            return None
 
-        return True
+        return attribute_votes[0].id
