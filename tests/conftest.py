@@ -89,6 +89,9 @@ def staff_user_and_password():
 
 @pytest.fixture()
 def authenticated_client(user_and_password):
+    """
+    If you need the corresponding user which this authenticated_client represents check user_and_password fixture"
+    """
     client = Client()
     client.login(username=user_and_password[0].username, password=user_and_password[1])
     assert client.session['_auth_user_id'] == str(user_and_password[0].id)

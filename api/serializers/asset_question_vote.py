@@ -12,6 +12,7 @@ class AssetQuestionVoteSerializer(ModelSerializer):
     class Meta:
         model = AssetQuestionVote
         fields = [
+            'id',
             'user',
             'question',
             'voted_on',

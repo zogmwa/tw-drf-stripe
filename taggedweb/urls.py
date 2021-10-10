@@ -62,11 +62,11 @@ schema_view = get_schema_view(
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
-router.register(r'assets', AssetViewSet)
+router.register(r'assets', AssetViewSet, basename='asset')
 router.register(r'questions', AssetQuestionViewSet)
 router.register(r'question_votes', AssetQuestionVoteViewSet)
 router.register(r'price_plans', PricePlanViewSet)
-router.register(r'upvotes', AssetVoteViewSet)
+router.register(r'asset_votes', AssetVoteViewSet)
 router.register(r'asset_attributes', AssetAttributeViewSet)
 router.register(r'asset_attribute_votes', AssetAttributeVoteViewSet)
 router.register(r'claim_asset', ClaimAssetViewSet)

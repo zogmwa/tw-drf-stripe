@@ -5,8 +5,6 @@ from api.serializers.user import UserSerializer
 
 
 class AssetVoteSerializer(ModelSerializer):
-    user = UserSerializer(read_only=True)
-
     class Meta:
         model = AssetVote
         fields = [
@@ -15,3 +13,5 @@ class AssetVoteSerializer(ModelSerializer):
             'asset',
             'voted_on',
         ]
+        read_only_fields = ['user']
+        lookup_field = 'id'

@@ -36,6 +36,7 @@ pytest-django==4.4.0
 pytest-mock>=3.6.1
 pytest-lazy-fixture==0.6.3
 Faker>=8.11.0
+coverage>=6.0.1
 
 # Code-Formatting (Local only but sometimes might be useful for remote)
 black>=21.7b0
