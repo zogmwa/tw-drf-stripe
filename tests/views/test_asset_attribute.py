@@ -6,7 +6,7 @@ ASSET_ATTRIBUTE_VOTES_ENDPOINT = 'http://127.0.0.1:8000/asset_attribute_votes/'
 
 
 class TestAssetAttributeVotedByMe:
-    def test_for_anonymous_user_voted_by_me_should_not_be_passed_in_response_of_list_or_for_a_single_asset(
+    def test_for_anonymous_user_my_asset_attribute_vote_should_not_be_passed_in_response_of_list_or_for_a_single_asset(
         self,
         authenticated_client,
         unauthenticated_client,
@@ -22,7 +22,7 @@ class TestAssetAttributeVotedByMe:
         # Get attributes list
         response = unauthenticated_client.get(ASSET_ATTRIBUTES_ENDPOINT)
         assert response.status_code == 200
-        assert 'voted_by_me' not in response.data[0].keys()
+        assert 'my_asset_attribute_vote' not in response.data[0].keys()
 
         # Get attribute detail
         asset_attribute_url = '{}{}/'.format(
@@ -30,21 +30,21 @@ class TestAssetAttributeVotedByMe:
         )
         response = unauthenticated_client.get(asset_attribute_url)
         assert response.status_code == 200
-        assert 'used_by_me' not in response.data.keys()
+        assert 'my_asset_attribute_vote' not in response.data.keys()
 
     @pytest.mark.parametrize(
-        "voted",
+        "is_asset_attribute_voted",
         [True, False],
     )
-    def test_for_logged_in_user_voted_by_me_field_should_be_returned_and_show_correct_value(
+    def test_for_logged_in_user_my_asset_attribute_vote_field_should_be_returned_and_show_correct_value(
         self,
         authenticated_client,
         example_asset,
         example_asset_attribute,
         example_asset_attribute_vote,
-        voted,
+        is_asset_attribute_voted,
     ):
-        if voted:
+        if is_asset_attribute_voted:
             authenticated_client.post(
                 ASSET_ATTRIBUTES_ENDPOINT,
                 {'asset': example_asset.id, 'attribute': example_asset_attribute.id},
@@ -59,8 +59,14 @@ class TestAssetAttributeVotedByMe:
         # Get attributes list
         response = authenticated_client.get(ASSET_ATTRIBUTES_ENDPOINT)
         assert response.status_code == 200
-        assert 'voted_by_me' in response.data[0].keys()
-        assert response.data[0]['voted_by_me'] == voted
+        assert 'my_asset_attribute_vote' in response.data[0].keys()
+        if is_asset_attribute_voted:
+            assert (
+                response.data[0]['my_asset_attribute_vote']
+                == example_asset_attribute_vote.id
+            )
+        else:
+            assert response.data[0]['my_asset_attribute_vote'] is None
 
         # Get attribute detail
         asset_attribute_url = '{}{}/'.format(
@@ -68,5 +74,11 @@ class TestAssetAttributeVotedByMe:
         )
         response = authenticated_client.get(asset_attribute_url)
         assert response.status_code == 200
-        assert 'voted_by_me' in response.data.keys()
-        assert response.data['voted_by_me'] == voted
+        assert 'my_asset_attribute_vote' in response.data.keys()
+        if is_asset_attribute_voted:
+            assert (
+                response.data['my_asset_attribute_vote']
+                == example_asset_attribute_vote.id
+            )
+        else:
+            assert response.data['my_asset_attribute_vote'] is None
