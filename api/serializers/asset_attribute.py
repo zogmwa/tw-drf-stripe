@@ -33,19 +33,21 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
     Serializer for asset attributes for authenticated users
     """
 
-    voted_by_me = serializers.SerializerMethodField(method_name='_get_voted_by_me')
+    my_asset_attribute_vote = serializers.SerializerMethodField(
+        method_name='_get_my_asset_attribute_vote'
+    )
 
     class Meta(AssetAttributeSerializer.Meta):
-        fields = AssetAttributeSerializer.Meta.fields + ['voted_by_me']
+        fields = AssetAttributeSerializer.Meta.fields + ['my_asset_attribute_vote']
 
-    def _get_voted_by_me(self, instance):
+    def _get_my_asset_attribute_vote(self, instance):
         logged_in_user = self.context['request'].user
 
         if not logged_in_user:
             return None
 
-        attribute_votes = instance.attribute_votes.filter(user=logged_in_user)
-        if not attribute_votes:
+        try:
+            asset_attribute_vote = instance.attribute_votes.get(user=logged_in_user)
+            return asset_attribute_vote.id
+        except AssetAttributeVote.DoesNotExist:
             return None
-
-        return attribute_votes[0].id
