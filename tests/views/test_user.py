@@ -1,6 +1,10 @@
+from rest_framework import status
+
 from api.models import User, Organization, Asset
 from tests.views.test_asset import _create_asset
 import pytest
+from django.test import Client
+
 
 USERS_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
 
@@ -127,3 +131,33 @@ class TestUserOrganizationLinking:
         self._test_organization_user_link(
             username, Organization.objects.get(name=organization_name).id
         )
+
+
+class TestUserPermission:
+    def _has_permission(self, client: Client, username, should_have_access):
+        response = client.get('{}{}/'.format(USERS_BASE_ENDPOINT, username))
+        if should_have_access:
+            assert response.status_code == status.HTTP_200_OK
+        else:
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_normal_users_can_not_see_list_of_users_and_can_retrieve_only_their_profile(
+        self, authenticated_client, admin_client, user_and_password
+    ):
+        response = authenticated_client.get(USERS_BASE_ENDPOINT)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        self._has_permission(authenticated_client, user_and_password[0].username, True)
+        self._has_permission(authenticated_client, 'admin', False)
+
+    def test_admin_user_can_access_anything_in_users_endpoint(
+        self, authenticated_client, admin_client, user_and_password
+    ):
+        response = admin_client.get(USERS_BASE_ENDPOINT)
+        assert response.status_code == status.HTTP_200_OK
+        # There'll be 3 users, 1 anonymous user created by default, 1 admin created by admin_client and
+        # 1 normal user which we created by importing fixture authenticated_client
+        assert response.data.__len__() == 3
+
+        self._has_permission(admin_client, user_and_password[0].username, True)
+        self._has_permission(admin_client, 'admin', True)
