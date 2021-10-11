@@ -1,4 +1,4 @@
-from django_elasticsearch_dsl import Document, fields
+from django_elasticsearch_dsl import Document, fields, search
 from django_elasticsearch_dsl.registries import registry
 
 from api.documents.common import html_strip
@@ -10,6 +10,18 @@ class AssetDocument(Document):
     """
     Web Asset Elasticsearch Document
     """
+
+    @classmethod
+    def search(cls, using=None, index=None):
+        """
+        If we don't override this method and slice the search like this, the default search method will be used and
+        that method does not return all the results calculated by elasticsearch. The default method returns default
+        setting which may vary depending on the system and will return partial queryset
+        reference:https://github.com/elastic/elasticsearch-dsl-py/issues/737
+        """
+        search = super().search(using, index)
+        search = search[0 : search.count()]
+        return search
 
     short_description = fields.TextField(
         analyzer=html_strip, fields={'raw': fields.KeywordField()}
