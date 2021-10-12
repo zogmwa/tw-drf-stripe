@@ -66,4 +66,3 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
             attribute.save()
 
         return attribute
-
