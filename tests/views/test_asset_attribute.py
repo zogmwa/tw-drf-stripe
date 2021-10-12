@@ -1,5 +1,7 @@
 from rest_framework import status
 import pytest
+from api.models import LinkedAttribute
+
 
 ASSET_ATTRIBUTES_ENDPOINT = 'http://127.0.0.1:8000/asset_attributes/'
 ASSET_ATTRIBUTE_VOTES_ENDPOINT = 'http://127.0.0.1:8000/asset_attribute_votes/'
@@ -82,3 +84,24 @@ class TestAssetAttributeVotedByMe:
             )
         else:
             assert response.data['my_asset_attribute_vote'] is None
+
+
+class TestAssetAttributeLinkedWithAsset:
+    def test_for_logged_in_user_should_be_able_to_create_attribute_linked_with_asset(
+        self,
+        authenticated_client,
+        example_asset,
+    ):
+        response = authenticated_client.post(
+            ASSET_ATTRIBUTES_ENDPOINT,
+            {'name': 'Test Asset Attribute', 'asset': example_asset.id},
+            content_type='application/json',
+        )
+
+        assert response.status_code == 201
+
+        linked_attribute = LinkedAttribute.objects.filter(
+            asset__id=example_asset.id, attribute__id=response.data['id']
+        )
+
+        assert linked_attribute is not None

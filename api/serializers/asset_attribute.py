@@ -51,3 +51,18 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
             return asset_attribute_vote.id
         except AssetAttributeVote.DoesNotExist:
             return None
+
+    def create(self, validated_data):
+        request = self.context['request']
+        if request.user and request.user.is_authenticated:
+            validated_data['submitted_by'] = request.user
+
+        attribute = super().create(validated_data)
+        asset_id = request.data.get('asset')
+
+        if asset_id:
+            asset = Asset.objects.get(id=asset_id)
+            attribute.assets.add(asset)
+            attribute.save()
+
+        return attribute
