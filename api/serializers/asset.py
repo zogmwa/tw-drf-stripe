@@ -71,6 +71,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         method_name="_get_asset_usage_status_in_request"
     )
     voted_by_me = serializers.SerializerMethodField(method_name="_get_voted_by_me")
+    is_owned = serializers.SerializerMethodField(method_name="_get_is_owned")
 
     @staticmethod
     def _create_snapshots_and_associate_with_asset(
@@ -106,6 +107,14 @@ class AuthenticatedAssetSerializer(AssetSerializer):
 
         return votes[0].id
 
+    def _get_is_owned(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return False
+
+        return instance.owner == logged_in_user
+
     def _set_submitted_by_to_logged_in_user(self, validated_data):
         # Mutate validated_data to set submitted_by to logged-in user if we have one
         logged_in_user = self.context['request'].user
@@ -131,4 +140,4 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         return asset
 
     class Meta(AssetSerializer.Meta):
-        fields = AssetSerializer.Meta.fields + ['used_by_me', 'voted_by_me']
+        fields = AssetSerializer.Meta.fields + ['used_by_me', 'voted_by_me', 'is_owned']

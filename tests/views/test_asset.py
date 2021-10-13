@@ -615,3 +615,61 @@ class TestAssetVotedByMe:
             assert response.data['voted_by_me'] == vote.id
         else:
             assert response.data['voted_by_me'] is None
+
+
+class TestAssetIsOwned:
+    def test_for_anonymous_user_is_owned_field_should_not_be_passed_in_response_of_list_or_for_a_single_asset(
+        self, unauthenticated_client, mocker, example_asset, example_tag
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
+        response = unauthenticated_client.get(asset_list_url)
+        assert response.status_code == 200
+        assert response.data['count'] == 1
+        assert 'is_owned' not in response.data['results'][0].keys()
+
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = unauthenticated_client.get(asset_url)
+        assert response.status_code == 200
+        assert response.data['slug'] == example_asset.slug
+        assert 'is_owned' not in response.data.keys()
+
+    @pytest.mark.parametrize(
+        "is_owned",
+        [False, True],
+    )
+    def test_for_logged_in_user_is_owned_field_should_be_returned_and_show_correct_value(
+        self,
+        authenticated_client,
+        example_asset,
+        example_tag,
+        mocker,
+        is_owned,
+        user_and_password,
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        if is_owned:
+            example_asset.owner = user_and_password[0]
+            example_asset.save()
+
+        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
+        response = authenticated_client.get(asset_list_url)
+        assert response.status_code == 200
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['is_owned'] == is_owned
+
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = authenticated_client.get(asset_url)
+        assert response.status_code == 200
+        assert response.data['slug'] == example_asset.slug
+        assert response.data['is_owned'] == is_owned
