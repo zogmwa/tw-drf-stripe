@@ -70,7 +70,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
     used_by_me = serializers.SerializerMethodField(
         method_name="_get_asset_usage_status_in_request"
     )
-    voted_by_me = serializers.SerializerMethodField(method_name="_get_voted_by_me")
+    my_asset_vote = serializers.SerializerMethodField(method_name="_get_my_asset_vote")
     is_owned = serializers.SerializerMethodField(method_name="_get_is_owned")
 
     @staticmethod
@@ -95,17 +95,17 @@ class AuthenticatedAssetSerializer(AssetSerializer):
 
         return True
 
-    def _get_voted_by_me(self, instance):
+    def _get_my_asset_vote(self, instance):
         logged_in_user = self.context['request'].user
 
         if not logged_in_user:
             return None
 
-        votes = AssetVote.objects.filter(user=logged_in_user, asset=instance)
-        if not votes:
+        try:
+            asset_vote = AssetVote.objects.get(user=logged_in_user, asset=instance)
+            return asset_vote.id
+        except AssetVote.DoesNotExist:
             return None
-
-        return votes[0].id
 
     def _get_is_owned(self, instance):
         logged_in_user = self.context['request'].user
@@ -140,4 +140,8 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         return asset
 
     class Meta(AssetSerializer.Meta):
-        fields = AssetSerializer.Meta.fields + ['used_by_me', 'voted_by_me', 'is_owned']
+        fields = AssetSerializer.Meta.fields + [
+            'used_by_me',
+            'my_asset_vote',
+            'is_owned',
+        ]

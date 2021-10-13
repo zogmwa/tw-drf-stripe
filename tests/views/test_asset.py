@@ -555,7 +555,7 @@ class TestAssetUsedByUser:
 
 
 class TestAssetVotedByMe:
-    def test_for_anonymous_user_voted_by_me_field_should_not_be_passed_in_response_of_list_or_for_a_single_asset(
+    def test_for_anonymous_user_my_asset_vote_field_should_not_be_passed_in_response_of_list_or_for_a_single_asset(
         self, unauthenticated_client, mocker, example_asset, example_tag
     ):
         mocker.patch.object(
@@ -568,19 +568,19 @@ class TestAssetVotedByMe:
         response = unauthenticated_client.get(asset_list_url)
         assert response.status_code == 200
         assert response.data['count'] == 1
-        assert 'voted_by_me' not in response.data['results'][0].keys()
+        assert 'my_asset_vote' not in response.data['results'][0].keys()
 
         asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
         response = unauthenticated_client.get(asset_url)
         assert response.status_code == 200
         assert response.data['slug'] == example_asset.slug
-        assert 'voted_by_me' not in response.data.keys()
+        assert 'my_asset_vote' not in response.data.keys()
 
     @pytest.mark.parametrize(
         "is_asset_voted",
         [True, False],
     )
-    def test_for_logged_in_user_voted_by_me_field_should_be_returned_and_show_correct_value(
+    def test_for_logged_in_user_my_asset_vote_field_should_be_returned_and_show_correct_value(
         self,
         authenticated_client,
         example_asset,
@@ -603,18 +603,18 @@ class TestAssetVotedByMe:
         assert response.status_code == 200
         assert response.data['count'] == 1
         if is_asset_voted:
-            assert response.data['results'][0]['voted_by_me'] == vote.id
+            assert response.data['results'][0]['my_asset_vote'] == vote.id
         else:
-            assert response.data['results'][0]['voted_by_me'] is None
+            assert response.data['results'][0]['my_asset_vote'] is None
 
         asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
         response = authenticated_client.get(asset_url)
         assert response.status_code == 200
         assert response.data['slug'] == example_asset.slug
         if is_asset_voted:
-            assert response.data['voted_by_me'] == vote.id
+            assert response.data['my_asset_vote'] == vote.id
         else:
-            assert response.data['voted_by_me'] is None
+            assert response.data['my_asset_vote'] is None
 
 
 class TestAssetIsOwned:
