@@ -191,6 +191,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_AUTH_SERIALIZERS = {
+    'PASSWORD_RESET_SERIALIZER': 'api.serializers.password_reset.PasswordResetSerializer',
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
