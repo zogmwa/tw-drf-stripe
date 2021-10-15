@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import AssetQuestion, AssetQuestionVote
+from api.models import AssetQuestion, AssetQuestionVote, Asset
 
 
 class AssetQuestionSerializer(ModelSerializer):
@@ -18,3 +18,28 @@ class AssetQuestionSerializer(ModelSerializer):
             validated_data['submitted_by'] = request.user
 
         return super().create(validated_data)
+
+
+class AuthenticatedAssetQuestionSerializer(AssetQuestionSerializer):
+    """
+    Serializer for asset questions for authenticated users
+    """
+
+    my_asset_question_vote = serializers.SerializerMethodField(
+        method_name='_get_my_asset_question_vote'
+    )
+
+    class Meta(AssetQuestionSerializer.Meta):
+        fields = AssetQuestionSerializer.Meta.fields + ['my_asset_question_vote']
+
+    def _get_my_asset_question_vote(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return None
+
+        try:
+            asset_question_vote = instance.votes.get(user=logged_in_user)
+            return asset_question_vote.id
+        except AssetQuestionVote.DoesNotExist:
+            return None
