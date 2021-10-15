@@ -1,7 +1,7 @@
 import pytest
 from django.test import Client
 
-from api.models import Asset, User, Tag, AssetAttributeVote
+from api.models import Asset, User, Tag, AssetAttributeVote, AssetQuestionVote
 
 
 @pytest.fixture(autouse=True)
@@ -36,23 +36,29 @@ def example_asset_attribute(example_asset):
 
 
 @pytest.fixture
+def example_asset_question(example_asset):
+    return example_asset.questions.create(title='Test Asset Question')
+
+
+@pytest.fixture
 def example_asset_attribute_vote(
     user_and_password, example_asset, example_asset_attribute
 ):
     user = user_and_password[0]
     return AssetAttributeVote.objects.create(
-        user=user,
-        asset=example_asset,
-        attribute=example_asset_attribute,
+        user=user, asset=example_asset, attribute=example_asset_attribute
     )
 
 
 @pytest.fixture
+def example_asset_question_vote(user_and_password, example_asset_question):
+    user = user_and_password[0]
+    return AssetQuestionVote.objects.create(user=user, question=example_asset_question)
+
+
+@pytest.fixture
 def example_tag():
-    return Tag.objects.create(
-        slug='tag',
-        name='tag_name',
-    )
+    return Tag.objects.create(slug='tag', name='tag_name')
 
 
 @pytest.fixture
