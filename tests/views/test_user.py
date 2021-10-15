@@ -1,12 +1,60 @@
+import pytest
+import string
+from allauth.socialaccount.models import SocialApp, SocialAccount
+from django.test import Client
 from rest_framework import status
 
 from api.models import User, Organization, Asset
+from tests.common import get_random_string
 from tests.views.test_asset import _create_asset
-import pytest
-from django.test import Client
-
 
 USERS_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
+
+
+def _create_social_app(provider_name: string):
+    return SocialApp.objects.create(
+        provider=provider_name,
+        name=get_random_string(10),
+        client_id=get_random_string(10),
+        secret=get_random_string(10),
+        key=get_random_string(10),
+    )
+
+
+def _create_social_account(user_id, provider):
+    return SocialAccount.objects.create(
+        provider=provider, uid=get_random_string(10), user_id=user_id
+    )
+
+
+class TestSocialAccountsOnUserListAndDetailEndpoint:
+    def test_social_accounts_of_users_should_by_passed_in_users_list_and_detail_endpoint(
+        self, admin_client, admin_user
+    ):
+        google = 'Google'
+        linkedin = 'Linkedin'
+        expected_list = [google, linkedin]
+        expected_list.sort()
+        _create_social_app(google)
+        _create_social_app(linkedin)
+
+        _create_social_account(admin_user.id, google)
+        _create_social_account(admin_user.id, linkedin)
+
+        response = admin_client.get(USERS_BASE_ENDPOINT)
+        assert response.data[1]['social_accounts'].__len__() == 2
+        response_list = response.data[1]['social_accounts']
+        response_list.sort()
+        assert response_list == expected_list
+
+        response = admin_client.get(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, admin_user.username)
+        )
+
+        assert response.data['social_accounts'].__len__() == 2
+        response_list = response.data['social_accounts']
+        response_list.sort()
+        assert response_list == expected_list
 
 
 class TestSubmittedAndPendingAssetsOnUserDetailsEndpoint:

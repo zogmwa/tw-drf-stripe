@@ -5,6 +5,7 @@ from guardian.mixins import GuardianUserMixin
 
 from .asset import Asset
 from .organization import Organization
+from allauth.socialaccount.models import SocialAccount
 
 
 def _upload_to_for_avatars(instance, filename):
@@ -42,6 +43,14 @@ class User(AbstractUser, GuardianUserMixin):
             submitted_by_id=self.id,
             is_published=False,
         ).values_list('id', flat=True)
+
+    @property
+    def social_accounts(self):
+        social_apps = []
+        for social_account in SocialAccount.objects.filter(user_id=self.pk):
+            social_apps.append(social_account.provider)
+
+        return social_apps
 
     def __str__(self):
         return '{}'.format(

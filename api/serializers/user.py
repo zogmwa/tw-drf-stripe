@@ -15,6 +15,7 @@ class UserSerializer(ModelSerializer):
         child=serializers.IntegerField(min_value=0),
         read_only=True,
     )
+    social_accounts = serializers.ListField(read_only=True)
 
     class Meta:
         model = User
@@ -26,6 +27,7 @@ class UserSerializer(ModelSerializer):
             'used_assets',
             'submitted_assets',
             'pending_asset_ids',
+            'social_accounts',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'
