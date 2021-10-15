@@ -9,6 +9,7 @@ class Organization(models.Model):
 
     name = models.CharField(max_length=255, unique=True)
     website = models.URLField(max_length=2048, null=True, blank=True)
+    logo_url = models.URLField(max_length=2048, null=True, blank=True)
 
     def __str__(self):
         return self.name
