@@ -18,7 +18,7 @@ from .linked_attribute import LinkedAttribute
 from .asset_review import AssetReview
 from .organization import Organization
 from .organization import OrganizationUsingAsset
-from .claim_asset import ClaimAsset
+from .claim_asset import AssetClaim
 from .user_asset_usage import UserAssetUsage
 
 

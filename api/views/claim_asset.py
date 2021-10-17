@@ -1,62 +1,57 @@
 from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from api.models import Asset, ClaimAsset
+from api.models import AssetClaim
+from api.permissions.allow_owner_or_admin_and_staff import IsObjectOwnerOrAdminOrStaff
 from api.serializers.claim_asset import (
-    ClaimAssetUserSerializer,
-    ClaimAssetAdminSerializer,
+    AssetClaimUserSerializer,
+    AssetClaimSerializer,
 )
-from api.permissions.allow_owner_or_admin_and_staff import AllowOwnerOrAdminOrStaff
-
-from dj_rest_auth.views import LogoutView
 
 
-class LogoutView(LogoutView):
-    def get(self, request, *args, **kwargs):
-        result = super(LogoutView, self).get(request)
-        request.user.auth_token.delete()
-        return result
+class AssetClaimViewSet(viewsets.ModelViewSet):
+    """
+    This flow is used when a propsective Web Service owner submits a claim that they own a web service and want to
+    be able to manage it. A GET operation will only return claims that the currently logged in user has submitted
+    unless the user is an admin or staff user.
+    """
 
+    queryset = AssetClaim.objects.filter()
 
-class ClaimAssetViewSet(viewsets.ModelViewSet):
-    queryset = ClaimAsset.objects.filter()
-    permission_classes = [AllowOwnerOrAdminOrStaff]
+    # Owner in the AllowOwner prefix in this case refers to the user who created the claim request (not the user who
+    # owns the asset). A user who created a claim should be able do edit/modify it to change their comment.
+    permission_classes = [IsObjectOwnerOrAdminOrStaff]
 
     def get_serializer_class(self):
         user = self.request.user
         if user.is_staff or user.is_superuser:
-            return ClaimAssetAdminSerializer
-        return ClaimAssetUserSerializer
+            return AssetClaimSerializer
+        return AssetClaimUserSerializer
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'status': ['exact'],
         'asset__slug': ['exact'],
+        # This filter is a bit pointless because only the currently logged in user's claim requests will be returned.
+        # It's useful for debugging if a staff/admin member is testing the endpoint.
         'user__username': ['exact'],
     }
 
     def get_queryset(self):
-        claim_asset_db_queryset = super(ClaimAssetViewSet, self).get_queryset()
+        claim_asset_db_queryset = super(AssetClaimViewSet, self).get_queryset()
 
         if self.action == 'list':
             if not self.request.user.is_staff and not self.request.user.is_superuser:
                 claim_asset_db_queryset = claim_asset_db_queryset.filter(
                     user=self.request.user
                 )
-        return claim_asset_db_queryset
+            return claim_asset_db_queryset
 
-    def destroy(self, request, *args, **kwargs):
-        instance = ClaimAsset.objects.get(id=self.kwargs['pk'])
-
-        try:
-            # Only the user who owns the review should be able to delete it
-            if instance.user.id == self.request.user.id:
-                self.perform_destroy(instance)
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(status=status.HTTP_304_NOT_MODIFIED)
-        except Http404:
-            pass
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        elif self.action == 'retrieve' or self.action == 'destroy':
+            asset_claim_id = self.kwargs['pk']
+            # Since we only return the asset claims the user owns, they can only delete that asset claim
+            return AssetClaim.objects.filter(id=asset_claim_id, user=self.request.user)
+        else:
+            return claim_asset_db_queryset

@@ -35,13 +35,12 @@ from api.views.asset_questions import AssetQuestionViewSet
 from api.views.asset_question_votes import AssetQuestionVoteViewSet
 from api.views.analytics import AssetClickThroughCounterRedirectView
 from api.views.asset_votes import AssetVoteViewSet
-from api.views.claim_asset import ClaimAssetViewSet
+from api.views.claim_asset import AssetClaimViewSet
 from dj_rest_auth.views import PasswordResetConfirmView
 
 from api.views.organization import autocomplete_organizations
 from api.views.price_plans import PricePlanViewSet
 from api.views.user import UserViewSet
-from api.views.claim_asset import LogoutView
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -69,7 +68,7 @@ router.register(r'price_plans', PricePlanViewSet)
 router.register(r'asset_votes', AssetVoteViewSet)
 router.register(r'asset_attributes', AssetAttributeViewSet)
 router.register(r'asset_attribute_votes', AssetAttributeVoteViewSet)
-router.register(r'claim_asset', ClaimAssetViewSet)
+router.register(r'asset_claims', AssetClaimViewSet)
 # E.g. To filter ratings where asset__slug=makemymails and rating is 10
 # GET: /asset_reviews/?asset__slug=makemymails&rating=10
 router.register(r'asset_reviews', AssetReviewViewSet)
@@ -82,7 +81,6 @@ urlpatterns = [
         schema_view.with_ui('swagger', cache_timeout=0),
         name='schema-swagger-ui',
     ),
-    path('api-auth/logout/', LogoutView.as_view()),
     # (Deprecated): Replace this by `autocomplete-tags-and-assets` on the frontend.
     path('autocomplete-tags/', autocomplete_tags),
     # This endpoint suggests both tags and assets. Response for a query like `/autocomplete-tags-and-assets/?q=ac` is:

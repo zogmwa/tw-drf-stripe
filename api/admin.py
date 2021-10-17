@@ -14,7 +14,7 @@ from api.models import (
     AssetVote,
     Attribute,
     AssetQuestionVote,
-    ClaimAsset,
+    AssetClaim,
 )
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
@@ -135,6 +135,13 @@ class AssetQuestionVoteAdmin(admin.ModelAdmin):
     search_fields = ['question__asset__name', 'question__title']
 
 
+class AssetClaimAdmin(admin.ModelAdmin):
+    model = AssetClaim
+    autocomplete_fields = ['asset']
+    search_fields = ['asset__name', 'title', 'status']
+    list_display = ('asset', 'status', 'user_comment')
+
+
 # Admin site headers
 admin.site.site_header = 'TaggedWeb Admin'
 
@@ -150,3 +157,4 @@ admin.site.register(AssetVote, AssetVoteAdmin)
 admin.site.register(Attribute, AttributeAdmin)
 admin.site.register(AssetAttributeVote, AttributeVoteAdmin)
 admin.site.register(AssetQuestionVote, AssetQuestionVoteAdmin)
+admin.site.register(AssetClaim, AssetClaimAdmin)

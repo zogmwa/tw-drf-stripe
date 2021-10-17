@@ -7,10 +7,14 @@ from django.dispatch import receiver
 from api.models import Asset
 
 
-class ClaimAsset(models.Model):
+class AssetClaim(models.Model):
+    """An AssetClaim is an ownership request from a user to take ownership of an asset"""
+
     asset = models.ForeignKey(
         Asset, related_name='claim_requests', on_delete=models.CASCADE
     )
+
+    # The user who submitted this claim, maybe we want to rename this to submitted_by if it causes confusion ahead
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -26,7 +30,10 @@ class ClaimAsset(models.Model):
     status = models.CharField(max_length=8, choices=STATUS_CHOICES, default='Pending')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    comment = models.CharField(max_length=256, blank=True, null=True)
+    user_comment = models.TextField(max_length=1024, blank=True, null=True)
+
+    # This comment will be from a staff member and will be read only for the user
+    staff_comment = models.TextField(max_length=1024, blank=True, null=True)
 
     class Meta:
         constraints = [
@@ -36,7 +43,7 @@ class ClaimAsset(models.Model):
         verbose_name_plural = 'Web Service Claim Requests'
 
 
-@receiver(pre_save, sender=ClaimAsset)
+@receiver(pre_save, sender=AssetClaim)
 def set_owner_of_asset_if_claim_asset_request_is_accepted(
     sender, instance=None, **kwargs
 ):
