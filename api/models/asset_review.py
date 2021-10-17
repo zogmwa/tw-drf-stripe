@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import UniqueConstraint, F
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
+from django.core.signals import request_finished
 
 from api.models import Asset
 
@@ -45,6 +46,10 @@ def avg_rating_and_count_update_for_new_review(sender, instance=None, **kwargs):
     When new review is added, the average rating of the asset is recalculated & 'avg_rating' and 'reviews_count'
     for the asset is updated
     """
+
+    if type(sender) != type(AssetReview):
+        return
+
     try:
         # Update operation (an existing review is being updated case)
         # Try to get an old reference to this instance.
@@ -83,3 +88,10 @@ def avg_rating_and_count_update_on_delete(sender, instance=None, **kwargs):
             / (F('reviews_count') - 1),
             reviews_count=F('reviews_count') - 1,
         )
+
+
+# https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave
+request_finished.connect(
+    avg_rating_and_count_update_for_new_review,
+    dispatch_uid="avg_rating_and_count_update_for_new_review",
+)
