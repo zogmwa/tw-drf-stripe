@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import UniqueConstraint, F
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
+from django.core.signals import request_finished
 
 from api.models import Asset
 from api.utils.video import get_embed_video_url
@@ -46,6 +47,10 @@ def avg_rating_and_count_update_for_new_review(sender, instance=None, **kwargs):
     When new review is added, the average rating of the asset is recalculated & 'avg_rating' and 'reviews_count'
     for the asset is updated
     """
+
+    if type(sender) != type(AssetReview):
+        return
+
     try:
         # Update operation (an existing review is being updated case)
         # Try to get an old reference to this instance.
@@ -102,3 +107,10 @@ def asset_conditional_updates(sender, instance=None, **kwargs):
         # If it's a new asset/web-service being created for which an old one does not exist then
         # we still want to update the promo video
         instance.video_url = get_embed_video_url(instance.video_url)
+
+
+# https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave
+request_finished.connect(
+    avg_rating_and_count_update_for_new_review,
+    dispatch_uid="avg_rating_and_count_update_for_new_review",
+)
