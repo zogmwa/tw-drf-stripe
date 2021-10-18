@@ -12,8 +12,7 @@ class UserSerializer(ModelSerializer):
     # TODO: later try to send submitted_asssets only when asked by the user by some additional parameter
     submitted_assets = AssetSerializer(many=True, read_only=True)
     pending_asset_ids = serializers.ListField(
-        child=serializers.IntegerField(min_value=0),
-        read_only=True,
+        child=serializers.IntegerField(min_value=0), read_only=True
     )
     social_accounts = serializers.ListField(read_only=True)
 
@@ -22,6 +21,8 @@ class UserSerializer(ModelSerializer):
         fields = [
             'id',
             'username',
+            'first_name',
+            'last_name',
             'avatar',
             'organization',
             'used_assets',
