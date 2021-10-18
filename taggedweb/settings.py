@@ -34,9 +34,6 @@ ALLOWED_HOSTS = [
     'taggedweb.com',
     'localhost',
     '127.0.0.1',
-    '192.168.114.126',
-    '192.168.114.124',
-    '192.168.114.130',
 ]
 
 # Difference between ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS:
@@ -250,7 +247,7 @@ GUARDIAN_GET_INIT_ANONYMOUS_USER = 'api.models.get_anonymous_user_instance'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         "dj_rest_auth.utils.JWTCookieAuthentication",
