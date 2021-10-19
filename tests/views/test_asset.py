@@ -673,3 +673,32 @@ class TestAssetIsOwned:
         assert response.status_code == 200
         assert response.data['slug'] == example_asset.slug
         assert response.data['is_owned'] == is_owned
+
+
+class TestAssetCompare:
+    def test_for_compare_less_than_2_or_more_than_3_should_return_bad_request_error(
+        self,
+        unauthenticated_client,
+        example_asset,
+        example_asset_2,
+        example_asset_3,
+        example_asset_4,
+    ):
+        response = unauthenticated_client.get(
+            '{}compare?asset_slugs={}'.format(
+                ASSETS_BASE_ENDPOINT,
+                example_asset.slug,
+            )
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        response = unauthenticated_client.get(
+            '{}compare?asset_slugs={}&asset_slugs={}&asset_slugs={}&asset_slugs={}'.format(
+                ASSETS_BASE_ENDPOINT,
+                example_asset.slug,
+                example_asset_2.slug,
+                example_asset_3.slug,
+                example_asset_4.slug,
+            )
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
