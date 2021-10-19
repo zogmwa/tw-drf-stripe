@@ -31,6 +31,33 @@ def example_asset():
 
 
 @pytest.fixture
+def example_asset_2():
+    return Asset.objects.create(
+        slug='test-service-2',
+        name='Test Service 2',
+        is_published=True,
+    )
+
+
+@pytest.fixture
+def example_asset_3():
+    return Asset.objects.create(
+        slug='test-service-3',
+        name='Test Service 3',
+        is_published=True,
+    )
+
+
+@pytest.fixture
+def example_asset_4():
+    return Asset.objects.create(
+        slug='test-service-4',
+        name='Test Service 4',
+        is_published=True,
+    )
+
+
+@pytest.fixture
 def example_asset_attribute(example_asset):
     return example_asset.attributes.create(name='Test Asset Attribute')
 

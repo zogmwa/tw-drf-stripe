@@ -1,4 +1,6 @@
 import logging
+import operator
+from functools import reduce
 
 from django.db.models import QuerySet, Count, F, Q
 from elasticsearch_dsl.query import MultiMatch
@@ -205,4 +207,21 @@ class AssetViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(assets_db_qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False)
+    def compare(self, request, *args, **kwargs):
+        asset_slugs = self.request.query_params.getlist('asset__slugs', [])
+
+        if len(asset_slugs) < 2 or len(asset_slugs) > 3:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        assets = Asset.objects.filter(
+            reduce(operator.or_, (Q(slug=asset_slug) for asset_slug in asset_slugs))
+        )
+
+        if len(asset_slugs) != len(assets):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(assets, many=True)
         return Response(serializer.data)

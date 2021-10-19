@@ -673,3 +673,69 @@ class TestAssetIsOwned:
         assert response.status_code == 200
         assert response.data['slug'] == example_asset.slug
         assert response.data['is_owned'] == is_owned
+
+
+class TestAssetCompare:
+    def test_for_compare_less_than_2_or_more_than_3_should_return_bad_request_error(
+        self,
+        unauthenticated_client,
+        example_asset,
+        example_asset_2,
+        example_asset_3,
+        example_asset_4,
+    ):
+        response = unauthenticated_client.get(
+            '{}compare/?asset__slugs={}'.format(
+                ASSETS_BASE_ENDPOINT,
+                example_asset.slug,
+            )
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        response = unauthenticated_client.get(
+            '{}compare/?asset__slugs={}&asset__slugs={}&asset__slugs={}&asset__slugs={}'.format(
+                ASSETS_BASE_ENDPOINT,
+                example_asset.slug,
+                example_asset_2.slug,
+                example_asset_3.slug,
+                example_asset_4.slug,
+            )
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_for_compare_with_non_existing_asset_should_return_not_found_error(
+        self, unauthenticated_client, example_asset, example_asset_2
+    ):
+        response = unauthenticated_client.get(
+            '{}compare/?asset__slugs={}&asset__slugs={}'.format(
+                ASSETS_BASE_ENDPOINT, example_asset.slug, 'none-existing-asset-slug'
+            )
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_for_compare_with_2_or_3_assets_should_return_correct_values(
+        self, unauthenticated_client, example_asset, example_asset_2, example_asset_3
+    ):
+        response = unauthenticated_client.get(
+            '{}compare/?asset__slugs={}&asset__slugs={}'.format(
+                ASSETS_BASE_ENDPOINT, example_asset.slug, example_asset_2.slug
+            )
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 2
+        assert response.data[0]['id'] == example_asset.id
+        assert response.data[1]['id'] == example_asset_2.id
+
+        response = unauthenticated_client.get(
+            '{}compare/?asset__slugs={}&asset__slugs={}&asset__slugs={}'.format(
+                ASSETS_BASE_ENDPOINT,
+                example_asset.slug,
+                example_asset_2.slug,
+                example_asset_3.slug,
+            )
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 3
+        assert response.data[0]['id'] == example_asset.id
+        assert response.data[1]['id'] == example_asset_2.id
+        assert response.data[2]['id'] == example_asset_3.id
