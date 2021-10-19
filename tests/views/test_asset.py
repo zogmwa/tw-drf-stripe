@@ -307,6 +307,40 @@ class TestAssetViewSetSimilarServices:
             assert len(results) == 1
             assert results[0]['id'] == similar_asset.id
 
+    def test_similar_services_uses_slug_if_provided_to_narrow_down_match(
+        self, authenticated_client, example_asset, mocker
+    ):
+
+        # Create 2 similar assets
+        similar_assets = []
+        for i in range(1, 3):
+            similar_asset = Asset.objects.create(
+                name='Similar to Example Asset {}'.format(i),
+                slug='example-assset-similar-{}'.format(i),
+                short_description='test',
+                description='test',
+            )
+            similar_asset.tags.set(example_asset.tags.all())
+            similar_asset.save()
+            similar_assets.append(similar_asset)
+
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        asset_query = '{}similar/?slug={}&include_self=1'.format(
+            ASSETS_BASE_ENDPOINT,
+            example_asset.slug,
+        )
+
+        response = authenticated_client.get(asset_query)
+
+        assert response.status_code == 200
+        results = response.data['results']
+        assert len(results) == 3
+
 
 class TestAssetCreateUpdateWithOneManyFieldSnapshots:
     def test_create_asset_with_new_snapshots(

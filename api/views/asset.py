@@ -171,26 +171,41 @@ class AssetViewSet(viewsets.ModelViewSet):
     def similar(self, request, *args, **kwargs):
         """
         Example(s):
-        - /assets/similar/?name=mailchimp
-        - /assets/similar/?name=mailchimp&include_self=1
+        - /assets/similar/?slug=mailchimp
+        - /assets/similar/?slug=mailchimp&include_self=1
 
-        The resulting wil may also have the asset being searched for
+        The resulting wil may also have the asset being searched for. We allow name parameter to be used as it can
+        allow having URLs that are SEO friendly but in some cases a name starts with match may result in more than one
+        result e.g. Facebook for Shops, Facebook for Advertisers so asset slug may be preferable so slugs are preferable.
+        (Retaining name parameter for now and will later phase it out if it doesn't make sense).
         """
-        asset_name_query = self.request.query_params.get('name')
+        # Either the slug or the name parameter must be used but not both
+        asset_slug_param = self.request.query_params.get('slug')
+        asset_name_name = self.request.query_params.get('name')
 
         # By default the self asset is included unless a include_self=0 GET parameter is passed to exclude it
         include_self = int(self.request.query_params.get('include_self', '1'))
-        if asset_name_query is None:
+        if asset_name_name is None and asset_slug_param is None:
             return Response(
-                data={"detail": "name GET containing asset name must be provided"},
+                data={
+                    "detail": "Either asset slug or name GET parameter must be provided"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        asset = (
-            Asset.objects.filter(name__istartswith=asset_name_query)
-            .prefetch_related('tags')
-            .get()
-        )
+        if asset_slug_param:
+            asset = (
+                Asset.objects.filter(slug=asset_slug_param.strip())
+                .prefetch_related('tags')
+                .get()
+            )
+        else:
+            # Use the name parameter instead
+            asset = (
+                Asset.objects.filter(name__istartswith=asset_name_name)
+                .prefetch_related('tags')
+                .get()
+            )
 
         q = ' '.join(tag.slug for tag in asset.tags.all())
         assets_db_qs = self._get_assets_db_qs_via_elasticsearch_query(q)
