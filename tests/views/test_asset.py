@@ -786,3 +786,56 @@ class TestAssetCompare:
         assert response.data[0]['id'] == example_asset.id
         assert response.data[1]['id'] == example_asset_2.id
         assert response.data[2]['id'] == example_asset_3.id
+
+
+class TestAssetAttributeUpvoteCount:
+    def test_for_asset_without_query_param_should_return_upvotes_count_calculated(
+        self, unauthenticated_client, example_asset, example_asset_attribute
+    ):
+        response = unauthenticated_client.get(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        )
+        assert response.status_code == 200
+        assert response.data['id'] == example_asset.id
+        assert response.data['attributes'][0]['id'] == example_asset_attribute.id
+        assert (
+            response.data['attributes'][0]['upvotes_count']
+            != 'Cannot be calculated (asset unknown)'
+        )
+
+
+class TestAssetAttributeVoteByMe:
+    def test_for_asset_with_unauthenticated_user_should_not_return_attributes_vote_status(
+        self,
+        unauthenticated_client,
+        example_asset,
+        example_asset_attribute,
+        example_asset_attribute_vote,
+    ):
+        response = unauthenticated_client.get(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        )
+        assert response.status_code == 200
+        assert response.data['id'] == example_asset.id
+        assert response.data['attributes'][0]['id'] == example_asset_attribute.id
+        assert response.data['attributes'][0]['upvotes_count'] == 1
+        assert 'my_asset_attribute_vote' not in response.data['attributes'][0]
+
+    def test_for_asset_with_authenticated_user_should_return_attributes_vote_id(
+        self,
+        authenticated_client,
+        example_asset,
+        example_asset_attribute,
+        example_asset_attribute_vote,
+    ):
+        response = authenticated_client.get(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        )
+        assert response.status_code == 200
+        assert response.data['id'] == example_asset.id
+        assert response.data['attributes'][0]['id'] == example_asset_attribute.id
+        assert response.data['attributes'][0]['upvotes_count'] == 1
+        assert (
+            response.data['attributes'][0]['my_asset_attribute_vote']
+            == example_asset_attribute_vote.id
+        )
