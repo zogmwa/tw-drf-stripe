@@ -7,20 +7,26 @@ from api.models import Attribute, Asset, AssetAttributeVote
 class AssetAttributeSerializer(ModelSerializer):
     # Upvotes count for asset in content
     upvotes_count = serializers.SerializerMethodField(
-        method_name='get_upvote_counts_for_asset_in_request'
+        method_name='get_upvote_counts_for_asset_in_context'
     )
 
     class Meta:
         model = Attribute
         fields = ['id', 'name', 'is_con', 'upvotes_count']
 
-    def get_upvote_counts_for_asset_in_request(self, instance):
+    def get_upvote_counts_for_asset_in_context(self, instance):
         request = self.context.get('request')
+        asset_id = self.context.get('asset_id')
         asset_slug = request.query_params.get('asset', '')
         asset_slug = asset_slug.strip()
 
+        asset = None
         if asset_slug:
             asset = Asset.objects.get(slug=asset_slug)
+        elif asset_id:
+            asset = Asset.objects.get(id=asset_id)
+
+        if asset:
             upvote_count_for_given_asset_attribute = AssetAttributeVote.objects.filter(
                 is_upvote=True, asset=asset, attribute=instance
             ).count()

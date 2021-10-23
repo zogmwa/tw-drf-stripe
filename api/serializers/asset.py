@@ -19,7 +19,7 @@ class AssetSerializer(ModelSerializer):
 
     tags = TagSerializer(read_only=True, many=True)
     customer_organizations = OrganizationSerializer(required=False, many=True)
-    attributes = AssetAttributeSerializer(read_only=True, many=True)
+    attributes = serializers.SerializerMethodField(method_name='_get_attributes')
     price_plans = PricePlanSerializer(read_only=True, many=True)
     questions = AssetQuestionSerializer(read_only=True, many=True)
     # Don't allow more than 20 snapshots for now to be added
@@ -64,6 +64,16 @@ class AssetSerializer(ModelSerializer):
         ]
         lookup_field = 'slug'
         extra_kwargs = {'url': {'lookup_field': 'slug'}}
+
+    def _get_attributes(self, instance):
+        serialize_context = {
+            'request': self.context.get('request'),
+            'asset_id': instance.id,
+        }
+        serializer = AssetAttributeSerializer(
+            instance.attributes, many=True, context=serialize_context
+        )
+        return serializer.data
 
 
 class AuthenticatedAssetSerializer(AssetSerializer):
