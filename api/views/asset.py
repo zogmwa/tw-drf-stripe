@@ -181,31 +181,22 @@ class AssetViewSet(viewsets.ModelViewSet):
         """
         # Either the slug or the name parameter must be used but not both
         asset_slug_param = self.request.query_params.get('slug')
-        asset_name_name = self.request.query_params.get('name')
 
         # By default the self asset is included unless a include_self=0 GET parameter is passed to exclude it
         include_self = int(self.request.query_params.get('include_self', '1'))
-        if asset_name_name is None and asset_slug_param is None:
+        if asset_slug_param is None:
             return Response(
                 data={
-                    "detail": "Either asset slug or name GET parameter must be provided"
+                    "detail": "slug GET parameter pointing to the asset must be provided"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if asset_slug_param:
-            asset = (
-                Asset.objects.filter(slug=asset_slug_param.strip())
-                .prefetch_related('tags')
-                .get()
-            )
-        else:
-            # Use the name parameter instead
-            asset = (
-                Asset.objects.filter(name__istartswith=asset_name_name)
-                .prefetch_related('tags')
-                .get()
-            )
+        asset = (
+            Asset.objects.filter(slug=asset_slug_param.strip())
+            .prefetch_related('tags')
+            .get()
+        )
 
         q = ' '.join(tag.slug for tag in asset.tags.all())
         assets_db_qs = self._get_assets_db_qs_via_elasticsearch_query(q)
@@ -215,6 +206,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         else:
             assets_db_qs = assets_db_qs | Asset.objects.filter(id=asset.id)
 
+        assets_db_qs = self.filter_queryset(assets_db_qs)
         page = self.paginate_queryset(assets_db_qs)
 
         if page is not None:

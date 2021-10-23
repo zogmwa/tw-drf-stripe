@@ -8,7 +8,6 @@ from api.models.asset_snapshot import AssetSnapshot
 
 from api.views.asset import AssetViewSet
 from tests.common import login_client
-from pytest_lazyfixture import lazy_fixture
 
 
 ASSETS_BASE_ENDPOINT = 'http://127.0.0.1:8000/assets/'
@@ -292,8 +291,8 @@ class TestAssetViewSetSimilarServices:
             return_value=Asset.objects.all(),
         )
 
-        asset_query = '{}similar/?name={}&include_self={}'.format(
-            ASSETS_BASE_ENDPOINT, example_asset.name, include_self
+        asset_query = '{}similar/?slug={}&include_self={}'.format(
+            ASSETS_BASE_ENDPOINT, example_asset.slug, include_self
         )
 
         response = authenticated_client.get(asset_query)
@@ -307,18 +306,21 @@ class TestAssetViewSetSimilarServices:
             assert len(results) == 1
             assert results[0]['id'] == similar_asset.id
 
-    def test_similar_services_uses_slug_if_provided_to_narrow_down_match(
-        self, authenticated_client, example_asset, mocker
+    @pytest.mark.parametrize('ordering', ['avg_rating', '-avg_rating'])
+    def test_ascending_and_descending_sorting_by_avg_rating(
+        self, authenticated_client, example_asset, ordering, mocker
     ):
-
-        # Create 2 similar assets
+        # Create 2 similar assets similar to example_asset
         similar_assets = []
-        for i in range(1, 3):
+        non_sorted_avg_rating_values = [7, 3]
+        # The first asset i.e. example_asset should have an avg_rating of 0. So a non sorted order will be like 0, 7, 3
+        for i in range(2):
             similar_asset = Asset.objects.create(
-                name='Similar to Example Asset {}'.format(i),
-                slug='example-assset-similar-{}'.format(i),
+                name='Similar to Example Asset {}'.format(i + 1),
+                slug='example-assset-similar-{}'.format(i + 1),
                 short_description='test',
                 description='test',
+                avg_rating=non_sorted_avg_rating_values[i],
             )
             similar_asset.tags.set(example_asset.tags.all())
             similar_asset.save()
@@ -330,15 +332,26 @@ class TestAssetViewSetSimilarServices:
             return_value=Asset.objects.all(),
         )
 
-        asset_query = '{}similar/?slug={}&include_self=1'.format(
+        asset_query = '{}similar/?slug={}&include_self=1&ordering={}'.format(
             ASSETS_BASE_ENDPOINT,
             example_asset.slug,
+            ordering,
         )
 
         response = authenticated_client.get(asset_query)
 
         assert response.status_code == 200
         results = response.data['results']
+        rating_order = [asset['avg_rating'] for asset in results]
+
+        # Don't worry about O(n log n) time-complexiting of sorting here because the list is small
+        if ordering == '-avg_rating':
+            # Descending
+            assert rating_order[::-1] == sorted(rating_order)
+        else:
+            # Ascending
+            assert rating_order == sorted(rating_order)
+
         assert len(results) == 3
 
 
