@@ -3,7 +3,10 @@ from rest_framework.serializers import ModelSerializer
 
 from api.models import Asset, AssetVote
 from api.models.asset_snapshot import AssetSnapshot
-from api.serializers.asset_attribute import AssetAttributeSerializer
+from api.serializers.asset_attribute import (
+    AssetAttributeSerializer,
+    AuthenticatedAssetAttributeSerializer,
+)
 from api.serializers.asset_question import AssetQuestionSerializer
 from api.serializers.asset_snapshot import AssetSnapshotSerializer
 from api.serializers.organization import OrganizationSerializer
@@ -66,13 +69,19 @@ class AssetSerializer(ModelSerializer):
         extra_kwargs = {'url': {'lookup_field': 'slug'}}
 
     def _get_attributes(self, instance):
+        request = self.context.get('request')
         serialize_context = {
-            'request': self.context.get('request'),
+            'request': request,
             'asset_id': instance.id,
         }
-        serializer = AssetAttributeSerializer(
-            instance.attributes, many=True, context=serialize_context
-        )
+        if request.user.is_anonymous:
+            serializer = AssetAttributeSerializer(
+                instance.attributes, many=True, context=serialize_context
+            )
+        else:
+            serializer = AuthenticatedAssetAttributeSerializer(
+                instance.attributes, many=True, context=serialize_context
+            )
         return serializer.data
 
 
