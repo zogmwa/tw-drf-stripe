@@ -48,12 +48,16 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
 
     def _get_my_asset_attribute_vote(self, instance):
         logged_in_user = self.context['request'].user
+        asset_id = self.context.get('asset_id')
+        asset = Asset.objects.get(id=asset_id) if asset_id else None
 
         if not logged_in_user:
             return None
 
         try:
-            asset_attribute_vote = instance.attribute_votes.get(user=logged_in_user)
+            asset_attribute_vote = instance.attribute_votes.get(
+                user=logged_in_user, asset=asset
+            )
             return asset_attribute_vote.id
         except AssetAttributeVote.DoesNotExist:
             return None
