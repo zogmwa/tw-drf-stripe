@@ -49,7 +49,14 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
     def _get_my_asset_attribute_vote(self, instance):
         logged_in_user = self.context['request'].user
         asset_id = self.context.get('asset_id')
-        asset = Asset.objects.get(id=asset_id) if asset_id else None
+        asset_slug = self.context['request'].query_params.get('asset', '')
+        asset_slug = asset_slug.strip()
+
+        asset = None
+        if asset_slug:
+            asset = Asset.objects.get(slug=asset_slug)
+        elif asset_id:
+            asset = Asset.objects.get(id=asset_id)
 
         if not logged_in_user:
             return None
