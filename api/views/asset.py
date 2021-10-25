@@ -170,14 +170,12 @@ class AssetViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def similar(self, request, *args, **kwargs):
         """
+        Returns services that are similar to a given service. If include_self is provided it will include the given
+        service in the results as well.
+
         Example(s):
         - /assets/similar/?slug=mailchimp
         - /assets/similar/?slug=mailchimp&include_self=1
-
-        The resulting wil may also have the asset being searched for. We allow name parameter to be used as it can
-        allow having URLs that are SEO friendly but in some cases a name starts with match may result in more than one
-        result e.g. Facebook for Shops, Facebook for Advertisers so asset slug may be preferable so slugs are preferable.
-        (Retaining name parameter for now and will later phase it out if it doesn't make sense).
         """
         # Either the slug or the name parameter must be used but not both
         asset_slug_param = self.request.query_params.get('slug')
