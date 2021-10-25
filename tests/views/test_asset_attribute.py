@@ -59,7 +59,9 @@ class TestAssetAttributeVotedByMe:
             )
 
         # Get attributes list
-        response = authenticated_client.get(ASSET_ATTRIBUTES_ENDPOINT)
+        response = authenticated_client.get(
+            '{}?asset__slug={}'.format(ASSET_ATTRIBUTES_ENDPOINT, example_asset.slug)
+        )
         assert response.status_code == 200
         assert 'my_asset_attribute_vote' in response.data[0].keys()
         if is_asset_attribute_voted:
@@ -71,8 +73,8 @@ class TestAssetAttributeVotedByMe:
             assert response.data[0]['my_asset_attribute_vote'] is None
 
         # Get attribute detail
-        asset_attribute_url = '{}{}/'.format(
-            ASSET_ATTRIBUTES_ENDPOINT, example_asset_attribute.id
+        asset_attribute_url = '{}{}/?asset__slug={}'.format(
+            ASSET_ATTRIBUTES_ENDPOINT, example_asset_attribute.id, example_asset.slug
         )
         response = authenticated_client.get(asset_attribute_url)
         assert response.status_code == 200

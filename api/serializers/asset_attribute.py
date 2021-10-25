@@ -17,7 +17,7 @@ class AssetAttributeSerializer(ModelSerializer):
     def get_upvote_counts_for_asset_in_context(self, instance):
         request = self.context.get('request')
         asset_id = self.context.get('asset_id')
-        asset_slug = request.query_params.get('asset', '')
+        asset_slug = request.query_params.get('asset__slug', '')
         asset_slug = asset_slug.strip()
 
         asset = None
@@ -48,12 +48,23 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
 
     def _get_my_asset_attribute_vote(self, instance):
         logged_in_user = self.context['request'].user
+        asset_id = self.context.get('asset_id')
+        asset_slug = self.context['request'].query_params.get('asset__slug', '')
+        asset_slug = asset_slug.strip()
+
+        asset = None
+        if asset_slug:
+            asset = Asset.objects.get(slug=asset_slug)
+        elif asset_id:
+            asset = Asset.objects.get(id=asset_id)
 
         if not logged_in_user:
             return None
 
         try:
-            asset_attribute_vote = instance.attribute_votes.get(user=logged_in_user)
+            asset_attribute_vote = instance.attribute_votes.get(
+                user=logged_in_user, asset=asset
+            )
             return asset_attribute_vote.id
         except AssetAttributeVote.DoesNotExist:
             return None
