@@ -23,12 +23,13 @@ class AssetSolution(models.Model):
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
 
     # There may or may not be an organization providing this solution (in that case point_of_contact user will be
-    # proving the support)
+    # providing the support)
     organization = models.ForeignKey(
         Organization, blank=True, null=True, on_delete=models.SET_NULL
     )
 
-    # The user who will be the point of contact for the customer
+    # The user who will either be providing the support or be the point of contact at the organization providing
+    # the support.
     point_of_contact = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
     )
