@@ -20,7 +20,7 @@ class AssetSolution(models.Model):
     type = models.CharField(
         max_length=2, choices=Type.choices, default=Type.INTEGRATION
     )
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='solutions')
 
     # There may or may not be an organization providing this solution (in that case point_of_contact user will be
     # providing the support)

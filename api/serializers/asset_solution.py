@@ -15,5 +15,6 @@ class AssetSolutionSerializer(ModelSerializer):
             'type',
             'detailed_description',
             'asset',
+            'point_of_contact',
             'organization',
         ]
