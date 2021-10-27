@@ -1,9 +1,10 @@
 from django.db import models
+from api.models import Asset
 
 
 class AssetSnapshot(models.Model):
     asset = models.ForeignKey(
-        'Asset',
+        Asset,
         null=True,
         blank=True,
         related_name='snapshots',
