@@ -94,6 +94,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
     )
     my_asset_vote = serializers.SerializerMethodField(method_name="_get_my_asset_vote")
     is_owned = serializers.SerializerMethodField(method_name="_get_is_owned")
+    edit_allowed = serializers.SerializerMethodField(method_name="_get_edit_allowed")
 
     @staticmethod
     def _create_snapshots_and_associate_with_asset(
@@ -137,6 +138,20 @@ class AuthenticatedAssetSerializer(AssetSerializer):
 
         return instance.owner == logged_in_user
 
+    def _get_edit_allowed(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return False
+
+        if instance.owner == logged_in_user:
+            return True
+
+        if instance.submitted_by == logged_in_user and instance.owner is None:
+            return True
+
+        return False
+
     def _set_submitted_by_to_logged_in_user(self, validated_data):
         # Mutate validated_data to set submitted_by to logged-in user if we have one
         logged_in_user = self.context['request'].user
@@ -166,4 +181,5 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             'used_by_me',
             'my_asset_vote',
             'is_owned',
+            'edit_allowed',
         ]
