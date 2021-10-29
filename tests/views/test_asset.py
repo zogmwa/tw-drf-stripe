@@ -722,6 +722,107 @@ class TestAssetIsOwned:
         assert response.data['is_owned'] == is_owned
 
 
+class TestAssetEditAllowed:
+    def test_for_anonymous_user_edit_allowed_should_not_be_returned_in_the_response_of_list_or_single_asset(
+        self, unauthenticated_client, mocker, example_asset, example_tag
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
+        response = unauthenticated_client.get(asset_list_url)
+        assert response.status_code == 200
+        assert response.data['count'] == 1
+        assert 'edit_allowed' not in response.data['results'][0].keys()
+
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = unauthenticated_client.get(asset_url)
+        assert response.status_code == 200
+        assert response.data['slug'] == example_asset.slug
+        assert 'edit_allowed' not in response.data.keys()
+
+    @pytest.mark.parametrize(
+        "is_owned",
+        [False, True],
+    )
+    def test_for_authenticated_user_owned_asset_edit_allowed_should_return_correct_values(
+        self,
+        mocker,
+        authenticated_client,
+        user_and_password,
+        example_asset,
+        example_tag,
+        is_owned,
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        if is_owned:
+            example_asset.owner = user_and_password[0]
+            example_asset.save()
+
+        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
+        response = authenticated_client.get(asset_list_url)
+        assert response.status_code == 200
+        assert response.data['count'] == 1
+        if is_owned:
+            assert response.data['results'][0]['edit_allowed'] is True
+        else:
+            assert response.data['results'][0]['edit_allowed'] is False
+
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response = authenticated_client.get(asset_url)
+        assert response.status_code == 200
+        assert response.data['slug'] == example_asset.slug
+        if is_owned:
+            assert response.data['edit_allowed'] is True
+        else:
+            assert response.data['edit_allowed'] is False
+
+    def test_for_authenticated_user_owned_or_submit_asset_edit_allowed_should_return_correct_values(
+        self,
+        mocker,
+        authenticated_client,
+        authenticated_client_2,
+        user_and_password,
+        user_and_password_2,
+        example_asset,
+        example_tag,
+    ):
+        mocker.patch.object(
+            AssetViewSet,
+            '_get_assets_db_qs_via_elasticsearch_query',
+            return_value=Asset.objects.all(),
+        )
+
+        example_asset.owner = user_and_password[0]
+        example_asset.submitted_by = user_and_password_2[0]
+        example_asset.save()
+
+        asset_list_url = '{}?q={}'.format(ASSETS_BASE_ENDPOINT, example_tag.name)
+        response_for_owner = authenticated_client.get(asset_list_url)
+        response_for_submitter = authenticated_client_2.get(asset_list_url)
+
+        assert response_for_owner.status_code == 200
+        assert response_for_submitter.status_code == 200
+        assert response_for_owner.data['results'][0]['edit_allowed'] is True
+        assert response_for_submitter.data['results'][0]['edit_allowed'] is False
+
+        asset_url = '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug)
+        response_for_owner = authenticated_client.get(asset_url)
+        response_for_submitter = authenticated_client_2.get(asset_url)
+        assert response_for_owner.status_code == 200
+        assert response_for_submitter.status_code == 200
+        assert response_for_owner.data['edit_allowed'] is True
+        assert response_for_submitter.data['edit_allowed'] is False
+
+
 class TestAssetCompare:
     def test_for_compare_less_than_2_or_more_than_3_should_return_bad_request_error(
         self,
