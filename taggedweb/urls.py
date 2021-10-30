@@ -30,7 +30,7 @@ from api.views.auth import (
     GoogleConnect,
 )
 from api.views.asset import AssetViewSet
-from api.views.asset_attributes import AssetAttributeViewSet
+from api.views.asset_attributes import AssetAttributeViewSet, autocomplete_attributes
 from api.views.tag import autocomplete_tags, autocomplete_assets_and_tags
 from api.views.asset_questions import AssetQuestionViewSet
 from api.views.asset_question_votes import AssetQuestionVoteViewSet
@@ -97,6 +97,7 @@ urlpatterns = [
     #   ]
     # }
     path('autocomplete-tags-and-assets/', autocomplete_assets_and_tags),
+    path('autocomplete-attributes/', autocomplete_attributes),
     path('autocomplete-organizations/', autocomplete_organizations),
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
