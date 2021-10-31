@@ -14,6 +14,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='assetsolution',
             name='asset',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='solutions', to='api.asset'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='solutions',
+                to='api.asset',
+            ),
         ),
     ]

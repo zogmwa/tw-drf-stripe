@@ -73,10 +73,7 @@ class AssetSerializer(ModelSerializer):
 
     def _get_attributes(self, instance):
         request = self.context.get('request')
-        serialize_context = {
-            'request': request,
-            'asset_id': instance.id,
-        }
+        serialize_context = {'request': request, 'asset_id': instance.id}
         if request.user.is_anonymous:
             serializer = AssetAttributeSerializer(
                 instance.attributes, many=True, context=serialize_context
@@ -102,10 +99,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         asset: Asset,
     ) -> None:
         for snapshot_dict in snapshots:
-            AssetSnapshot.objects.get_or_create(
-                **snapshot_dict,
-                asset=asset,
-            )
+            AssetSnapshot.objects.get_or_create(**snapshot_dict, asset=asset)
 
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user
