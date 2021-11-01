@@ -52,7 +52,10 @@ class Asset(models.Model):
         max_length=200,
         null=True,
         blank=True,
-        help_text='Optional link to page with more information (for clickable pricing table headers)',
+        help_text=(
+            'Optional link to page with more information (for clickable pricing table'
+            ' headers)'
+        ),
     )
     # The company that is providing this application or software
     company = models.CharField(max_length=255, null=True, blank=True)
@@ -94,6 +97,7 @@ class Asset(models.Model):
     avg_rating = models.DecimalField(default=0, decimal_places=7, max_digits=10)
     reviews_count = models.IntegerField(default=0)
     upvotes_count = models.IntegerField(default=0)
+    is_homepage_featured = models.BooleanField(default=False, db_index=True)
 
     # Which organization owns this Asset (different from the owner which is a specific user at the organization
     # which owns this)

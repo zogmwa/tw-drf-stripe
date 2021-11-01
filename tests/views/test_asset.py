@@ -249,7 +249,11 @@ class AssetTagSearchCounter:
         [('database', 'data', 'data'), ('data', 'data', 'database')],
     )
     def test_update_counter_of_tag_when_exactly_matched_with_searched_tag(
-        self, authenticated_client, tag_slug, tag_name, query
+        self,
+        authenticated_client,
+        tag_slug,
+        tag_name,
+        query,
     ):
         # When the user searches for assets by some tags, counter of those tags should only be incremented
         # which matches exactly with the searched tags. For example: if user searches 'database', then the counter
@@ -274,7 +278,11 @@ class TestAssetViewSetSimilarServices:
         ['0', '1'],
     )
     def test_similar_services(
-        self, authenticated_client, example_asset, include_self, mocker
+        self,
+        authenticated_client,
+        example_asset,
+        include_self,
+        mocker,
     ):
         similar_asset = Asset.objects.create(
             name='Simiar to Example Asset',
@@ -357,7 +365,9 @@ class TestAssetViewSetSimilarServices:
 
 class TestAssetCreateUpdateWithOneManyFieldSnapshots:
     def test_create_asset_with_new_snapshots(
-        self, authenticated_client, example_asset, mocker
+        self,
+        authenticated_client,
+        example_asset,
     ):
         test_asset_data = {
             'slug': 'google-cloud-gpu',
@@ -495,10 +505,7 @@ class TestAssetUsedByUser:
         )
         return url
 
-    @pytest.mark.parametrize(
-        "asset_used, expected_count",
-        [('true', 1), ('false', 0)],
-    )
+    @pytest.mark.parametrize("asset_used, expected_count", [('true', 1), ('false', 0)])
     def test_if_user_marks_asset_as_used_then_there_should_be_one_row_presenting_this(
         self,
         user_and_password,
@@ -508,7 +515,7 @@ class TestAssetUsedByUser:
         expected_count,
     ):
         response = authenticated_client.post(
-            self._asset_used_endpoint(example_asset, asset_used),
+            self._asset_used_endpoint(example_asset, asset_used)
         )
         if asset_used == 'true':
             assert response.status_code == status.HTTP_201_CREATED
@@ -525,7 +532,7 @@ class TestAssetUsedByUser:
         example_asset,
     ):
         response = authenticated_client.post(
-            self._asset_used_endpoint(example_asset, 'true'),
+            self._asset_used_endpoint(example_asset, 'true')
         )
         assert response.status_code == status.HTTP_201_CREATED
         self._check_if_user_asset_usage_record_exists_for_currrent_user_and_asset(
@@ -578,9 +585,7 @@ class TestAssetUsedByUser:
         self, authenticated_client, example_asset, example_tag, mocker, is_asset_used
     ):
         if is_asset_used:
-            authenticated_client.post(
-                self._asset_used_endpoint(example_asset, 'true'),
-            )
+            authenticated_client.post(self._asset_used_endpoint(example_asset, 'true'))
 
         mocker.patch.object(
             AssetViewSet,
@@ -834,8 +839,7 @@ class TestAssetCompare:
     ):
         response = unauthenticated_client.get(
             '{}compare/?asset__slugs={}'.format(
-                ASSETS_BASE_ENDPOINT,
-                example_asset.slug,
+                ASSETS_BASE_ENDPOINT, example_asset.slug
             )
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -940,3 +944,29 @@ class TestAssetAttributeVoteByMe:
             response.data['attributes'][0]['my_asset_attribute_vote']
             == example_asset_attribute_vote.id
         )
+
+
+class TestAssetFeatured:
+    def test_for_asset_with_user_return_featured_tags_with_asset(
+        self,
+        unauthenticated_client,
+        authenticated_client,
+        example_featured_asset,
+        example_featured_tag,
+    ):
+        example_featured_asset.tags.add(example_featured_tag)
+        example_featured_asset.save()
+
+        # unauthenticated user
+        response = unauthenticated_client.get(
+            '{}featured/'.format(ASSETS_BASE_ENDPOINT)
+        )
+        assert response.status_code == 200
+        assert response.data[0]['slug'] == example_featured_tag.slug
+        assert response.data[0]['assets'][0]['slug'] == example_featured_asset.slug
+
+        # authenticated user
+        response = authenticated_client.get('{}featured/'.format(ASSETS_BASE_ENDPOINT))
+        assert response.status_code == 200
+        assert response.data[0]['slug'] == example_featured_tag.slug
+        assert response.data[0]['assets'][0]['slug'] == example_featured_asset.slug

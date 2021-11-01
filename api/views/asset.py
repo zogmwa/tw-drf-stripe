@@ -17,6 +17,7 @@ from api.models.user_asset_usage import UserAssetUsage
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
 from api.permissions.asset_permissions import AssetPermissions
+from api.serializers.tag import TagFeaturedSerializer
 
 
 class AssetViewSetPagination(LimitOffsetPagination):
@@ -230,3 +231,11 @@ class AssetViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(assets, many=True)
         return Response(serializer.data)
+
+    @action(detail=False)
+    def featured(self, request, *args, **kwargs):
+        assets_featured = Asset.objects.filter(is_homepage_featured=True)
+        tags_assets_featured = Tag.objects.filter(assets__in=assets_featured)
+        tags_serializer = TagFeaturedSerializer(tags_assets_featured, many=True)
+
+        return Response(tags_serializer.data)

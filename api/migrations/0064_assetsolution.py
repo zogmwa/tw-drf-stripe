@@ -15,15 +15,51 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AssetSolution',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
                 ('title', models.CharField(max_length=255)),
                 ('detailed_description', models.TextField(blank=True, null=True)),
-                ('type', models.CharField(choices=[('I', 'Integration'), ('U', 'Usage Support')], default='I', max_length=2)),
+                (
+                    'type',
+                    models.CharField(
+                        choices=[('I', 'Integration'), ('U', 'Usage Support')],
+                        default='I',
+                        max_length=2,
+                    ),
+                ),
                 ('created', models.DateTimeField(auto_now_add=True, null=True)),
                 ('updated', models.DateTimeField(auto_now=True, null=True)),
-                ('asset', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.asset')),
-                ('organization', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.organization')),
-                ('point_of_contact', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                (
+                    'asset',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to='api.asset'
+                    ),
+                ),
+                (
+                    'organization',
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to='api.organization',
+                    ),
+                ),
+                (
+                    'point_of_contact',
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
                 'verbose_name': 'Web Service Solution',

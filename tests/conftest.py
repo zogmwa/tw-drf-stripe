@@ -58,6 +58,15 @@ def example_asset_4():
 
 
 @pytest.fixture
+def example_featured_asset():
+    return Asset.objects.create(
+        slug='featured_asset',
+        name='Featured Asset',
+        is_homepage_featured=True,
+    )
+
+
+@pytest.fixture
 def example_asset_attribute(example_asset):
     return example_asset.attributes.create(name='Test Asset Attribute')
 
@@ -86,6 +95,11 @@ def example_asset_question_vote(user_and_password, example_asset_question):
 @pytest.fixture
 def example_tag():
     return Tag.objects.create(slug='tag', name='tag_name')
+
+
+@pytest.fixture
+def example_featured_tag():
+    return Tag.objects.create(slug='featured_tag', name='Featured Tag')
 
 
 @pytest.fixture
