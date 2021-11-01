@@ -235,7 +235,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def featured(self, request, *args, **kwargs):
         assets_featured = Asset.objects.filter(is_homepage_featured=True)
-        tags_assets_featured = Tag.objects.filter(assets__in=assets_featured)
+        tags_assets_featured = Tag.objects.filter(assets__in=assets_featured).distinct()
         tags_serializer = TagFeaturedSerializer(tags_assets_featured, many=True)
 
         return Response(tags_serializer.data)
