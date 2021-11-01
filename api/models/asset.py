@@ -63,7 +63,7 @@ class Asset(models.Model):
     short_description = models.CharField(max_length=512, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     has_free_trial = models.BooleanField(default=False)
-    trial_days = models.IntegerField(null=True)
+    trial_days = models.IntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
 
     # An attribute is kind of like a feature tag or a highlight, example "Easy to Use" is an attribute
