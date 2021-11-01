@@ -65,6 +65,7 @@ class AssetSerializer(ModelSerializer):
             'avg_rating',
             'reviews_count',
             'has_free_trial',
+            'trial_days',
             'snapshots',
             'users_count',
         ]
