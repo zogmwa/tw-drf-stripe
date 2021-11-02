@@ -30,6 +30,8 @@ def process(excel_path: str, asset_slug: str) -> None:
 
         if website:
             organization.website = row[Organization.website.field.attname].strip()
+            
+        organization.save()
 
         OrganizationUsingAsset.objects.get_or_create(
             organization=organization, asset=asset
