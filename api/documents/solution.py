@@ -1,6 +1,8 @@
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 
+from api.models.solution import Solution
+
 
 @registry.register_document
 class SolutionDocument(Document):
@@ -8,19 +10,19 @@ class SolutionDocument(Document):
     Solution Elasticsearch Document
     """
 
-    name = fields.SearchAsYouTypeField()
+    title = fields.SearchAsYouTypeField()
 
     class Index:
         # Name of the Elasticsearch index
-        name = 'tag'
+        name = 'solution'
         # See Elasticsearch Indices API reference for available settings
         settings = {'number_of_shards': 1, 'number_of_replicas': 0}
 
     class Django:
-        model = Tag
+        model = Solution
         # The fields of the model you want to be indexed in Elasticsearch,
         # other than the ones already used in the Document class
-        fields = ['slug']
+        fields = []
 
         # Ignore auto updating of Elasticsearch when a model is saved
         # or deleted:
