@@ -99,7 +99,9 @@ def example_tag():
 
 @pytest.fixture
 def example_featured_tag():
-    return Tag.objects.create(slug='featured_tag', name='Featured Tag')
+    return Tag.objects.create(
+        slug='featured_tag', name='Featured Tag', is_homepage_featured=True
+    )
 
 
 @pytest.fixture

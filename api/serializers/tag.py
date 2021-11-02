@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 
 from api.models import Tag, Asset
@@ -18,8 +19,15 @@ class AssetFeaturedSerializer(ModelSerializer):
 
 
 class TagFeaturedSerializer(ModelSerializer):
-    assets = AssetFeaturedSerializer(many=True, read_only=True)
+    assets = serializers.SerializerMethodField(method_name='_get_asset_featured')
 
     class Meta:
         model = Tag
         fields = ['slug', 'name', 'assets']
+
+    def _get_asset_featured(self, instance):
+        assets_featured = instance.assets.filter(is_homepage_featured=True).order_by(
+            '-upvotes_count'
+        )[:10]
+        serializer = AssetFeaturedSerializer(assets_featured, many=True)
+        return serializer.data
