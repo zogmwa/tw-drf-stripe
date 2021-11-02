@@ -26,10 +26,10 @@ def process(excel_path: str, asset_slug: str) -> None:
         )  # Find an asset with the asset slug
 
         if logo_url:
-            organization.logo_url = logo_url.strip()
+            organization.logo_url = row[Organization.logo_url.field.attname].strip()
 
         if website:
-            organization.website = website.strip()
+            organization.website = row[Organization.website.field.attname].strip()
 
         OrganizationUsingAsset.objects.get_or_create(
             organization=organization, asset=asset
