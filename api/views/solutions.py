@@ -1,17 +1,16 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, status
 
-from api.models.asset_solution import AssetSolution
-from api.serializers.asset_solution import AssetSolutionSerializer
+from api.models.solution import Solution
+from api.serializers.solution import SolutionSerializer
 
 
-class AssetSolutionViewSet(viewsets.ModelViewSet):
+class SolutionViewSet(viewsets.ModelViewSet):
 
-    queryset = AssetSolution.objects.filter()
+    queryset = Solution.objects.filter()
     permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = [
         'title',
-        'asset__slug',
     ]
-    serializer_class = AssetSolutionSerializer
+    serializer_class = SolutionSerializer
