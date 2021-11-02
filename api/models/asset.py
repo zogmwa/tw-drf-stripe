@@ -11,6 +11,7 @@ from opengraph import OpenGraph
 from opengraphio import OpenGraphIO
 
 from .asset_attribute import Attribute
+from .solution import Solution
 from .tag import Tag
 from .organization import Organization
 from api.utils.video import get_embed_video_url
@@ -65,6 +66,9 @@ class Asset(models.Model):
     has_free_trial = models.BooleanField(default=False)
     trial_days = models.IntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
+    solutions = models.ManyToManyField(
+        Solution, through='LinkedSolution', related_name='assets'
+    )
 
     # An attribute is kind of like a feature tag or a highlight, example "Easy to Use" is an attribute
     attributes = models.ManyToManyField(

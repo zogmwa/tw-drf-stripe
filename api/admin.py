@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.db import models
 from django.forms import TextInput
-from guardian.shortcuts import get_objects_for_user
 
 from guardian.admin import GuardedModelAdmin
 
@@ -19,13 +18,18 @@ from api.models import (
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
 from api.models.asset_attribute_vote import AssetAttributeVote
-from api.models.asset_solution import AssetSolution
+from api.models.solution import Solution
 from api.models.organization import Organization
 
 
 class TagInline(admin.TabularInline):
     model = Asset.tags.through
     autocomplete_fields = ['tag']
+
+
+class SolutionsInLine(admin.TabularInline):
+    model = Asset.solutions.through
+    autocomplete_fields = ['solution']
 
 
 class CustomerOrganizationInLine(admin.TabularInline):
@@ -102,6 +106,7 @@ class AssetAdmin(GuardedModelAdmin):
         AttributeInline,
         AssetSnapshotInline,
         PricePlanInline,
+        SolutionsInLine,
         CustomerOrganizationInLine,
     ]
 
@@ -143,11 +148,14 @@ class AssetClaimAdmin(admin.ModelAdmin):
     list_display = ('asset', 'status', 'user_comment')
 
 
-class AssetSolutionAdmin(admin.ModelAdmin):
-    model = AssetSolution
-    autocomplete_fields = ['asset', 'organization', 'point_of_contact']
-    search_fields = ['asset__name', 'title']
-    list_display = ('asset', 'title', 'type', 'organization')
+class SolutionAdmin(admin.ModelAdmin):
+    model = Solution
+    autocomplete_fields = [
+        'organization',
+        'point_of_contact',
+    ]
+    search_fields = ['title']
+    list_display = ('title', 'type', 'organization')
 
 
 # Admin site headers
@@ -166,4 +174,4 @@ admin.site.register(Attribute, AttributeAdmin)
 admin.site.register(AssetAttributeVote, AttributeVoteAdmin)
 admin.site.register(AssetQuestionVote, AssetQuestionVoteAdmin)
 admin.site.register(AssetClaim, AssetClaimAdmin)
-admin.site.register(AssetSolution, AssetSolutionAdmin)
+admin.site.register(Solution, SolutionAdmin)

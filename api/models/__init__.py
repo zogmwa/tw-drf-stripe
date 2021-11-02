@@ -12,6 +12,7 @@ from .linked_attribute import LinkedAttribute
 from .asset_question import AssetQuestion
 from .asset_question_vote import AssetQuestionVote
 from .asset_vote import AssetVote
+from .linked_solution import LinkedSolution
 from .linked_tag import LinkedTag
 from .asset_attribute_vote import AssetAttributeVote
 from .linked_attribute import LinkedAttribute
