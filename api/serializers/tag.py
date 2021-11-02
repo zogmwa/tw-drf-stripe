@@ -27,7 +27,7 @@ class TagFeaturedSerializer(ModelSerializer):
 
     def _get_asset_featured(self, instance):
         assets_featured = instance.assets.filter(is_homepage_featured=True).order_by(
-            '-avg_rating'
+            '-upvotes_count'
         )[:10]
         serializer = AssetFeaturedSerializer(assets_featured, many=True)
         return serializer.data
