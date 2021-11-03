@@ -1,7 +1,14 @@
 import pytest
 from django.test import Client
 
-from api.models import Asset, User, Tag, AssetAttributeVote, AssetQuestionVote
+from api.models import (
+    Asset,
+    User,
+    Tag,
+    Attribute,
+    AssetAttributeVote,
+    AssetQuestionVote,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -64,6 +71,11 @@ def example_featured_asset():
         name='Featured Asset',
         is_homepage_featured=True,
     )
+
+
+@pytest.fixture
+def example_attribute(example_asset):
+    return Attribute.objects.create(name='Test Attribute')
 
 
 @pytest.fixture

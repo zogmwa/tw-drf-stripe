@@ -12,7 +12,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import Asset, Tag
+from api.models import Asset, Tag, Attribute
 from api.models.user_asset_usage import UserAssetUsage
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
@@ -238,3 +238,21 @@ class AssetViewSet(viewsets.ModelViewSet):
         tags_serializer = TagFeaturedSerializer(tags_featured, many=True)
 
         return Response(tags_serializer.data)
+
+    @action(detail=True, permission_classes=[IsAuthenticated], methods=['post'])
+    def link_attribute(self, request, *args, **kwargs):
+        """
+        If the user wants to link attribute to asset:
+        http://127.0.0.1:8000/assets/domo/link-attribute
+        """
+        try:
+            attribute_id = request.POST.get('attribute_id')
+            attribute = Attribute.objects.get(pk=attribute_id)
+            asset = Asset.objects.get(slug=kwargs['slug'])
+            asset.attributes.add(attribute)
+            asset.save()
+            return Response(status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            logging.error(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
