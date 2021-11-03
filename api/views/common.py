@@ -16,8 +16,10 @@ def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
             # We are using the tag slug for suggestions for tags and returning both slug and name for assets
             if case == 'tag':
                 results.add(hit.slug)
-            elif case == 'organization' or case == 'attribute':
+            elif case == 'organization':
                 results.add(hit.name)
+            elif case == 'attribute':
+                results.add((hit.id, hit.name))
             else:
                 # case == 'asset_name_and_slug':
                 results.add((hit.name, hit.slug))
