@@ -7,6 +7,7 @@ from api.models import Attribute
 @registry.register_document
 class AttributeDocument(Document):
     name = fields.SearchAsYouTypeField()
+    id = fields.IntegerField()
 
     class Index:
         # Name of the Elasticsearch index

@@ -3,7 +3,7 @@ from django_elasticsearch_dsl.search import Search
 
 def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
     """From a matching es_search_query extract relevant results"""
-    results = set()
+    results = []
     max_unique_items = 7
 
     # In the rare case of deleting and re-adding objects, there can be a scenario where the same item occurs
@@ -15,10 +15,12 @@ def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
         else:
             # We are using the tag slug for suggestions for tags and returning both slug and name for assets
             if case == 'tag':
-                results.add(hit.slug)
-            elif case == 'organization' or case == 'attribute':
-                results.add(hit.name)
+                results.append(hit.slug)
+            elif case == 'organization':
+                results.append(hit.name)
+            elif case == 'attribute':
+                results.append({"id": hit.id, "attr_name": hit.name})
             else:
                 # case == 'asset_name_and_slug':
-                results.add((hit.name, hit.slug))
+                results.append((hit.name, hit.slug))
     return list(results)
