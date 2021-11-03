@@ -21,7 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
-from api.views.asset_solutions import AssetSolutionViewSet
+from api.views.solutions import SolutionViewSet
 from api.views.auth import (
     GoogleLogin,
     LinkedInLogin,
@@ -30,7 +30,7 @@ from api.views.auth import (
     GoogleConnect,
 )
 from api.views.asset import AssetViewSet
-from api.views.asset_attributes import AssetAttributeViewSet
+from api.views.asset_attributes import AssetAttributeViewSet, autocomplete_attributes
 from api.views.tag import autocomplete_tags, autocomplete_assets_and_tags
 from api.views.asset_questions import AssetQuestionViewSet
 from api.views.asset_question_votes import AssetQuestionVoteViewSet
@@ -73,7 +73,7 @@ router.register(r'asset_claims', AssetClaimViewSet)
 # E.g. To filter ratings where asset__slug=makemymails and rating is 10
 # GET: /asset_reviews/?asset__slug=makemymails&rating=10
 router.register(r'asset_reviews', AssetReviewViewSet)
-router.register(r'asset_solutions', AssetSolutionViewSet)
+router.register(r'solutions', SolutionViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -97,6 +97,7 @@ urlpatterns = [
     #   ]
     # }
     path('autocomplete-tags-and-assets/', autocomplete_assets_and_tags),
+    path('autocomplete-attributes/', autocomplete_attributes),
     path('autocomplete-organizations/', autocomplete_organizations),
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),

@@ -18,6 +18,8 @@ def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
                 results.add(hit.slug)
             elif case == 'organization':
                 results.add(hit.name)
+            elif case == 'attribute':
+                results.add((hit.id, hit.name))
             else:
                 # case == 'asset_name_and_slug':
                 results.add((hit.name, hit.slug))

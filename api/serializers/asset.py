@@ -9,7 +9,7 @@ from api.serializers.asset_attribute import (
 )
 from api.serializers.asset_question import AssetQuestionSerializer
 from api.serializers.asset_snapshot import AssetSnapshotSerializer
-from api.serializers.asset_solution import AssetSolutionSerializer
+from api.serializers.solution import SolutionSerializer
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.price_plan import PricePlanSerializer
 from api.serializers.tag import TagSerializer
@@ -23,7 +23,7 @@ class AssetSerializer(ModelSerializer):
 
     tags = TagSerializer(read_only=True, many=True)
     customer_organizations = OrganizationSerializer(required=False, many=True)
-    solutions = AssetSolutionSerializer(read_only=True, many=True)
+    solutions = SolutionSerializer(read_only=True, many=True)
     attributes = serializers.SerializerMethodField(method_name='_get_attributes')
     price_plans = PricePlanSerializer(read_only=True, many=True)
     questions = AssetQuestionSerializer(read_only=True, many=True)
@@ -65,6 +65,7 @@ class AssetSerializer(ModelSerializer):
             'avg_rating',
             'reviews_count',
             'has_free_trial',
+            'trial_days',
             'snapshots',
             'users_count',
         ]
@@ -73,10 +74,7 @@ class AssetSerializer(ModelSerializer):
 
     def _get_attributes(self, instance):
         request = self.context.get('request')
-        serialize_context = {
-            'request': request,
-            'asset_id': instance.id,
-        }
+        serialize_context = {'request': request, 'asset_id': instance.id}
         if request.user.is_anonymous:
             serializer = AssetAttributeSerializer(
                 instance.attributes, many=True, context=serialize_context
@@ -102,10 +100,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         asset: Asset,
     ) -> None:
         for snapshot_dict in snapshots:
-            AssetSnapshot.objects.get_or_create(
-                **snapshot_dict,
-                asset=asset,
-            )
+            AssetSnapshot.objects.get_or_create(**snapshot_dict, asset=asset)
 
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user

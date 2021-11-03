@@ -1,20 +1,19 @@
 from rest_framework.serializers import ModelSerializer
 
-from api.models.asset_solution import AssetSolution
+from api.models.solution import Solution
 from api.serializers.organization import OrganizationSerializer
 
 
-class AssetSolutionSerializer(ModelSerializer):
+class SolutionSerializer(ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
 
     class Meta:
-        model = AssetSolution
+        model = Solution
         fields = [
             'id',
             'title',
             'type',
             'detailed_description',
-            'asset',
             'point_of_contact',
             'organization',
         ]

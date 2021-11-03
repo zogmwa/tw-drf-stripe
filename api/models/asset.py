@@ -11,6 +11,7 @@ from opengraph import OpenGraph
 from opengraphio import OpenGraphIO
 
 from .asset_attribute import Attribute
+from .solution import Solution
 from .tag import Tag
 from .organization import Organization
 from api.utils.video import get_embed_video_url
@@ -52,7 +53,10 @@ class Asset(models.Model):
         max_length=200,
         null=True,
         blank=True,
-        help_text='Optional link to page with more information (for clickable pricing table headers)',
+        help_text=(
+            'Optional link to page with more information (for clickable pricing table'
+            ' headers)'
+        ),
     )
     # The company that is providing this application or software
     company = models.CharField(max_length=255, null=True, blank=True)
@@ -60,7 +64,11 @@ class Asset(models.Model):
     short_description = models.CharField(max_length=512, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     has_free_trial = models.BooleanField(default=False)
+    trial_days = models.IntegerField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, through='LinkedTag', related_name='assets')
+    solutions = models.ManyToManyField(
+        Solution, through='LinkedSolution', related_name='assets'
+    )
 
     # An attribute is kind of like a feature tag or a highlight, example "Easy to Use" is an attribute
     attributes = models.ManyToManyField(
@@ -94,6 +102,7 @@ class Asset(models.Model):
     avg_rating = models.DecimalField(default=0, decimal_places=7, max_digits=10)
     reviews_count = models.IntegerField(default=0)
     upvotes_count = models.IntegerField(default=0)
+    is_homepage_featured = models.BooleanField(default=False, db_index=True)
 
     # Which organization owns this Asset (different from the owner which is a specific user at the organization
     # which owns this)
