@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
 
 from .asset import Asset
+from .solution import Solution
 from .tag import Tag
 from .user import User
 from .price_plan import PricePlan

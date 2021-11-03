@@ -1,7 +1,7 @@
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 
-from api.models.solution import Solution
+from api.models import Solution
 
 
 @registry.register_document
@@ -26,7 +26,7 @@ class SolutionDocument(Document):
 
         # Ignore auto updating of Elasticsearch when a model is saved
         # or deleted:
-        # ignore_signals = True
+        ignore_signals = False
 
         # Don't perform an index refresh after every update (overrides global setting):
         # auto_refresh = False

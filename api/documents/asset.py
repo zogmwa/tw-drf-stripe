@@ -71,7 +71,7 @@ class AssetDocument(Document):
         return (
             super(AssetDocument, self)
             .get_queryset()
-            .prefetch_related('tags', 'attributes')
+            .prefetch_related('tags', 'attributes', 'solutions')
         )
 
     def get_instances_from_related(self, related_instance):

@@ -21,7 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
-from api.views.solutions import SolutionViewSet
+from api.views.solutions import SolutionViewSet, autocomplete_solutions
 from api.views.auth import (
     GoogleLogin,
     LinkedInLogin,
@@ -99,6 +99,7 @@ urlpatterns = [
     path('autocomplete-tags-and-assets/', autocomplete_assets_and_tags),
     path('autocomplete-attributes/', autocomplete_attributes),
     path('autocomplete-organizations/', autocomplete_organizations),
+    path('autocomplete-solutions/', autocomplete_solutions),
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),

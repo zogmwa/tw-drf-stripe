@@ -51,6 +51,9 @@ class Solution(models.Model):
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
 
+    def __str__(self):
+        return self.title
+
     class Meta:
         verbose_name = 'Micro Solution'
         verbose_name_plural = 'Micro Solutions'
