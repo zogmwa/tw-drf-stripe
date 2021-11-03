@@ -970,3 +970,30 @@ class TestAssetFeatured:
         assert response.status_code == 200
         assert response.data[0]['slug'] == example_featured_tag.slug
         assert response.data[0]['assets'][0]['slug'] == example_featured_asset.slug
+
+
+class TestAssetAttributeLink:
+    def test_for_asset_with_user_link_attribute_to_asset(
+        self,
+        unauthenticated_client,
+        authenticated_client,
+        example_asset,
+        example_attribute,
+    ):
+        response = unauthenticated_client.post(
+            '{}{}/link_attribute/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {'attribute_id': example_attribute.pk},
+        )
+        assert response.status_code == 401
+
+        response = authenticated_client.post(
+            '{}un_asset_slug/link_attribute/'.format(ASSETS_BASE_ENDPOINT),
+            {'attribute_id': example_attribute.pk},
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        response = authenticated_client.post(
+            '{}{}/link_attribute/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {'attribute_id': example_attribute.pk},
+        )
+        assert response.status_code == status.HTTP_201_CREATED
