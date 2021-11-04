@@ -247,7 +247,7 @@ class AssetViewSet(viewsets.ModelViewSet):
         http://127.0.0.1:8000/assets/domo/link-attribute
         """
         try:
-            attribute_id = request.POST.get('attribute_id')
+            attribute_id = request.data.get('attribute_id')
             attribute = Attribute.objects.get(pk=attribute_id)
             asset = Asset.objects.get(slug=kwargs['slug'])
             asset.attributes.add(attribute)
