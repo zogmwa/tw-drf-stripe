@@ -996,4 +996,5 @@ class TestAssetAttributeLink:
             '{}{}/link_attribute/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
             {'attribute_id': example_attribute.pk},
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['id'] == example_attribute.id
