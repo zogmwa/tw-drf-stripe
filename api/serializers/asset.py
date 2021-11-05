@@ -108,7 +108,9 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         asset: Asset,
     ) -> None:
         snapshot_urls = [snapshot['url'] for snapshot in snapshots]
-        rows_to_delete = AssetSnapshot.objects.exclude(url__in=snapshot_urls)
+        rows_to_delete = AssetSnapshot.objects.filter(asset=asset).exclude(
+            url__in=snapshot_urls
+        )
         rows_to_delete.all().delete()
 
         for snapshot_dict in snapshots:
