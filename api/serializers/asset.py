@@ -102,6 +102,18 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         for snapshot_dict in snapshots:
             AssetSnapshot.objects.get_or_create(**snapshot_dict, asset=asset)
 
+    @staticmethod
+    def _update_snapshots_and_associate_with_asset(
+        snapshots: dict,
+        asset: Asset,
+    ) -> None:
+        snapshot_urls = [snapshot['url'] for snapshot in snapshots]
+        rows_to_delete = AssetSnapshot.objects.exclude(url__in=snapshot_urls)
+        rows_to_delete.all().delete()
+
+        for snapshot_dict in snapshots:
+            AssetSnapshot.objects.get_or_create(**snapshot_dict, asset=asset)
+
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user
 
@@ -165,9 +177,11 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         return asset
 
     def update(self, instance, validated_data):
-        snapshots_dicts = validated_data.pop('snapshots', [])
+        snapshots_dicts = validated_data.pop('snapshots', None)
         asset = super().update(instance, validated_data)
-        self._create_snapshots_and_associate_with_asset(snapshots_dicts, asset)
+
+        if snapshots_dicts is not None:
+            self._update_snapshots_and_associate_with_asset(snapshots_dicts, asset)
 
         return asset
 
