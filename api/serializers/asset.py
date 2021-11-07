@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import Asset, AssetVote
+from api.models import Asset, AssetVote, PricePlan
 from api.models.asset_snapshot import AssetSnapshot
 from api.serializers.asset_attribute import (
     AssetAttributeSerializer,
@@ -29,6 +29,7 @@ class AssetSerializer(ModelSerializer):
     questions = AssetQuestionSerializer(read_only=True, many=True)
     # Don't allow more than 20 snapshots for now to be added
     snapshots = AssetSnapshotSerializer(required=False, many=True)
+    price_plans = PricePlanSerializer(required=False, many=True)
 
     # Represents a masked url that should be used instead of affiliate_link so that click-throughs are tracked.
     tweb_url = serializers.URLField(read_only=True)
@@ -116,6 +117,17 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         for snapshot_dict in snapshots:
             AssetSnapshot.objects.get_or_create(**snapshot_dict, asset=asset)
 
+    @staticmethod
+    def _update_price_plans_and_associate_with_asset(
+        price_plans_dicts: dict, asset: Asset
+    ) -> None:
+        rows_to_delete = PricePlan.objects.filter(asset=asset)
+        rows_to_delete.all().delete()
+
+        for price_plans_dict in price_plans_dicts:
+            price_plans_dict['asset'] = asset
+            PricePlan.objects.get_or_create(**price_plans_dict)
+
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user
 
@@ -180,10 +192,15 @@ class AuthenticatedAssetSerializer(AssetSerializer):
 
     def update(self, instance, validated_data):
         snapshots_dicts = validated_data.pop('snapshots', None)
+        price_plans_dicts = validated_data.pop('price_plans', None)
+
         asset = super().update(instance, validated_data)
 
         if snapshots_dicts is not None:
             self._update_snapshots_and_associate_with_asset(snapshots_dicts, asset)
+
+        if price_plans_dicts is not None:
+            self._update_price_plans_and_associate_with_asset(price_plans_dicts, asset)
 
         return asset
 
