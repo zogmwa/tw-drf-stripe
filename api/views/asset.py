@@ -16,6 +16,7 @@ from api.models import Asset, Tag, Attribute
 from api.models.user_asset_usage import UserAssetUsage
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
+from api.serializers.asset_attribute import AuthenticatedAssetAttributeSerializer
 from api.permissions.asset_permissions import AssetPermissions
 from api.serializers.tag import TagFeaturedSerializer
 
@@ -246,12 +247,16 @@ class AssetViewSet(viewsets.ModelViewSet):
         http://127.0.0.1:8000/assets/domo/link-attribute
         """
         try:
-            attribute_id = request.POST.get('attribute_id')
+            attribute_id = request.data.get('attribute_id')
             attribute = Attribute.objects.get(pk=attribute_id)
             asset = Asset.objects.get(slug=kwargs['slug'])
             asset.attributes.add(attribute)
             asset.save()
-            return Response(status=status.HTTP_201_CREATED)
+            serializer_context = {'request': request, 'asset_id': asset.id}
+            attribute_serializer = AuthenticatedAssetAttributeSerializer(
+                attribute, context=serializer_context
+            )
+            return Response(attribute_serializer.data)
 
         except Exception as e:
             logging.error(e)
