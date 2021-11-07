@@ -997,3 +997,143 @@ class TestAssetAttributeLink:
             {'attribute_id': example_attribute.pk},
         )
         assert response.status_code == status.HTTP_201_CREATED
+
+
+class TestPatchAssetSnapshots:
+    def test_for_patch_asset_snapshots(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        user_and_password,
+    ):
+        example_asset.owner = user_and_password[0]
+        example_asset.save()
+
+        response = unauthenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'snapshots': [
+                    {
+                        'url': 'https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png'
+                    },
+                    {
+                        'url': 'https://eep.io/images/yzco4xsimv0y/1CYWQPt3Bn5qxpqfoJIwAQ/a1299c4f4228da786e93ef9dd6a44284/02_-_Market_Your_Business.png'
+                    },
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 401
+
+        response = authenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'snapshots': [
+                    {
+                        'url': 'https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png'
+                    },
+                    {
+                        'url': 'https://eep.io/images/yzco4xsimv0y/1CYWQPt3Bn5qxpqfoJIwAQ/a1299c4f4228da786e93ef9dd6a44284/02_-_Market_Your_Business.png'
+                    },
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['snapshots'][0]['asset'] == example_asset.id
+        assert (
+            response.data['snapshots'][0]['url']
+            == 'https://eep.io/images/yzco4xsimv0y/1CYWQPt3Bn5qxpqfoJIwAQ/a1299c4f4228da786e93ef9dd6a44284/02_-_Market_Your_Business.png'
+        )
+        assert response.data['snapshots'][1]['asset'] == example_asset.id
+        assert (
+            response.data['snapshots'][1]['url']
+            == 'https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png'
+        )
+
+
+class TestPatchAssetPricePlans:
+    def test_for_patch_asset_price_plans(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        user_and_password,
+    ):
+        example_asset.owner = user_and_password[0]
+        example_asset.save()
+
+        response = unauthenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'price_plans': [
+                    {
+                        'name': 'standard',
+                        'summary': 'standard',
+                        'currency': 'USD',
+                        'price': 1,
+                        'per': 'month',
+                        'features': 'features',
+                    },
+                    {
+                        'name': 'test',
+                        'summary': 'test',
+                        'currency': 'USD',
+                        'price': 1,
+                        'per': 'month',
+                        'features': 'test features',
+                    },
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 401
+
+        response = authenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'price_plans': [
+                    {
+                        'name': 'standard',
+                        'summary': 'standard',
+                        'currency': 'USD',
+                        'price': 1,
+                        'per': 'month',
+                        'features': 'features',
+                        'most_popular': True,
+                    },
+                    {
+                        'name': 'test',
+                        'summary': 'test',
+                        'currency': 'USD',
+                        'price': 1,
+                        'per': 'month',
+                        'features': 'test features',
+                        'most_popular': False,
+                    },
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['price_plans'][0]['asset'] == example_asset.id
+        assert response.data['price_plans'][0]['name'] == 'test'
+        assert response.data['price_plans'][0]['summary'] == 'test'
+        assert response.data['price_plans'][0]['currency'] == 'USD'
+        assert response.data['price_plans'][0]['price'] == '1'
+        assert response.data['price_plans'][0]['per'] == 'month'
+        assert response.data['price_plans'][0]['features'] == 'test features'
+        assert response.data['price_plans'][0]['most_popular'] == False
+        assert response.data['price_plans'][1]['asset'] == example_asset.id
+        assert response.data['price_plans'][1]['name'] == 'standard'
+        assert response.data['price_plans'][1]['summary'] == 'standard'
+        assert response.data['price_plans'][1]['currency'] == 'USD'
+        assert response.data['price_plans'][1]['price'] == '1'
+        assert response.data['price_plans'][1]['per'] == 'month'
+        assert response.data['price_plans'][1]['features'] == 'features'
+        assert response.data['price_plans'][1]['most_popular'] == True

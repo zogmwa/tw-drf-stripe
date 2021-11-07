@@ -8,6 +8,8 @@ from api.models import (
     Attribute,
     AssetAttributeVote,
     AssetQuestionVote,
+    AssetSnapshot,
+    PricePlan,
 )
 
 
@@ -186,3 +188,21 @@ def authenticated_client_2(user_and_password_2):
 def unauthenticated_client():
     client = Client()
     return client
+
+
+@pytest.fixture()
+def example_snapshot(example_asset):
+    return AssetSnapshot.objects.create(
+        asset=example_asset,
+        url='https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png',
+    )
+
+
+@pytest.fixture()
+def example_price_plan(example_asset):
+    return PricePlan.objects.create(
+        asset=example_asset,
+        name="standard",
+        summary="standard",
+        currency="USD",
+    )

@@ -22,6 +22,7 @@ from .organization import Organization
 from .organization import OrganizationUsingAsset
 from .claim_asset import AssetClaim
 from .user_asset_usage import UserAssetUsage
+from .asset_snapshot import AssetSnapshot
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
