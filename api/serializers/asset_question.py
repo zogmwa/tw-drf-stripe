@@ -9,8 +9,7 @@ class AssetQuestionSerializer(ModelSerializer):
 
     class Meta:
         model = AssetQuestion
-        fields = ['id', 'asset', 'title', 'created', 'modified', 'primary_answer', 'upvotes_count']
-        read_only_fields = ('created', 'modified')
+        fields = ['id', 'asset', 'title', 'created', 'primary_answer', 'upvotes_count']
 
     def create(self, validated_data):
         request = self.context['request']
