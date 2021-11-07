@@ -10,7 +10,7 @@ class AssetQuestion(models.Model):
     The questions can be user submitted or added by a moderator for informational purposes
     """
 
-    asset = models.ForeignKey(Asset, related_name='questions', on_delete=models.CASCADE)
+    asset = models.ForeignKey(Asset, related_name="questions", on_delete=models.CASCADE)
     title = models.TextField()
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -30,8 +30,8 @@ class AssetQuestion(models.Model):
     upvotes_count = models.IntegerField(default=0)
 
     class Meta:
-        verbose_name = 'Question'
-        verbose_name_plural = 'Questions'
+        verbose_name = "Question"
+        verbose_name_plural = "Questions"
 
     def __str__(self):
         return "{}: {}".format(self.asset.name, self.title)

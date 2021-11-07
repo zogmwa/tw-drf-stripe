@@ -13,15 +13,15 @@ class AssetQuestionVote(models.Model):
     """
 
     is_upvote = models.BooleanField(
-        default=True, help_text='Whether this is helpful (or Downvote= not relevant)'
+        default=True, help_text="Whether this is helpful (or Downvote= not relevant)"
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name='asset_question_votes',
+        related_name="asset_question_votes",
         on_delete=models.CASCADE,
     )
     question = models.ForeignKey(
-        AssetQuestion, related_name='votes', on_delete=models.CASCADE
+        AssetQuestion, related_name="votes", on_delete=models.CASCADE
     )
 
     voted_on = models.DateTimeField(auto_now_add=True)
@@ -32,17 +32,17 @@ class AssetQuestionVote(models.Model):
     class Meta:
         constraints = [
             UniqueConstraint(
-                fields=['user', 'question'],
-                name='user_asset_question_vote',
+                fields=["user", "question"],
+                name="user_asset_question_vote",
             )
         ]
-        verbose_name = 'Question Vote'
-        verbose_name_plural = 'Question Votes'
+        verbose_name = "Question Vote"
+        verbose_name_plural = "Question Votes"
 
 
 def _change_question_upvotes_count(question_id: int, change_by: int) -> None:
     asset_question_qs = AssetQuestion.objects.filter(id=question_id)
-    asset_question_qs.update(upvotes_count=F('upvotes_count') + change_by)
+    asset_question_qs.update(upvotes_count=F("upvotes_count") + change_by)
 
 
 @receiver(pre_save, sender=AssetQuestionVote)
