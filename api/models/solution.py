@@ -110,3 +110,6 @@ class SolutionBooking(models.Model):
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    # Notes from the solution provider as the solution booking progresses along that will be visible to the customer
+    provider_notes = models.TextField(null=True, blank=True)
