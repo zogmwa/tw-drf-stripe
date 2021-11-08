@@ -86,11 +86,6 @@ def example_asset_attribute(example_asset):
 
 
 @pytest.fixture
-def example_asset_attribute2(example_asset):
-    return example_asset.attributes.create(name='Test Asset Attribute2')
-
-
-@pytest.fixture
 def example_asset_question(example_asset):
     return example_asset.questions.create(title='Test Asset Question')
 
