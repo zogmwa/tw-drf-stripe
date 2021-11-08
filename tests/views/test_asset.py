@@ -1139,3 +1139,33 @@ class TestPatchAssetPricePlans:
         assert response.data['price_plans'][1]['per'] == 'month'
         assert response.data['price_plans'][1]['features'] == 'features'
         assert response.data['price_plans'][1]['most_popular'] == True
+
+
+class TestPatchAttributeUnlinkToAsset:
+    def test_for_patch_asset_unlink_attributes(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        example_asset_attribute,
+        user_and_password,
+    ):
+        example_asset.owner = user_and_password[0]
+        example_asset.save()
+
+        response = unauthenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {'attributes': [{'name': example_asset_attribute.name}]},
+            content_type='application/json',
+        )
+
+        assert response.status_code == 401
+
+        response = authenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {'attributes': [{'name': example_asset_attribute.name}]},
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['attributes'][0]['name'] == example_asset_attribute.name

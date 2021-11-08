@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import Asset, AssetVote, PricePlan
+from api.models import Asset, AssetVote, PricePlan, Attribute, LinkedAttribute
 from api.models.asset_snapshot import AssetSnapshot
 from api.serializers.asset_attribute import (
     AssetAttributeSerializer,
@@ -128,6 +128,17 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             price_plans_dict['asset'] = asset
             PricePlan.objects.get_or_create(**price_plans_dict)
 
+    @staticmethod
+    def _update_attributes_and_associate_with_asset(
+        attributes_dicts: dict, asset: Asset
+    ) -> None:
+        attribute_names = [attribute['name'] for attribute in attributes_dicts]
+        attributes = Attribute.objects.filter(name__in=attribute_names)
+        rows_to_delete = LinkedAttribute.objects.filter(asset=asset).exclude(
+            attribute__in=attributes
+        )
+        rows_to_delete.all().delete()
+
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user
 
@@ -193,6 +204,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
     def update(self, instance, validated_data):
         snapshots_dicts = validated_data.pop('snapshots', None)
         price_plans_dicts = validated_data.pop('price_plans', None)
+        attributes_dicts = self.context['request'].data.get('attributes', None)
 
         asset = super().update(instance, validated_data)
 
@@ -201,6 +213,9 @@ class AuthenticatedAssetSerializer(AssetSerializer):
 
         if price_plans_dicts is not None:
             self._update_price_plans_and_associate_with_asset(price_plans_dicts, asset)
+
+        if attributes_dicts is not None:
+            self._update_attributes_and_associate_with_asset(attributes_dicts, asset)
 
         return asset
 
