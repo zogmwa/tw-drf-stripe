@@ -18,7 +18,7 @@ from api.models import (
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
 from api.models.asset_attribute_vote import AssetAttributeVote
-from api.models.solution import Solution
+from api.models.solution import Solution, SolutionBooking
 from api.models.organization import Organization
 
 
@@ -27,9 +27,16 @@ class TagInline(admin.TabularInline):
     autocomplete_fields = ['tag']
 
 
-class SolutionsInLine(admin.TabularInline):
+class SolutionInLine(admin.TabularInline):
     model = Asset.solutions.through
     autocomplete_fields = ['solution']
+
+
+class AssetInline(admin.TabularInline):
+    model = Asset.solutions.through
+    autocomplete_fields = ['asset']
+    verbose_name = "Related Web Services"
+    verbose_name_plural = "Related Web Services"
 
 
 class CustomerOrganizationInLine(admin.TabularInline):
@@ -106,7 +113,7 @@ class AssetAdmin(GuardedModelAdmin):
         AttributeInline,
         AssetSnapshotInline,
         PricePlanInline,
-        SolutionsInLine,
+        SolutionInLine,
         CustomerOrganizationInLine,
     ]
 
@@ -153,9 +160,22 @@ class SolutionAdmin(admin.ModelAdmin):
     autocomplete_fields = [
         'organization',
         'point_of_contact',
+        'assets',
     ]
     search_fields = ['title']
     list_display = ('title', 'type', 'organization')
+    inlines = [
+        AssetInline,
+    ]
+
+
+class SolutionBookingAdmin(admin.ModelAdmin):
+    model = SolutionBooking
+    autocomplete_fields = [
+        'booked_by',
+        'manager',
+    ]
+    list_display = ('booked_by', 'status', 'created')
 
 
 # Admin site headers
@@ -175,3 +195,4 @@ admin.site.register(AssetAttributeVote, AttributeVoteAdmin)
 admin.site.register(AssetQuestionVote, AssetQuestionVoteAdmin)
 admin.site.register(AssetClaim, AssetClaimAdmin)
 admin.site.register(Solution, SolutionAdmin)
+admin.site.register(SolutionBooking, SolutionBookingAdmin)

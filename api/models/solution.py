@@ -11,12 +11,13 @@ class Solution(models.Model):
     """
 
     title = models.CharField(max_length=255)
-    detailed_description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     scope_of_work = models.TextField(blank=True, null=True)
 
     class Type(models.TextChoices):
         INTEGRATION = 'I'
         USAGE_SUPPORT = 'U'
+        OTHER = 'O'
 
     type = models.CharField(
         max_length=2, choices=Type.choices, default=Type.INTEGRATION
@@ -34,8 +35,18 @@ class Solution(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
     )
 
+    # Follow-On solutions a.k.a. Downstream solutions that are typically performed after Upstream solutions
+    follow_on_solutions = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='upstream_solutions',
+        blank=True,
+    )
+
+    # Solution.assets will give the related assets (via related_name='solutions' on Asset model)
+
     # Estimated number of days it will take to fully deliver the solution to the customer
-    eta_days = models.IntegerField(null=True, blank=True)
+    eta_days = models.IntegerField(null=True, blank=True, verbose_name='ETA Days')
 
     # If the price is None that doesn't mean it is 0, it's just that we don't know that yet and this specific
     # solution requires the solution provider to send the user a quote. This will be more of an estimated price
@@ -43,10 +54,20 @@ class Solution(models.Model):
     price = models.DecimalField(null=True, blank=True, max_digits=7, decimal_places=2)
     currency = models.CharField(max_length=3, default='USD')
 
+    # Hourly contract rate for follow-up engagement on unscoped work after the solution (For case by case hourly rate,
+    # leave this to null)
+    follow_up_hourly_rate = models.DecimalField(
+        null=True, blank=True, max_digits=7, decimal_places=2
+    )
+
     # https://hackernoon.com/why-capacity-planning-needs-queueing-theory-without-the-hard-math-342a851e215c
-    # Max number of active solution bookings that the team can handle at any given time for this solution.
-    # This is used so that we may prevent overbooking of solutions.
+    # Max number of solution bookings that are being actively worked on or the team has capacity to actively work on
+    # in parallel.
     capacity = models.IntegerField(default=10)
+
+    # Max number of solution bookings that can be in pending/non-active state. Once the existing solution bookings count
+    # hits the max queue size then we will not be allowing more solutions to be booked.
+    max_queue_size = models.IntegerField(default=10)
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
@@ -55,8 +76,8 @@ class Solution(models.Model):
         return self.title
 
     class Meta:
-        verbose_name = 'Micro Solution'
-        verbose_name_plural = 'Micro Solutions'
+        verbose_name = 'Solution'
+        verbose_name_plural = 'Solutions'
 
 
 class SolutionBooking(models.Model):
@@ -87,3 +108,5 @@ class SolutionBooking(models.Model):
         choices=Status.choices,
         default=Status.PENDING,
     )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
