@@ -12,7 +12,8 @@ class AssetQuestion(models.Model):
 
     asset = models.ForeignKey(Asset, related_name='questions', on_delete=models.CASCADE)
     title = models.TextField()
-    created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     # There might be an open question that is not answered yet
     # This is the primary answer because later we may introduce a separate answer model with multiple answers possible

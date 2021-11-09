@@ -21,6 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
+from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
 from api.views.auth import (
     GoogleLogin,
@@ -74,6 +75,7 @@ router.register(r'asset_claims', AssetClaimViewSet)
 # GET: /asset_reviews/?asset__slug=makemymails&rating=10
 router.register(r'asset_reviews', AssetReviewViewSet)
 router.register(r'solutions', SolutionViewSet)
+router.register(r'solution_bookings', SolutionBookingViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

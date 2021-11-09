@@ -13,6 +13,8 @@ class SolutionSerializer(ModelSerializer):
             'id',
             'title',
             'type',
+            'price',
+            'currency',
             'detailed_description',
             'point_of_contact',
             'organization',
