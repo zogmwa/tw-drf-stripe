@@ -1169,3 +1169,60 @@ class TestPatchAttributeUnlinkToAsset:
 
         assert response.status_code == 200
         assert response.data['attributes'][0]['name'] == example_asset_attribute.name
+
+
+class TestPatchCustomerOrganizationsToAsset:
+    def test_for_patch_asset_update_customer_organizations(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        example_asset_customer_organization,
+        user_and_password,
+    ):
+        example_asset.owner = user_and_password[0]
+        example_asset.save()
+
+        response = unauthenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'customer_organizations': [
+                    {
+                        'name': example_asset_customer_organization.name,
+                        'logo_url': example_asset_customer_organization.logo_url,
+                        'website': example_asset_customer_organization.website,
+                    }
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 401
+
+        response = authenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'customer_organizations': [
+                    {
+                        'name': example_asset_customer_organization.name,
+                        'logo_url': example_asset_customer_organization.logo_url,
+                        'website': example_asset_customer_organization.website,
+                    }
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert (
+            response.data['customer_organizations'][0]['name']
+            == example_asset_customer_organization.name
+        )
+        assert (
+            response.data['customer_organizations'][0]['logo_url']
+            == example_asset_customer_organization.logo_url
+        )
+        assert (
+            response.data['customer_organizations'][0]['website']
+            == example_asset_customer_organization.website
+        )

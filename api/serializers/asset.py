@@ -1,7 +1,14 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import Asset, AssetVote, PricePlan, Attribute, LinkedAttribute
+from api.models import (
+    Asset,
+    AssetVote,
+    PricePlan,
+    Attribute,
+    LinkedAttribute,
+    Organization,
+)
 from api.models.asset_snapshot import AssetSnapshot
 from api.serializers.asset_attribute import (
     AssetAttributeSerializer,
@@ -139,6 +146,22 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         )
         rows_to_delete.all().delete()
 
+    @staticmethod
+    def _update_customer_organizations_and_associate_with_asset(
+        customer_organizations: dict, asset: Asset
+    ):
+        organization_names = [
+            customer_organization['name']
+            for customer_organization in customer_organizations
+        ]
+        organizations_to_add = Organization.objects.filter(name__in=organization_names)
+        organizations_to_remove = asset.customer_organizations.exclude(
+            name__in=organization_names
+        )
+
+        asset.customer_organizations.remove(*organizations_to_remove)
+        asset.customer_organizations.add(*organizations_to_add)
+
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user
 
@@ -205,6 +228,9 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         snapshots_dicts = validated_data.pop('snapshots', None)
         price_plans_dicts = validated_data.pop('price_plans', None)
         attributes_dicts = self.context['request'].data.get('attributes', None)
+        customer_organizations_dicts = validated_data.pop(
+            'customer_organizations', None
+        )
 
         asset = super().update(instance, validated_data)
 
@@ -216,6 +242,11 @@ class AuthenticatedAssetSerializer(AssetSerializer):
 
         if attributes_dicts is not None:
             self._update_attributes_and_associate_with_asset(attributes_dicts, asset)
+
+        if customer_organizations_dicts is not None:
+            self._update_customer_organizations_and_associate_with_asset(
+                customer_organizations_dicts, asset
+            )
 
         return asset
 
