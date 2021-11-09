@@ -15,7 +15,7 @@ class SolutionSerializer(ModelSerializer):
             'type',
             'price',
             'currency',
-            'detailed_description',
+            'description',
             'point_of_contact',
             'organization',
         ]
