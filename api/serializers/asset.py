@@ -154,23 +154,18 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             customer_organization['name']
             for customer_organization in customer_organizations
         ]
-        all_organization_names = Organization.objects.values_list('name', flat=True)
-        new_organizations = [
-            Organization.objects.create(name=name)
-            for name in organization_names
-            if name not in all_organization_names
-        ]
 
-        organizations_to_add = Organization.objects.filter(
-            name__in=organization_names
-        ).exclude(assets_used=asset)
+        organizations_to_add = set()
+        for name in organization_names:
+            organization, is_created = Organization.objects.get_or_create(name=name)
+            organizations_to_add.add(organization)
+
         organizations_to_remove = asset.customer_organizations.exclude(
             name__in=organization_names
         )
 
         asset.customer_organizations.remove(*organizations_to_remove)
         asset.customer_organizations.add(*organizations_to_add)
-        asset.customer_organizations.add(*new_organizations)
 
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user
