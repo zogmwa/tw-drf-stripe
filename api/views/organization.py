@@ -27,4 +27,6 @@ def autocomplete_organizations(request):
     else:
         results = []
 
-    return JsonResponse({'results': results})
+    organizations = Organization.objects.filter(name__in=results)
+    organization_serializer = OrganizationSerializer(organizations, many=True)
+    return JsonResponse({'results': organization_serializer.data})

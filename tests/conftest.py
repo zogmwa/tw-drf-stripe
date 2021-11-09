@@ -86,6 +86,25 @@ def example_asset_attribute(example_asset):
 
 
 @pytest.fixture
+def example_asset_attribute2(example_asset):
+    return example_asset.attributes.create(name='Test Asset Attribute2')
+
+
+@pytest.fixture
+def example_asset_customer_organization(example_asset):
+    return example_asset.customer_organizations.create(
+        name='Primer',
+        logo_url='https://logo.clearbit.com/primer.io',
+        website='https://primer.io/',
+    )
+
+
+@pytest.fixture
+def example_asset_customer_organization2(example_asset):
+    return example_asset.customer_organizations.create(name='Customer Organization2')
+
+
+@pytest.fixture
 def example_asset_question(example_asset):
     return example_asset.questions.create(title='Test Asset Question')
 
