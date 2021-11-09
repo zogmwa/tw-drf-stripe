@@ -154,7 +154,9 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             customer_organization['name']
             for customer_organization in customer_organizations
         ]
-        organizations_to_add = Organization.objects.filter(name__in=organization_names)
+        organizations_to_add = Organization.objects.filter(
+            name__in=organization_names
+        ).exclude(assets_used=asset)
         organizations_to_remove = asset.customer_organizations.exclude(
             name__in=organization_names
         )
