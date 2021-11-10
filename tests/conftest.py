@@ -105,6 +105,18 @@ def example_asset_customer_organization2(example_asset):
 
 
 @pytest.fixture
+def example_asset_tag(example_asset):
+    return example_asset.tags.create(
+        name='Test Tag', slug='test-tag', description='description'
+    )
+
+
+@pytest.fixture
+def example_asset_tag2(example_asset):
+    return example_asset.tags.create(name='Test Tag2', slug='test-tag1', description='')
+
+
+@pytest.fixture
 def example_asset_question(example_asset):
     return example_asset.questions.create(title='Test Asset Question')
 

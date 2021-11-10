@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from api.documents.asset import AssetDocument
 from api.documents.tag import TagDocument
 from api.views.common import extract_results_from_matching_query
+from api.models import Tag
+from api.serializers.tag import TagSerializer
 
 
 def autocomplete_tags(request):
@@ -18,7 +20,10 @@ def autocomplete_tags(request):
     else:
         results = []
 
-    return JsonResponse({'results': results})
+    tags = Tag.objects.filter(slug__in=results)
+    tag_serializer = TagSerializer(tags, many=True)
+
+    return JsonResponse({'results': tag_serializer.data})
 
 
 def autocomplete_assets_and_tags(request):

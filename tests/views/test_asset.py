@@ -1226,3 +1226,51 @@ class TestPatchCustomerOrganizationsToAsset:
             response.data['customer_organizations'][0]['website']
             == example_asset_customer_organization.website
         )
+
+
+class TestPatchTagsToAsset:
+    def test_for_patch_asset_update_tags(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        example_asset_tag,
+        user_and_password,
+    ):
+        example_asset.owner = user_and_password[0]
+        example_asset.save()
+
+        response = unauthenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'tags': [
+                    {
+                        'name': example_asset_tag.name,
+                        'slug': example_asset_tag.slug,
+                        'description': example_asset_tag.description,
+                    }
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 401
+
+        response = authenticated_client.patch(
+            '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
+            {
+                'tags': [
+                    {
+                        'name': example_asset_tag.name,
+                        'slug': example_asset_tag.slug,
+                        'description': example_asset_tag.description,
+                    }
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['tags'][0]['name'] == example_asset_tag.name
+        assert response.data['tags'][0]['slug'] == example_asset_tag.slug
+        assert response.data['tags'][0]['description'] == example_asset_tag.description

@@ -8,6 +8,7 @@ from api.models import (
     Attribute,
     LinkedAttribute,
     Organization,
+    Tag,
 )
 from api.models.asset_snapshot import AssetSnapshot
 from api.serializers.asset_attribute import (
@@ -167,6 +168,22 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         asset.customer_organizations.remove(*organizations_to_remove)
         asset.customer_organizations.add(*organizations_to_add)
 
+    @staticmethod
+    def _update_tag_and_associate_with_asset(tag_dicts: dict, asset: Asset):
+        tag_names = [tag['name'] for tag in tag_dicts]
+
+        tags_to_add = set()
+        for tag in tag_dicts:
+            temp_tag, is_created = Tag.objects.get_or_create(
+                name=tag['name'], slug=tag['slug']
+            )
+            tags_to_add.add(temp_tag)
+
+        tags_to_remove = asset.tags.exclude(name__in=tag_names)
+
+        asset.tags.remove(*tags_to_remove)
+        asset.tags.add(*tags_to_add)
+
     def _get_asset_usage_status_in_request(self, instance):
         logged_in_user = self.context['request'].user
 
@@ -236,6 +253,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
         customer_organizations_dicts = validated_data.pop(
             'customer_organizations', None
         )
+        tag_dicts = self.context['request'].data.get('tags', None)
 
         asset = super().update(instance, validated_data)
 
@@ -252,6 +270,9 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             self._update_customer_organizations_and_associate_with_asset(
                 customer_organizations_dicts, asset
             )
+
+        if tag_dicts is not None:
+            self._update_tag_and_associate_with_asset(tag_dicts[:5], asset)
 
         return asset
 
