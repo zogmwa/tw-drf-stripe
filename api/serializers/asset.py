@@ -272,7 +272,7 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             )
 
         if tag_dicts is not None:
-            self._update_tag_and_associate_with_asset(tag_dicts, asset)
+            self._update_tag_and_associate_with_asset(tag_dicts[:5], asset)
 
         return asset
 
