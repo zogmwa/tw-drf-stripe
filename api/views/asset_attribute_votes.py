@@ -14,11 +14,11 @@ class AssetAttributeVoteViewSet(viewsets.ModelViewSet):
     Views to filter and return attribute votes i.e. votes on a specific feature/attribute of an asset.
     """
 
-    queryset = AssetAttributeVote.objects.filter(is_upvote=True)
+    queryset = AssetAttributeVote.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AssetAttributeVoteSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['asset__slug']
+    filterset_fields = {'asset__slug': ['exact'], 'is_upvote': ['exact']}
 
     def get_queryset(self):
         if self.action == 'list':
@@ -29,15 +29,12 @@ class AssetAttributeVoteViewSet(viewsets.ModelViewSet):
             # should only be shown their attribute_votes
             attribute_votes = AssetAttributeVote.objects.filter(
                 user=self.request.user,
-                is_upvote=True,
             )
 
             return attribute_votes
 
         elif self.action == 'retrieve' or self.action == 'destroy':
             asset_attribute_vote_id = self.kwargs['pk']
-            return AssetAttributeVote.objects.filter(
-                id=asset_attribute_vote_id, is_upvote=True
-            )
+            return AssetAttributeVote.objects.filter(id=asset_attribute_vote_id)
         else:
             super(AssetAttributeVoteViewSet, self).get_queryset()

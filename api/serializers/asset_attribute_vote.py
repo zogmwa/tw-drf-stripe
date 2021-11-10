@@ -1,11 +1,12 @@
 from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 
 from api.models import AssetAttributeVote
-from api.serializers.asset import AssetSerializer
-from api.serializers.user import UserSerializer
 
 
 class AssetAttributeVoteSerializer(ModelSerializer):
+    is_upvote = serializers.BooleanField(required=False)
+
     class Meta:
         model = AssetAttributeVote
         fields = [
@@ -14,6 +15,7 @@ class AssetAttributeVoteSerializer(ModelSerializer):
             'attribute',
             'asset',
             'voted_on',
+            'is_upvote',
         ]
         read_only_fields = [
             'user',
