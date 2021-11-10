@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, permissions, status
+from elasticsearch_dsl.query import MultiMatch
+from rest_framework import viewsets, permissions
 
 from api.documents.solution import SolutionDocument
 from api.models.solution import Solution
@@ -26,7 +27,11 @@ def autocomplete_solutions(request):
     # TODO: For now this is open but require an API key to use this endpoint as well for proper rate limiting.
     q = request.GET.get('q')
     if q and len(q) >= 3:
-        es_search = SolutionDocument.search().query('match_phrase_prefix', title=q)
+        es_query = MultiMatch(
+            query=q,
+            minimum_should_match='75%',
+        )
+        es_search = SolutionDocument.search().query(es_query)
         results = extract_results_from_matching_query(es_search, case='solution')
     else:
         results = []
