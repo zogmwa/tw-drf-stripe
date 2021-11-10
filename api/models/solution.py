@@ -78,38 +78,3 @@ class Solution(models.Model):
     class Meta:
         verbose_name = 'Solution'
         verbose_name_plural = 'Solutions'
-
-
-class SolutionBooking(models.Model):
-    """
-    Used to represent individual Solution orders/bookings.
-    """
-
-    class Status(models.TextChoices):
-        PENDING = 'Pending'
-        IN_PROGRESS = 'In Progress'
-        IN_REVIEW = 'In Review'
-        COMPLETED = 'Completed'
-
-    booked_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='booked_solutions',
-    )
-    manager = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='managed_solutions',
-    )
-    status = models.CharField(
-        max_length=15,
-        choices=Status.choices,
-        default=Status.PENDING,
-    )
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    # Notes from the solution provider as the solution booking progresses along that will be visible to the customer
-    provider_notes = models.TextField(null=True, blank=True)

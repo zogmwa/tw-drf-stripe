@@ -1,7 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
 
-from api.models.solution import SolutionBooking
+from api.models.solution_booking import SolutionBooking
 from api.serializers.solution_booking import SolutionBookingSerializer
 
 

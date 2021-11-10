@@ -18,7 +18,8 @@ from api.models import (
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
 from api.models.asset_attribute_vote import AssetAttributeVote
-from api.models.solution import Solution, SolutionBooking
+from api.models.solution import Solution
+from api.models.solution_booking import SolutionBooking
 from api.models.organization import Organization
 
 
