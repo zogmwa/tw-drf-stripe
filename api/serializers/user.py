@@ -2,19 +2,21 @@ from email.headerregistry import Group
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from api.serializers.asset import AssetSerializer
+from api.serializers.solution_booking import SolutionBookingSerializer
 from .organization import OrganizationSerializer
 from api.models import User, Organization
 
 
 class UserSerializer(ModelSerializer):
     organization = OrganizationSerializer(many=False, required=False)
-
     # TODO: later try to send submitted_asssets only when asked by the user by some additional parameter
     submitted_assets = AssetSerializer(many=True, read_only=True)
+    owned_assets = AssetSerializer(many=True, read_only=True)
     pending_asset_ids = serializers.ListField(
         child=serializers.IntegerField(min_value=0), read_only=True
     )
     social_accounts = serializers.ListField(read_only=True)
+    booked_solutions = SolutionBookingSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -27,8 +29,10 @@ class UserSerializer(ModelSerializer):
             'organization',
             'used_assets',
             'submitted_assets',
+            'owned_assets',
             'pending_asset_ids',
             'social_accounts',
+            'booked_solutions',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'
