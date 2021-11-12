@@ -10,6 +10,12 @@ class Solution(models.Model):
     related to one or more web service(s), which is provided by a specific organization or a user.
     """
 
+    slug = models.SlugField(null=True, unique=True)
+
+    # Every solution will have a corresponding product offering on Stripe
+    stripe_product_id = models.CharField(null=True, blank=True, max_length=100)
+
+    # Same be kept same as the stripe Product name where possible
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     scope_of_work = models.TextField(blank=True, null=True)
@@ -48,12 +54,6 @@ class Solution(models.Model):
     # Estimated number of days it will take to fully deliver the solution to the customer
     eta_days = models.IntegerField(null=True, blank=True, verbose_name='ETA Days')
 
-    # If the price is None that doesn't mean it is 0, it's just that we don't know that yet and this specific
-    # solution requires the solution provider to send the user a quote. This will be more of an estimated price
-    # and not an actual price.
-    price = models.DecimalField(null=True, blank=True, max_digits=7, decimal_places=2)
-    currency = models.CharField(max_length=3, default='USD')
-
     # Hourly contract rate for follow-up engagement on unscoped work after the solution (For case by case hourly rate,
     # leave this to null)
     follow_up_hourly_rate = models.DecimalField(
@@ -68,6 +68,8 @@ class Solution(models.Model):
     # Max number of solution bookings that can be in pending/non-active state. Once the existing solution bookings count
     # hits the max queue size then we will not be allowing more solutions to be booked.
     max_queue_size = models.IntegerField(default=10)
+
+    is_published = models.BooleanField(default=True)
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
