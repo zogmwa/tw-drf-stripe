@@ -188,6 +188,14 @@ class SolutionBookingAdmin(admin.ModelAdmin):
     list_display = ('booked_by', 'status', 'created')
 
 
+class SolutionPriceAdmin(admin.ModelAdmin):
+    model = SolutionPrice
+    autocomplete_fields = [
+        'solution',
+    ]
+    list_display = ('stripe_price_id', 'price', 'currency', 'is_primary')
+
+
 # Admin site headers
 admin.site.site_header = 'TaggedWeb Admin'
 
@@ -206,3 +214,4 @@ admin.site.register(AssetQuestionVote, AssetQuestionVoteAdmin)
 admin.site.register(AssetClaim, AssetClaimAdmin)
 admin.site.register(Solution, SolutionAdmin)
 admin.site.register(SolutionBooking, SolutionBookingAdmin)
+admin.site.register(SolutionPrice, SolutionPriceAdmin)

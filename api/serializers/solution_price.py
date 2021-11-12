@@ -7,6 +7,7 @@ class SolutionPriceSerializer(ModelSerializer):
     class Meta:
         model = SolutionPrice
         fields = [
+            'id',
             'solution',
             'stripe_price_id',
             'price',
@@ -14,6 +15,7 @@ class SolutionPriceSerializer(ModelSerializer):
             'is_primary',
         ]
         read_only_fields = [
+            'id',
             'solution',
             'stripe_price_id',
             'price',
