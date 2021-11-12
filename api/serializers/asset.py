@@ -33,7 +33,6 @@ class AssetSerializer(ModelSerializer):
     customer_organizations = OrganizationSerializer(required=False, many=True)
     solutions = SolutionSerializer(read_only=True, many=True)
     attributes = serializers.SerializerMethodField(method_name='_get_attributes')
-    price_plans = PricePlanSerializer(read_only=True, many=True)
     questions = AssetQuestionSerializer(read_only=True, many=True)
     # Don't allow more than 20 snapshots for now to be added
     snapshots = AssetSnapshotSerializer(required=False, many=True)

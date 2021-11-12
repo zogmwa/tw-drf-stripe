@@ -21,6 +21,7 @@ from api.models.asset_attribute_vote import AssetAttributeVote
 from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
 from api.models.organization import Organization
+from api.models.solution_price import SolutionPrice
 
 
 class TagInline(admin.TabularInline):
@@ -33,7 +34,7 @@ class SolutionInLine(admin.TabularInline):
     autocomplete_fields = ['solution']
 
 
-class AssetInline(admin.TabularInline):
+class AssetInlineWithinSolution(admin.TabularInline):
     model = Asset.solutions.through
     autocomplete_fields = ['asset']
     verbose_name = "Related Web Services"
@@ -62,6 +63,13 @@ class PricePlanInline(admin.TabularInline):
     # For other fields the detailed PricePlanAdmin will be used
     # Restricting number of inline fields to make the admin display compact
     fields = ['name', 'price', 'per']
+
+
+class SolutionPriceInLine(admin.TabularInline):
+    model = SolutionPrice
+    # For other fields the detailed PricePlanAdmin will be used
+    # Restricting number of inline fields to make the admin display compact
+    fields = ['solution', 'stripe_price_id', 'price', 'currency', 'is_primary']
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -166,7 +174,8 @@ class SolutionAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_display = ('title', 'type', 'organization')
     inlines = [
-        AssetInline,
+        AssetInlineWithinSolution,
+        SolutionPriceInLine,
     ]
 
 
