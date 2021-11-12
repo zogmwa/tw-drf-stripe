@@ -3,11 +3,13 @@ from rest_framework.serializers import ModelSerializer
 from api.models.solution import Solution
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
+from api.serializers.tag import TagSerializer
 
 
 class SolutionSerializer(ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
     prices = SolutionPriceSerializer(required=False, many=True)
+    primary_tag = TagSerializer(read_only=True)
 
     class Meta:
         model = Solution
@@ -21,5 +23,6 @@ class SolutionSerializer(ModelSerializer):
             'description',
             'point_of_contact',
             'organization',
+            'primary_tag',
             'is_published',
         ]

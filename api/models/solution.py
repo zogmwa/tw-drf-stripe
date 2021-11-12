@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from api.models.organization import Organization
+from api.models.tag import Tag
 
 
 class Solution(models.Model):
@@ -70,6 +71,10 @@ class Solution(models.Model):
     max_queue_size = models.IntegerField(default=10)
 
     is_published = models.BooleanField(default=True)
+
+    primary_tag = models.ForeignKey(
+        Tag, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
