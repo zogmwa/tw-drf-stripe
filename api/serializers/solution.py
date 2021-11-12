@@ -23,6 +23,7 @@ class SolutionSerializer(ModelSerializer):
             'description',
             'point_of_contact',
             'organization',
+            'scope_of_work',
             'primary_tag',
             'is_published',
         ]
