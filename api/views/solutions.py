@@ -8,7 +8,7 @@ from django.db.models import QuerySet, Count, F, Q
 
 from api.documents.solution import SolutionDocument
 from api.models.solution import Solution
-from api.serializers.solution import SolutionSerializer
+from api.serializers.solution import SolutionSerializer, SolutionRelatedAssetSerializer
 from api.views.common import extract_results_from_matching_query
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
@@ -22,7 +22,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     filterset_fields = [
         'title',
     ]
-    serializer_class = SolutionSerializer
+    serializer_class = SolutionRelatedAssetSerializer
 
     @staticmethod
     def _get_assets_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
@@ -40,12 +40,12 @@ class SolutionViewSet(viewsets.ModelViewSet):
         return assets_db_queryset
 
     @action(detail=False)
-    def similar(self, request, *args, **kwargs):
+    def related_assets(self, request, *args, **kwargs):
         """
         Returns services that are similar to a given solution.
 
         Example:
-        - /solutions/similar/?slug=<solution_slug>
+        - /solutions/related_assets/?slug=<solution_slug>
         """
         # Either the slug or the name parameter must be used but not both
         solution_slug_param = self.request.query_params.get('slug')

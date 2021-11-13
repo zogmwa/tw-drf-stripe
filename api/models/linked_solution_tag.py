@@ -1,6 +1,7 @@
 from django.db import models
 
-from api.models import Tag, Solution
+from api.models.tag import Tag
+from api.models.solution import Solution
 
 
 class LinkedSolutionTag(models.Model):
