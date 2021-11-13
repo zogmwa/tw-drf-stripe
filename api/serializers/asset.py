@@ -282,3 +282,15 @@ class AuthenticatedAssetSerializer(AssetSerializer):
             'is_owned',
             'edit_allowed',
         ]
+
+
+class AssetSerializerForSolution(ModelSerializer):
+
+    fields = [
+        'id',
+        'slug',
+        'name',
+        'logo_url',
+        'logo',
+        'website',
+    ]
