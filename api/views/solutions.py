@@ -8,7 +8,7 @@ from django.db.models import QuerySet, Count, F, Q
 
 from api.documents.solution import SolutionDocument
 from api.models.solution import Solution
-from api.serializers.solution import SolutionSerializer, SolutionRelatedAssetSerializer
+from api.serializers.solution import SolutionSerializer
 from api.views.common import extract_results_from_matching_query
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
@@ -22,7 +22,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     filterset_fields = [
         'title',
     ]
-    serializer_class = SolutionRelatedAssetSerializer
+    serializer_class = SolutionSerializer
 
     @staticmethod
     def _get_assets_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:

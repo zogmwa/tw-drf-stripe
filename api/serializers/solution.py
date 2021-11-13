@@ -1,11 +1,23 @@
-from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from api.models.solution import Solution
+from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
 from api.serializers.tag import TagSerializer
-from api.serializers.asset import AssetSerializerForSolution
+
+
+class AssetSerializerForSolution(ModelSerializer):
+    class Meta:
+        model = Asset
+        fields = [
+            'id',
+            'slug',
+            'name',
+            'logo_url',
+            'logo',
+            'website',
+        ]
 
 
 class SolutionSerializer(ModelSerializer):
