@@ -1,15 +1,31 @@
 from rest_framework.serializers import ModelSerializer
 
 from api.models.solution import Solution
+from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
 from api.serializers.tag import TagSerializer
 
 
+class AssetSerializerForSolution(ModelSerializer):
+    class Meta:
+        model = Asset
+        fields = [
+            'id',
+            'slug',
+            'name',
+            'logo_url',
+            'logo',
+            'website',
+        ]
+
+
 class SolutionSerializer(ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
     prices = SolutionPriceSerializer(required=False, many=True)
+    tags = TagSerializer(read_only=True, many=True)
     primary_tag = TagSerializer(read_only=True)
+    assets = AssetSerializerForSolution(read_only=True, many=True)
 
     class Meta:
         model = Solution
@@ -23,6 +39,8 @@ class SolutionSerializer(ModelSerializer):
             'description',
             'point_of_contact',
             'organization',
+            'tags',
+            'assets',
             'scope_of_work',
             'primary_tag',
             'is_published',
