@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from api.models.solution import Solution
@@ -29,3 +30,32 @@ class SolutionSerializer(ModelSerializer):
             'primary_tag',
             'is_published',
         ]
+
+
+class SolutionRelatedAssetSerializer(SolutionSerializer):
+    """
+    Serializer for related products of solution
+    """
+
+    related_assets = serializers.SerializerMethodField(
+        method_name='_get_related_assets'
+    )
+
+    class Meta(SolutionSerializer.Meta):
+        fields = SolutionSerializer.Meta.fields + ['related_assets']
+
+    def _get_related_assets(self, instance):
+        solution = Solution.objects.get(pk=instance.pk)
+        query_assets = solution.assets.all()
+        assets = []
+        for query_asset in query_assets:
+            assets.append(
+                {
+                    'slug': query_asset.slug,
+                    'name': query_asset.name,
+                    'logo_url': query_asset.logo_url,
+                    'website': query_asset.website,
+                }
+            )
+
+        return assets
