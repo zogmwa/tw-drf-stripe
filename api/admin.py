@@ -29,6 +29,11 @@ class TagInline(admin.TabularInline):
     autocomplete_fields = ['tag']
 
 
+class SolutionTagInline(admin.TabularInline):
+    model = Solution.tags.through
+    autocomplete_fields = ['tag']
+
+
 class SolutionInLine(admin.TabularInline):
     model = Asset.solutions.through
     autocomplete_fields = ['solution']
@@ -176,6 +181,7 @@ class SolutionAdmin(admin.ModelAdmin):
     inlines = [
         AssetInlineWithinSolution,
         SolutionPriceInLine,
+        SolutionTagInline,
     ]
 
 
