@@ -9,6 +9,7 @@ from api.serializers.tag import TagSerializer
 class SolutionSerializer(ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
     prices = SolutionPriceSerializer(required=False, many=True)
+    tags = TagSerializer(read_only=True, many=True)
     primary_tag = TagSerializer(read_only=True)
 
     class Meta:
@@ -23,6 +24,7 @@ class SolutionSerializer(ModelSerializer):
             'description',
             'point_of_contact',
             'organization',
+            'tags',
             'scope_of_work',
             'primary_tag',
             'is_published',
