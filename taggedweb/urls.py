@@ -26,6 +26,7 @@ from api.views.payments.stripe_checkout import (
 )
 from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
+from api.views.solution_votes import SolutionVoteViewSet
 from api.views.auth import (
     GoogleLogin,
     LinkedInLogin,
@@ -79,6 +80,7 @@ router.register(r'asset_claims', AssetClaimViewSet)
 router.register(r'asset_reviews', AssetReviewViewSet)
 router.register(r'solutions', SolutionViewSet)
 router.register(r'solution_bookings', SolutionBookingViewSet)
+router.register(r'solution_votes', SolutionVoteViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

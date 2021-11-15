@@ -80,6 +80,8 @@ class Solution(models.Model):
         Tag, null=True, blank=True, on_delete=models.SET_NULL
     )
 
+    upvotes_count = models.IntegerField(default=0)
+
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
 

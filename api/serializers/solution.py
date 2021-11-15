@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from api.models.solution import Solution
@@ -26,6 +27,7 @@ class SolutionSerializer(ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     primary_tag = TagSerializer(read_only=True)
     assets = AssetSerializerForSolution(read_only=True, many=True)
+    upvotes_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Solution
@@ -43,5 +45,6 @@ class SolutionSerializer(ModelSerializer):
             'assets',
             'scope_of_work',
             'primary_tag',
+            'upvotes_count',
             'is_published',
         ]
