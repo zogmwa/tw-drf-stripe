@@ -10,6 +10,7 @@ from api.models import (
     AssetQuestionVote,
     AssetSnapshot,
     PricePlan,
+    Solution,
 )
 
 
@@ -36,6 +37,17 @@ def example_asset():
         description='bla bla bla',
         promo_video='https://www.youtube.com/embed/Q0hi9d1W3Ag',
         is_published=True,
+    )
+
+
+@pytest.fixture
+def example_solution():
+    return Solution.objects.create(
+        slug='test-solution',
+        title='Test Solution',
+        type='I',
+        description='bla bla bla',
+        scope_of_work='bla bla bla',
     )
 
 
