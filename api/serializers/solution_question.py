@@ -1,12 +1,10 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import SolutionQuestion, SolutionQuestionVote
+from api.models import SolutionQuestion
 
 
 class SolutionQuestionSerializer(ModelSerializer):
-    upvotes_count = serializers.IntegerField(read_only=True)
-
     class Meta:
         model = SolutionQuestion
         fields = [
@@ -14,14 +12,12 @@ class SolutionQuestionSerializer(ModelSerializer):
             'solution',
             'title',
             'primary_answer',
-            'upvotes_count',
             'created',
             'updated',
         ]
         read_only_fields = [
             'created',
             'updated',
-            'upvotes_count',
         ]
 
     def create(self, validated_data):
@@ -31,28 +27,3 @@ class SolutionQuestionSerializer(ModelSerializer):
             validated_data['submitted_by'] = request.user
 
         return super().create(validated_data)
-
-
-class AuthenticatedSolutionQuestionSerializer(SolutionQuestionSerializer):
-    """
-    Serializer for solution questions for authenticated users
-    """
-
-    my_solution_question_vote = serializers.SerializerMethodField(
-        method_name='_get_my_solution_question_vote'
-    )
-
-    class Meta(SolutionQuestionSerializer.Meta):
-        fields = SolutionQuestionSerializer.Meta.fields + ['my_solution_question_vote']
-
-    def _get_my_solution_question_vote(self, instance):
-        logged_in_user = self.context['request'].user
-
-        if not logged_in_user:
-            return None
-
-        try:
-            solution_question_vote = instance.votes.get(user=logged_in_user)
-            return solution_question_vote.id
-        except SolutionQuestionVote.DoesNotExist:
-            return None

@@ -22,6 +22,7 @@ from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
 from api.models.organization import Organization
 from api.models.solution_price import SolutionPrice
+from api.models.solution_question import SolutionQuestion
 
 
 class TagInline(admin.TabularInline):
@@ -202,6 +203,12 @@ class SolutionPriceAdmin(admin.ModelAdmin):
     list_display = ('stripe_price_id', 'price', 'currency', 'is_primary')
 
 
+class SolutionQuestionAdmin(admin.ModelAdmin):
+    model = SolutionQuestion
+    autocomplete_fields = ['solution']
+    search_fields = ['solution__title', 'title']
+
+
 # Admin site headers
 admin.site.site_header = 'TaggedWeb Admin'
 
@@ -221,3 +228,4 @@ admin.site.register(AssetClaim, AssetClaimAdmin)
 admin.site.register(Solution, SolutionAdmin)
 admin.site.register(SolutionBooking, SolutionBookingAdmin)
 admin.site.register(SolutionPrice, SolutionPriceAdmin)
+admin.site.register(SolutionQuestion, SolutionQuestionAdmin)

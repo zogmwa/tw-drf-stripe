@@ -27,13 +27,9 @@ class SolutionQuestion(models.Model):
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
     )
 
-    # Number of users who have shown interest in this question by up-voting it (one user should only be able to upvote
-    # this once - probably need a separate model to track UpVotes, this is just a summary count)
-    upvotes_count = models.IntegerField(default=0)
-
     class Meta:
-        verbose_name = 'Question'
-        verbose_name_plural = 'Questions'
+        verbose_name = 'Solution Question'
+        verbose_name_plural = 'Solution Questions'
 
     def __str__(self):
         return "{}: {}".format(self.solution.title, self.title)

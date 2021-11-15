@@ -26,7 +26,6 @@ from .asset_snapshot import AssetSnapshot
 from .linked_solution_tag import LinkedSolutionTag
 from .solution_vote import SolutionVote
 from .solution_question import SolutionQuestion
-from .solution_question_vote import SolutionQuestionVote
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

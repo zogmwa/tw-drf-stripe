@@ -4,7 +4,6 @@ from rest_framework import viewsets, permissions
 from api.models import SolutionQuestion
 from api.serializers.solution_question import (
     SolutionQuestionSerializer,
-    AuthenticatedSolutionQuestionSerializer,
 )
 
 
@@ -15,7 +14,4 @@ class SolutionQuestionViewSet(viewsets.ModelViewSet):
     filterset_fields = ['solution__slug', 'submitted_by__username']
 
     def get_serializer_class(self):
-        if self.request.user.is_anonymous:
-            return SolutionQuestionSerializer
-        else:
-            return AuthenticatedSolutionQuestionSerializer
+        return SolutionQuestionSerializer
