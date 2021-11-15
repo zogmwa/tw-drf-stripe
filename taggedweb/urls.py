@@ -36,7 +36,7 @@ from api.views.auth import (
 )
 from api.views.asset import AssetViewSet
 from api.views.asset_attributes import AssetAttributeViewSet, autocomplete_attributes
-from api.views.tag import autocomplete_tags, autocomplete_assets_and_tags
+from api.views.tag import autocomplete_tags, autocomplete_assets_and_tags, TagViewSet
 from api.views.asset_questions import AssetQuestionViewSet
 from api.views.asset_question_votes import AssetQuestionVoteViewSet
 from api.views.analytics import AssetClickThroughCounterRedirectView
@@ -68,6 +68,7 @@ schema_view = get_schema_view(
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'assets', AssetViewSet, basename='asset')
+router.register(r'tags', TagViewSet, basename='tag')
 router.register(r'questions', AssetQuestionViewSet)
 router.register(r'question_votes', AssetQuestionVoteViewSet)
 router.register(r'price_plans', PricePlanViewSet)

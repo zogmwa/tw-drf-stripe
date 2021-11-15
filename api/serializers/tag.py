@@ -12,6 +12,20 @@ class TagSerializer(HyperlinkedModelSerializer):
         extra_kwargs = {'url': {'lookup_field': 'slug'}}
 
 
+'''
+Crating TopTagSerializer to pass top tags instead of using existing TagSerializer because we do not want to pass 
+description field because it is not required from this api
+'''
+
+
+class TopTagSerializer(HyperlinkedModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['slug', 'name']
+        lookup_field = 'slug'
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
+
+
 class AssetFeaturedSerializer(ModelSerializer):
     class Meta:
         model = Asset
