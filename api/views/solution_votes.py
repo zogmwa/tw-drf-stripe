@@ -19,7 +19,7 @@ class SolutionVoteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list':
-            # /api/votes/ (List View)
+            # /solution_votes/ (List View)
             # Returns all votes associated with the currently logged in user, filtering by solution allowed using the
             # solution__slug GET parameter. We only return currently logged in user's votes because, the aggregate vote
             # counts are already returned at the solution level and each vote instance need not be returned.
