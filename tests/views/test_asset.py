@@ -1029,16 +1029,15 @@ class TestPatchAssetSnapshots:
 
         assert response.status_code == 401
 
+        snapshot_1_url = 'https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png'
+        snapshot_2_url = 'https://eep.io/images/yzco4xsimv0y/1CYWQPt3Bn5qxpqfoJIwAQ/a1299c4f4228da786e93ef9dd6a44284/02_-_Market_Your_Business.png'
+
         response = authenticated_client.patch(
             '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
             {
                 'snapshots': [
-                    {
-                        'url': 'https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png'
-                    },
-                    {
-                        'url': 'https://eep.io/images/yzco4xsimv0y/1CYWQPt3Bn5qxpqfoJIwAQ/a1299c4f4228da786e93ef9dd6a44284/02_-_Market_Your_Business.png'
-                    },
+                    {'url': snapshot_1_url},
+                    {'url': snapshot_2_url},
                 ]
             },
             content_type='application/json',
@@ -1046,15 +1045,9 @@ class TestPatchAssetSnapshots:
 
         assert response.status_code == 200
         assert response.data['snapshots'][0]['asset'] == example_asset.id
-        assert (
-            response.data['snapshots'][0]['url']
-            == 'https://eep.io/images/yzco4xsimv0y/1CYWQPt3Bn5qxpqfoJIwAQ/a1299c4f4228da786e93ef9dd6a44284/02_-_Market_Your_Business.png'
-        )
+        assert response.data['snapshots'][0]['url'] == snapshot_1_url
         assert response.data['snapshots'][1]['asset'] == example_asset.id
-        assert (
-            response.data['snapshots'][1]['url']
-            == 'https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png'
-        )
+        assert response.data['snapshots'][1]['url'] == snapshot_2_url
 
 
 class TestPatchAssetPricePlans:
@@ -1095,50 +1088,49 @@ class TestPatchAssetPricePlans:
 
         assert response.status_code == 401
 
+        test_price_plan_obj = {
+            'name': 'standard',
+            'summary': 'standard',
+            'currency': 'USD',
+            'price': 1,
+            'per': 'month',
+            'features': 'features',
+            'most_popular': True,
+        }
+        test_price_plan_obj_2 = {
+            'name': 'test',
+            'summary': 'test',
+            'currency': 'USD',
+            'price': 1,
+            'per': 'month',
+            'features': 'test features',
+            'most_popular': False,
+        }
         response = authenticated_client.patch(
             '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
             {
                 'price_plans': [
-                    {
-                        'name': 'standard',
-                        'summary': 'standard',
-                        'currency': 'USD',
-                        'price': 1,
-                        'per': 'month',
-                        'features': 'features',
-                        'most_popular': True,
-                    },
-                    {
-                        'name': 'test',
-                        'summary': 'test',
-                        'currency': 'USD',
-                        'price': 1,
-                        'per': 'month',
-                        'features': 'test features',
-                        'most_popular': False,
-                    },
+                    test_price_plan_obj,
+                    test_price_plan_obj_2,
                 ]
             },
             content_type='application/json',
         )
 
         assert response.status_code == 200
-        assert response.data['price_plans'][0]['asset'] == example_asset.id
-        assert response.data['price_plans'][0]['name'] == 'test'
-        assert response.data['price_plans'][0]['summary'] == 'test'
-        assert response.data['price_plans'][0]['currency'] == 'USD'
-        assert response.data['price_plans'][0]['price'] == '1'
-        assert response.data['price_plans'][0]['per'] == 'month'
-        assert response.data['price_plans'][0]['features'] == 'test features'
-        assert response.data['price_plans'][0]['most_popular'] == False
-        assert response.data['price_plans'][1]['asset'] == example_asset.id
-        assert response.data['price_plans'][1]['name'] == 'standard'
-        assert response.data['price_plans'][1]['summary'] == 'standard'
-        assert response.data['price_plans'][1]['currency'] == 'USD'
-        assert response.data['price_plans'][1]['price'] == '1'
-        assert response.data['price_plans'][1]['per'] == 'month'
-        assert response.data['price_plans'][1]['features'] == 'features'
-        assert response.data['price_plans'][1]['most_popular'] == True
+
+        # The response should have an asset id for the asset the price plan was associated with, so add it before
+        # we compare the actual against this expected price_plan_obj
+        test_price_plan_obj['asset'] = example_asset.id
+        test_price_plan_obj_2['asset'] = example_asset.id
+
+        # Serializer currently has has price serialized as strings so adjusting that before comparing the
+        # expected/actual
+        test_price_plan_obj['price'] = str(test_price_plan_obj['price'])
+        test_price_plan_obj_2['price'] = str(test_price_plan_obj_2['price'])
+
+        assert dict(response.data['price_plans'][0]) == test_price_plan_obj
+        assert dict(response.data['price_plans'][1]) == test_price_plan_obj_2
 
 
 class TestPatchAttributeUnlinkToAsset:
