@@ -1,10 +1,13 @@
 from django.http import JsonResponse
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from api.documents.asset import AssetDocument
 from api.documents.tag import TagDocument
 from api.views.common import extract_results_from_matching_query
 from api.models import Tag
-from api.serializers.tag import TagSerializer
+from api.serializers.tag import TagSerializer, TopTagSerializer
 
 
 def autocomplete_tags(request):
@@ -59,3 +62,36 @@ def autocomplete_assets_and_tags(request):
     # The frontend should know that the assets and asset_slugs in the response have 1:1 pairity
     # i.e. for the same index the name and the slug point to the same asset
     return JsonResponse(results_dict)
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = TagSerializer
+    tags_slug_list = [
+        'accounting',
+        'analytics',
+        'vpn',
+        'compliance',
+        'crm',
+        'email-marketing',
+        'e-commerce',
+        'erp',
+        'environmental-compliance',
+        'artificial-intelligence',
+        'marketplace',
+        'marketing-automation',
+    ]
+
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticatedOrReadOnly],
+        methods=['get'],
+        serializer_class=TopTagSerializer,
+    )
+    def top_tags(self, request, *args, **kwargs):
+        top_tags = Tag.objects.filter(slug__in=self.tags_slug_list).values(
+            'name', 'slug'
+        )
+        serializer = TopTagSerializer(top_tags, many=True)
+        return JsonResponse({'data': serializer.data})

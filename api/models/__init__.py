@@ -23,6 +23,8 @@ from .organization import OrganizationUsingAsset
 from .claim_asset import AssetClaim
 from .user_asset_usage import UserAssetUsage
 from .asset_snapshot import AssetSnapshot
+from .linked_solution_tag import LinkedSolutionTag
+from .solution_vote import SolutionVote
 from .solution_question import SolutionQuestion
 from .solution_question_vote import SolutionQuestionVote
 

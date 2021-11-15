@@ -70,11 +70,17 @@ class Solution(models.Model):
     # hits the max queue size then we will not be allowing more solutions to be booked.
     max_queue_size = models.IntegerField(default=10)
 
+    tags = models.ManyToManyField(
+        Tag, through='LinkedSolutionTag', related_name='solutions'
+    )
+
     is_published = models.BooleanField(default=True)
 
     primary_tag = models.ForeignKey(
         Tag, null=True, blank=True, on_delete=models.SET_NULL
     )
+
+    upvotes_count = models.IntegerField(default=0)
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)

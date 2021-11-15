@@ -214,7 +214,6 @@ AWS_ACCESS_KEY_ID = "AKIA4Y3JRSCZCU6XIXWE"
 AWS_SECRET_ACCESS_KEY = "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"
 AWS_STORAGE_BUCKET_NAME = 'taggedweb'
 AWS_DEFAULT_ACL = 'public-read'
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 AWS_AUTO_CREATE_BUCKET = True
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
 
@@ -273,6 +272,11 @@ REST_FRAMEWORK = {
 ELASTICSEARCH_DSL = {
     'default': {'hosts': 'localhost:9200'},
 }
+
+STRIPE_PUBLISHED_KEY = "pk_test_51Jr8jiJNxEeFbcNwYK4zSYR9QXNpuJFVAwfhPCq6GCbmrEurPmmUZtb8NlWP5corMqGXct9BeJb0E5UuWYBtQftx00i7X2aK18"
+
+# These are test keys, once we are moving live may want to move this key to AWS SSM or some other secrets manager
+STRIPE_SECRET_KEY = "sk_test_51Jr8jiJNxEeFbcNwF6j8okHix9wHaHsO0eebSr28X0t3Hfan8awLcGTevmkO1fz7uRnFv7uKZGkPTfSN7VmdpsI700Lm7hIwI8"
 
 try:
     # Over-ride settigs be defined for customization on production servers/local

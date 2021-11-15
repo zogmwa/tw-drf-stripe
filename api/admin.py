@@ -29,6 +29,11 @@ class TagInline(admin.TabularInline):
     autocomplete_fields = ['tag']
 
 
+class SolutionTagInline(admin.TabularInline):
+    model = Solution.tags.through
+    autocomplete_fields = ['tag']
+
+
 class SolutionInLine(admin.TabularInline):
     model = Asset.solutions.through
     autocomplete_fields = ['solution']
@@ -176,6 +181,7 @@ class SolutionAdmin(admin.ModelAdmin):
     inlines = [
         AssetInlineWithinSolution,
         SolutionPriceInLine,
+        SolutionTagInline,
     ]
 
 
@@ -186,6 +192,14 @@ class SolutionBookingAdmin(admin.ModelAdmin):
         'manager',
     ]
     list_display = ('booked_by', 'status', 'created')
+
+
+class SolutionPriceAdmin(admin.ModelAdmin):
+    model = SolutionPrice
+    autocomplete_fields = [
+        'solution',
+    ]
+    list_display = ('stripe_price_id', 'price', 'currency', 'is_primary')
 
 
 # Admin site headers
@@ -206,3 +220,4 @@ admin.site.register(AssetQuestionVote, AssetQuestionVoteAdmin)
 admin.site.register(AssetClaim, AssetClaimAdmin)
 admin.site.register(Solution, SolutionAdmin)
 admin.site.register(SolutionBooking, SolutionBookingAdmin)
+admin.site.register(SolutionPrice, SolutionPriceAdmin)
