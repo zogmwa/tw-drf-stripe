@@ -28,6 +28,7 @@ class SolutionSerializer(ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     primary_tag = TagSerializer(read_only=True)
     assets = AssetSerializerForSolution(read_only=True, many=True)
+    upvotes_count = serializers.IntegerField(read_only=True)
     questions = SolutionQuestionSerializer(read_only=True, many=True)
 
     class Meta:
@@ -47,5 +48,6 @@ class SolutionSerializer(ModelSerializer):
             'questions',
             'scope_of_work',
             'primary_tag',
+            'upvotes_count',
             'is_published',
         ]
