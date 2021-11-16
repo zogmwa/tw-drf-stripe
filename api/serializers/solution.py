@@ -6,6 +6,7 @@ from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
 from api.serializers.tag import TagSerializer
+from api.serializers.solution_question import SolutionQuestionSerializer
 
 
 class AssetSerializerForSolution(ModelSerializer):
@@ -28,6 +29,7 @@ class SolutionSerializer(ModelSerializer):
     primary_tag = TagSerializer(read_only=True)
     assets = AssetSerializerForSolution(read_only=True, many=True)
     upvotes_count = serializers.IntegerField(read_only=True)
+    questions = SolutionQuestionSerializer(read_only=True, many=True)
 
     class Meta:
         model = Solution
@@ -43,6 +45,7 @@ class SolutionSerializer(ModelSerializer):
             'organization',
             'tags',
             'assets',
+            'questions',
             'scope_of_work',
             'primary_tag',
             'upvotes_count',

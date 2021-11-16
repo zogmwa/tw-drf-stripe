@@ -22,6 +22,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     filterset_fields = [
         'title',
     ]
+    lookup_field = 'slug'
     serializer_class = SolutionSerializer
 
     @staticmethod
@@ -92,6 +93,18 @@ class SolutionViewSet(viewsets.ModelViewSet):
             )
 
         return Response(serializer.data)
+
+    def get_queryset(self):
+        if self.action == 'list':
+            solutions = Solution.objects.all()
+            return solutions
+        elif self.action == 'retrieve':
+            slug = self.kwargs['slug']
+            solution = Solution.objects.filter(slug=slug)
+            return solution
+        # if self.action == 'update' or something else
+        else:
+            super().get_queryset()
 
 
 def autocomplete_solutions(request):

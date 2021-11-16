@@ -22,6 +22,7 @@ from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
 from api.models.organization import Organization
 from api.models.solution_price import SolutionPrice
+from api.models.solution_question import SolutionQuestion
 
 
 class TagInline(admin.TabularInline):
@@ -75,6 +76,11 @@ class SolutionPriceInLine(admin.TabularInline):
     # For other fields the detailed PricePlanAdmin will be used
     # Restricting number of inline fields to make the admin display compact
     fields = ['solution', 'stripe_price_id', 'price', 'currency', 'is_primary']
+
+
+class SolutionQuestionInline(admin.TabularInline):
+    model = SolutionQuestion
+    fields = ['title', 'primary_answer', 'submitted_by']
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -182,6 +188,7 @@ class SolutionAdmin(admin.ModelAdmin):
         AssetInlineWithinSolution,
         SolutionPriceInLine,
         SolutionTagInline,
+        SolutionQuestionInline,
     ]
 
 
@@ -200,6 +207,12 @@ class SolutionPriceAdmin(admin.ModelAdmin):
         'solution',
     ]
     list_display = ('stripe_price_id', 'price', 'currency', 'is_primary')
+
+
+class SolutionQuestionAdmin(admin.ModelAdmin):
+    model = SolutionQuestion
+    autocomplete_fields = ['solution']
+    search_fields = ['solution__title', 'title']
 
 
 # Admin site headers
@@ -221,3 +234,4 @@ admin.site.register(AssetClaim, AssetClaimAdmin)
 admin.site.register(Solution, SolutionAdmin)
 admin.site.register(SolutionBooking, SolutionBookingAdmin)
 admin.site.register(SolutionPrice, SolutionPriceAdmin)
+admin.site.register(SolutionQuestion, SolutionQuestionAdmin)
