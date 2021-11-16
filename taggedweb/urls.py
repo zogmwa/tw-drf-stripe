@@ -26,6 +26,7 @@ from api.views.payments.stripe_checkout import (
 )
 from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
+from api.views.solution_questions import autocomplete_solution_questions
 from api.views.solution_votes import SolutionVoteViewSet
 from api.views.auth import (
     GoogleLogin,
@@ -108,6 +109,7 @@ urlpatterns = [
     path('autocomplete-attributes/', autocomplete_attributes),
     path('autocomplete-organizations/', autocomplete_organizations),
     path('autocomplete-solutions/', autocomplete_solutions),
+    path('autocomplete-solution-questions/', autocomplete_solution_questions),
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),
