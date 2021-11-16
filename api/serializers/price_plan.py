@@ -7,6 +7,7 @@ class PricePlanSerializer(ModelSerializer):
     class Meta:
         model = PricePlan
         fields = [
+            'id',
             'asset',
             'name',
             'summary',

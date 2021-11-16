@@ -1029,25 +1029,26 @@ class TestPatchAssetSnapshots:
 
         assert response.status_code == 401
 
-        snapshot_1_url = 'https://eep.io/images/yzco4xsimv0y/2N9sFG6PG9HDHwJ4mtvS7k/19f56d3cdae2403d604e65f4b3db3ce7/00_-_Hero.png'
-        snapshot_2_url = 'https://eep.io/images/yzco4xsimv0y/1CYWQPt3Bn5qxpqfoJIwAQ/a1299c4f4228da786e93ef9dd6a44284/02_-_Market_Your_Business.png'
+        snapshot_obj_1 = {'url': 'https://images.com/1'}
+        snapshot_obj_2 = {'url': 'https://images.com/2'}
 
         response = authenticated_client.patch(
             '{}{}/'.format(ASSETS_BASE_ENDPOINT, example_asset.slug),
-            {
-                'snapshots': [
-                    {'url': snapshot_1_url},
-                    {'url': snapshot_2_url},
-                ]
-            },
+            {'snapshots': [snapshot_obj_1, snapshot_obj_2]},
             content_type='application/json',
         )
 
         assert response.status_code == 200
-        assert response.data['snapshots'][0]['asset'] == example_asset.id
-        assert response.data['snapshots'][0]['url'] == snapshot_1_url
-        assert response.data['snapshots'][1]['asset'] == example_asset.id
-        assert response.data['snapshots'][1]['url'] == snapshot_2_url
+
+        # The response will not have the asset id so add it to the test objects so that when we do the assertions
+        # the asset ids also get validated
+        snapshot_obj_1['asset'] = example_asset.id
+        snapshot_obj_2['asset'] = example_asset.id
+
+        # Sort these because the response may not necessarily be orderedx
+        actual = sorted(map(dict, response.data['snapshots']), key=lambda s: s['url'])
+        expected = [snapshot_obj_1, snapshot_obj_2]
+        assert actual == expected
 
 
 class TestPatchAssetPricePlans:
@@ -1119,6 +1120,10 @@ class TestPatchAssetPricePlans:
 
         assert response.status_code == 200
 
+        actual_price_plans = sorted(
+            response.data['price_plans'], key=lambda x: x['name']
+        )
+
         # The response should have an asset id for the asset the price plan was associated with, so add it before
         # we compare the actual against this expected price_plan_obj
         test_price_plan_obj['asset'] = example_asset.id
@@ -1129,8 +1134,12 @@ class TestPatchAssetPricePlans:
         test_price_plan_obj['price'] = str(test_price_plan_obj['price'])
         test_price_plan_obj_2['price'] = str(test_price_plan_obj_2['price'])
 
-        assert dict(response.data['price_plans'][0]) == test_price_plan_obj
-        assert dict(response.data['price_plans'][1]) == test_price_plan_obj_2
+        # id is not present int he test price plan (added after the db object is created) so adding it pre-assertion
+        test_price_plan_obj['id'] = actual_price_plans[0]['id']
+        test_price_plan_obj_2['id'] = actual_price_plans[1]['id']
+
+        assert dict(actual_price_plans[0]) == test_price_plan_obj
+        assert dict(actual_price_plans[1]) == test_price_plan_obj_2
 
 
 class TestPatchAttributeUnlinkToAsset:
