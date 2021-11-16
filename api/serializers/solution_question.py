@@ -20,6 +20,7 @@ class SolutionQuestionSerializer(ModelSerializer):
             'updated',
         ]
 
+    # Create action is for admins/staff only
     def create(self, validated_data):
         request = self.context['request']
         if request.user and request.user.is_authenticated:
