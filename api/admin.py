@@ -78,6 +78,11 @@ class SolutionPriceInLine(admin.TabularInline):
     fields = ['solution', 'stripe_price_id', 'price', 'currency', 'is_primary']
 
 
+class SolutionQuestionInline(admin.TabularInline):
+    model = SolutionQuestion
+    fields = ['title', 'primary_answer', 'submitted_by']
+
+
 class UserAdmin(admin.ModelAdmin):
     search_fields = ['username']
     inlines = []
@@ -183,6 +188,7 @@ class SolutionAdmin(admin.ModelAdmin):
         AssetInlineWithinSolution,
         SolutionPriceInLine,
         SolutionTagInline,
+        SolutionQuestionInline,
     ]
 
 
