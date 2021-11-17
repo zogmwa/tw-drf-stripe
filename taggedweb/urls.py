@@ -21,9 +21,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
-from api.views.payments.stripe_checkout import (
-    CreateStripeCheckoutSession,
-)
+from payments.views import CreateStripeCheckoutSession
 from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
 from api.views.solution_questions import autocomplete_solution_questions
@@ -153,6 +151,7 @@ urlpatterns = [
         name='asset_clickthrough_counter_redirect_view',
     ),
     # Payments
+    path('stripe/', include('djstripe.urls', namespace='djstripe')),
     path(
         'solution-price-checkout/<str:solution_price_id>',
         CreateStripeCheckoutSession.as_view(),
