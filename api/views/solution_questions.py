@@ -26,6 +26,7 @@ def autocomplete_solution_questions(request):
     """
     q = request.GET.get('q')
     solution_slug = request.GET.get('solution__slug')
+    solution = Solution.objects.get(slug=solution_slug)
 
     if q and len(q) >= 3:
         es_search = SolutionQuestionDocument.search().query(
@@ -34,10 +35,12 @@ def autocomplete_solution_questions(request):
         results = extract_results_from_matching_query(
             es_search, case='solution_question'
         )
-    else:
-        results = []
 
-    solution = Solution.objects.get(slug=solution_slug)
-    solution_questions = solution.questions.filter(title__in=results)
-    serializer = SolutionQuestionSerializer(solution_questions, many=True)
+        solution_questions = solution.questions.filter(title__in=results)
+        serializer = SolutionQuestionSerializer(solution_questions, many=True)
+    else:
+        if q == '':
+            solution_questions = solution.questions.all()
+            serializer = SolutionQuestionSerializer(solution_questions, many=True)
+
     return JsonResponse({'results': serializer.data})
