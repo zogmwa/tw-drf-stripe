@@ -21,6 +21,7 @@ class SolutionBooking(models.Model):
         # If we delete a solution offering all bookings should not be lost
         on_delete=models.SET_NULL,
     )
+    is_payment_completed = models.BooleanField(default=False)
 
     # The price the user paid at the time of the booking in case the offer price of the Solution changes later
     price_at_booking = models.DecimalField(

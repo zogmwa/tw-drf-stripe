@@ -4,10 +4,11 @@ from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from django.conf import settings
+from djstripe import webhooks
 
 from api.models.solution_price import SolutionPrice
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
 
 class CreateStripeCheckoutSession(APIView):
@@ -42,3 +43,9 @@ class CreateStripeCheckoutSession(APIView):
 
         response_data = {'checkout_page_url': checkout_session.url}
         return JsonResponse(response_data)
+
+
+@webhooks.handler("checkout.session.completed")
+def my_handler(event, **kwargs):
+    # TODO: Create a SolutionBooking object with payment pending
+    print("We should probably notify the user at this point by redirecting to frontend")

@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'django_elasticsearch_dsl',
     'django_extensions',
     'django_filters',
+    'djstripe',
     'phonenumber_field',
     'rest_framework',
     'rest_framework.authtoken',
@@ -78,6 +79,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.linkedin_oauth2',
     # Project Apps
     'api',
+    'payments',
 ]
 
 SITE_ID = 1
@@ -273,10 +275,14 @@ ELASTICSEARCH_DSL = {
     'default': {'hosts': 'localhost:9200'},
 }
 
-STRIPE_PUBLISHED_KEY = "pk_test_51Jr8jiJNxEeFbcNwYK4zSYR9QXNpuJFVAwfhPCq6GCbmrEurPmmUZtb8NlWP5corMqGXct9BeJb0E5UuWYBtQftx00i7X2aK18"
+DJSTRIPE_WEBHOOK_URL = r"^webhook-stripe/$"
 
+STRIPE_TEST_PUBLISHED_KEY = "pk_test_51Jr8jiJNxEeFbcNwYK4zSYR9QXNpuJFVAwfhPCq6GCbmrEurPmmUZtb8NlWP5corMqGXct9BeJb0E5UuWYBtQftx00i7X2aK18"
+STRIPE_TEST_SECRET_KEY = "sk_test_51Jr8jiJNxEeFbcNwF6j8okHix9wHaHsO0eebSr28X0t3Hfan8awLcGTevmkO1fz7uRnFv7uKZGkPTfSN7VmdpsI700Lm7hIwI8"
+DJSTRIPE_WEBHOOK_SECRET = "whsec_RQ9TJZ4iuWE8THb13keag8DCCc6Lieun"
 # These are test keys, once we are moving live may want to move this key to AWS SSM or some other secrets manager
-STRIPE_SECRET_KEY = "sk_test_51Jr8jiJNxEeFbcNwF6j8okHix9wHaHsO0eebSr28X0t3Hfan8awLcGTevmkO1fz7uRnFv7uKZGkPTfSN7VmdpsI700Lm7hIwI8"
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
+DJSTRIPE_USE_NATIVE_JSONFIELD = True
 
 try:
     # Over-ride settigs be defined for customization on production servers/local
