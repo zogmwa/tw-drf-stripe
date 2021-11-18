@@ -113,15 +113,14 @@ def autocomplete_solutions(request):
     """
     q = request.GET.getlist('q')
     search_query = ' '.join(q)
-    es_query = MultiMatch(
-        query=search_query,
-        fields=['title', 'tags.slug']
-        # If number of tokenized words/clauses in query is less than or equal to 3, they are all required,
-    )
-    es_search = SolutionDocument.search().query(es_query)
-    solutions_db_queryset = es_search.to_queryset()
+    if search_query and len(search_query) >= 2:
+        es_query = MultiMatch(query=search_query, fields=['title', 'tags.slug'])
+        es_search = SolutionDocument.search().query(es_query)
+        solutions_db_queryset = es_search.to_queryset()
 
-    serializer = SolutionSerializer(solutions_db_queryset, many=True)
-    results = serializer.data
+        serializer = SolutionSerializer(solutions_db_queryset, many=True)
+        results = serializer.data
+    else:
+        results = []
 
     return JsonResponse({'results': results})
