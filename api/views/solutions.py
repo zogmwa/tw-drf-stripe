@@ -67,7 +67,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
         Returns services that are similar to a given solution.
 
         Example:
-        - /solutions/related_assets/?slug=<solution_slug>
+        - /solutions/related_assets?slug=<solution_slug>
         """
         # Either the slug or the name parameter must be used but not both
         solution_slug_param = self.request.query_params.get('slug')
@@ -118,7 +118,10 @@ class SolutionViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def search(self, request, *args, **kwargs):
         """
-        The view serves as an endpoint to search solution titles and uses an elasticsearch index.
+        Search solutions with search query.
+
+        Example:
+        - /solutions/search?q=<search_query>
         """
         q = self.request.query_params.getlist('q')
         search_query = ' '.join(q)
