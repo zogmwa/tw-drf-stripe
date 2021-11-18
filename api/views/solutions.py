@@ -111,15 +111,19 @@ def autocomplete_solutions(request):
     """
     The view serves as an endpoint to autocomplete solution titles and uses an elasticsearch index.
     """
-    # TODO: For now this is open but require an API key to use this endpoint as well for proper rate limiting.
-    q = request.GET.get('q')
-    if q and len(q) >= 3:
+    q = request.GET.getlist('q')
+    search_query = ' '.join(q)
+    if search_query and len(search_query) >= 2:
         es_query = MultiMatch(
-            query=q,
-            minimum_should_match='75%',
+            query=search_query,
+            fields=['title', 'tags.slug']
+            # If number of tokenized words/clauses in query is less than or equal to 2, they are all required
         )
         es_search = SolutionDocument.search().query(es_query)
-        results = extract_results_from_matching_query(es_search, case='solution')
+        solutions_db_queryset = es_search.to_queryset()
+
+        serializer = SolutionSerializer(solutions_db_queryset, many=True)
+        results = serializer.data
     else:
         results = []
 
