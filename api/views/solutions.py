@@ -115,7 +115,7 @@ def autocomplete_solutions(request):
     search_query = ' '.join(q)
     es_query = MultiMatch(
         query=search_query,
-        fields=['title', 'tags.name']
+        fields=['title', 'tags.slug']
         # If number of tokenized words/clauses in query is less than or equal to 3, they are all required,
     )
     es_search = SolutionDocument.search().query(es_query)
