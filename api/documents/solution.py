@@ -25,14 +25,6 @@ class SolutionDocument(Document):
 
     title = fields.TextField(analyzer=html_strip, fields={'raw': fields.KeywordField()})
 
-    description = fields.TextField(
-        analyzer=html_strip, fields={'raw': fields.KeywordField()}
-    )
-
-    scope_of_work = fields.TextField(
-        analyzer=html_strip, fields={'raw': fields.KeywordField()}
-    )
-
     tags = fields.NestedField(
         include_in_root=True,
         properties={
