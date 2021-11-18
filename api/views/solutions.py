@@ -4,26 +4,35 @@ from elasticsearch_dsl.query import MultiMatch
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.filters import OrderingFilter
 from django.db.models import QuerySet, Count, F, Q
+from rest_framework.pagination import LimitOffsetPagination
 
 from api.documents.solution import SolutionDocument
 from api.models.solution import Solution
 from api.serializers.solution import SolutionSerializer
-from api.views.common import extract_results_from_matching_query
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
 
 
+class SolutionViewSetPagination(LimitOffsetPagination):
+    default_limit = 10
+    limit_query_param = "limit"
+    offset_query_param = "offset"
+    max_limit = 100
+
+
 class SolutionViewSet(viewsets.ModelViewSet):
 
-    queryset = Solution.objects.filter()
-    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
-    filter_backends = [DjangoFilterBackend]
+    queryset = Solution.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = [
         'title',
     ]
     lookup_field = 'slug'
     serializer_class = SolutionSerializer
+    pagination_class = SolutionViewSetPagination
 
     @staticmethod
     def _get_assets_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
@@ -39,6 +48,18 @@ class SolutionViewSet(viewsets.ModelViewSet):
         es_search = AssetDocument.search().query(es_query)
         assets_db_queryset = es_search.to_queryset()
         return assets_db_queryset
+
+    def get_queryset(self):
+        if self.action == 'list':
+            solutions = Solution.objects.all()
+            return solutions
+        elif self.action == 'retrieve':
+            slug = self.kwargs['slug']
+            solution = Solution.objects.filter(slug=slug)
+            return solution
+        # if self.action == 'update' or something else
+        else:
+            super().get_queryset()
 
     @action(detail=False)
     def related_assets(self, request, *args, **kwargs):
@@ -94,17 +115,34 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    def get_queryset(self):
-        if self.action == 'list':
-            solutions = Solution.objects.all()
-            return solutions
-        elif self.action == 'retrieve':
-            slug = self.kwargs['slug']
-            solution = Solution.objects.filter(slug=slug)
-            return solution
-        # if self.action == 'update' or something else
+    @action(detail=False)
+    def search(self, request, *args, **kwargs):
+        """
+        The view serves as an endpoint to search solution titles and uses an elasticsearch index.
+        """
+        q = self.request.query_params.getlist('q')
+        search_query = ' '.join(q)
+        if search_query and len(search_query) >= 2:
+            es_query = MultiMatch(
+                query=search_query,
+                fields=['title', 'tags.slug']
+                # If number of tokenized words/clauses in query is less than or equal to 2, they are all required
+            )
+            es_search = SolutionDocument.search().query(es_query)
+            solutions_db_queryset = es_search.to_queryset()
+            page = self.paginate_queryset(solutions_db_queryset)
+
+            if page is not None:
+                serializer = SolutionSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = SolutionSerializer(solutions_db_queryset, many=True)
+            return Response(serializer.data)
+
         else:
-            super().get_queryset()
+            results = []
+
+        return Response({'results': results})
 
 
 def autocomplete_solutions(request):
