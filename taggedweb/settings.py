@@ -275,7 +275,8 @@ ELASTICSEARCH_DSL = {
     'default': {'hosts': 'localhost:9200'},
 }
 
-DJSTRIPE_WEBHOOK_URL = r"^webhook-stripe/$"
+# DJStripe pendpoints reside at /stripe/* so this will be at /webhook
+DJSTRIPE_WEBHOOK_URL = r"^webhook/$"
 
 STRIPE_TEST_PUBLISHED_KEY = "pk_test_51Jr8jiJNxEeFbcNwYK4zSYR9QXNpuJFVAwfhPCq6GCbmrEurPmmUZtb8NlWP5corMqGXct9BeJb0E5UuWYBtQftx00i7X2aK18"
 STRIPE_TEST_SECRET_KEY = "sk_test_51Jr8jiJNxEeFbcNwF6j8okHix9wHaHsO0eebSr28X0t3Hfan8awLcGTevmkO1fz7uRnFv7uKZGkPTfSN7VmdpsI700Lm7hIwI8"
