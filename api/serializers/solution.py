@@ -48,6 +48,7 @@ class SolutionSerializer(ModelSerializer):
             'questions',
             'scope_of_work',
             'primary_tag',
+            'has_free_trial',
             'upvotes_count',
             'is_published',
         ]

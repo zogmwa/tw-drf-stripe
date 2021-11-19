@@ -4,26 +4,36 @@ from elasticsearch_dsl.query import MultiMatch
 from rest_framework.decorators import action
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.filters import OrderingFilter
 from django.db.models import QuerySet, Count, F, Q
+from rest_framework.pagination import LimitOffsetPagination
 
 from api.documents.solution import SolutionDocument
 from api.models.solution import Solution
 from api.serializers.solution import SolutionSerializer
-from api.views.common import extract_results_from_matching_query
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
 
 
+class SolutionViewSetPagination(LimitOffsetPagination):
+    default_limit = 20
+    limit_query_param = "limit"
+    offset_query_param = "offset"
+    max_limit = 100
+
+
 class SolutionViewSet(viewsets.ModelViewSet):
 
-    queryset = Solution.objects.filter()
-    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = [
-        'title',
-    ]
+    queryset = Solution.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = {'has_free_trial': ['exact']}
+    ordering_fields = [
+        'upvotes_count'
+    ]  # TODO: This ordering_fields also will be have avg_rating. But it is priority low.
     lookup_field = 'slug'
     serializer_class = SolutionSerializer
+    pagination_class = SolutionViewSetPagination
 
     @staticmethod
     def _get_assets_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
@@ -39,6 +49,34 @@ class SolutionViewSet(viewsets.ModelViewSet):
         es_search = AssetDocument.search().query(es_query)
         assets_db_queryset = es_search.to_queryset()
         return assets_db_queryset
+
+    @staticmethod
+    def _get_solutions_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
+        """
+        Given a search query string uses that to perform a MultiMatch search query against ElasticSearch indexes.
+        """
+        es_query = MultiMatch(query=search_query, fields=['title', 'tags.slug'])
+        es_search = SolutionDocument.search().query(es_query)
+        solutions_db_queryset = es_search.to_queryset()
+
+        return solutions_db_queryset
+
+    def get_queryset(self):
+        if self.action == 'list':
+            q = self.request.query_params.getlist('q')
+            search_query = ' '.join(q)
+            solutions_db_queryset = self._get_solutions_db_qs_via_elasticsearch_query(
+                search_query
+            )
+
+            return solutions_db_queryset
+        elif self.action == 'retrieve':
+            slug = self.kwargs['slug']
+            solution = Solution.objects.filter(slug=slug)
+            return solution
+        # if self.action == 'update' or something else
+        else:
+            super().get_queryset()
 
     @action(detail=False)
     def related_assets(self, request, *args, **kwargs):
@@ -94,18 +132,6 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    def get_queryset(self):
-        if self.action == 'list':
-            solutions = Solution.objects.all()
-            return solutions
-        elif self.action == 'retrieve':
-            slug = self.kwargs['slug']
-            solution = Solution.objects.filter(slug=slug)
-            return solution
-        # if self.action == 'update' or something else
-        else:
-            super().get_queryset()
-
 
 def autocomplete_solutions(request):
     """
@@ -114,13 +140,9 @@ def autocomplete_solutions(request):
     q = request.GET.getlist('q')
     search_query = ' '.join(q)
     if search_query and len(search_query) >= 2:
-        es_query = MultiMatch(
-            query=search_query,
-            fields=['title', 'tags.slug']
-            # If number of tokenized words/clauses in query is less than or equal to 2, they are all required
+        solutions_db_queryset = (
+            SolutionViewSet._get_solutions_db_qs_via_elasticsearch_query(search_query)
         )
-        es_search = SolutionDocument.search().query(es_query)
-        solutions_db_queryset = es_search.to_queryset()
 
         serializer = SolutionSerializer(solutions_db_queryset, many=True)
         results = serializer.data
