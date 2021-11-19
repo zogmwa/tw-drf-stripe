@@ -65,14 +65,11 @@ class SolutionViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             q = self.request.query_params.getlist('q')
             search_query = ' '.join(q)
-            if search_query and len(search_query) >= 2:
-                solutions_db_queryset = (
-                    self._get_solutions_db_qs_via_elasticsearch_query(search_query)
-                )
+            solutions_db_queryset = self._get_solutions_db_qs_via_elasticsearch_query(
+                search_query
+            )
 
-                return solutions_db_queryset
-            else:
-                return Response({'results': []})
+            return solutions_db_queryset
         elif self.action == 'retrieve':
             slug = self.kwargs['slug']
             solution = Solution.objects.filter(slug=slug)
