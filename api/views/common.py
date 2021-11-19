@@ -18,7 +18,7 @@ def extract_results_from_matching_query(es_search: Search, case='tag') -> list:
                 results.add(hit.slug)
             elif case == 'organization':
                 results.add(hit.name)
-            elif case == 'solution' or 'solution_question':
+            elif case == 'solution' or case == 'solution_question':
                 results.add(hit.title)
             elif case == 'attribute':
                 results.add((hit.id, hit.name))

@@ -7,7 +7,7 @@ from django.conf import settings
 
 from api.models.solution_price import SolutionPrice
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = settings.STRIPE_TEST_SECRET_KEY
 
 
 class CreateStripeCheckoutSession(APIView):
