@@ -285,6 +285,9 @@ DJSTRIPE_WEBHOOK_SECRET = "whsec_RQ9TJZ4iuWE8THb13keag8DCCc6Lieun"
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
 
+# Change to True in production
+STRIPE_LIVE_MODE = False
+
 try:
     # Over-ride settigs be defined for customization on production servers/local
     from .override_settings import *
