@@ -22,21 +22,6 @@ class SolutionViewSetPagination(LimitOffsetPagination):
     max_limit = 100
 
 
-def _get_solutions_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
-    """
-    Given a search query string uses that to perform a MultiMatch search query against ElasticSearch indexes.
-    """
-    es_query = MultiMatch(
-        query=search_query,
-        fields=['title', 'tags.slug']
-        # If number of tokenized words/clauses in query is less than or equal to 2, they are all required
-    )
-    es_search = SolutionDocument.search().query(es_query)
-    solutions_db_queryset = es_search.to_queryset()
-
-    return solutions_db_queryset
-
-
 class SolutionViewSet(viewsets.ModelViewSet):
 
     queryset = Solution.objects.all()
@@ -65,13 +50,24 @@ class SolutionViewSet(viewsets.ModelViewSet):
         assets_db_queryset = es_search.to_queryset()
         return assets_db_queryset
 
+    @staticmethod
+    def _get_solutions_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
+        """
+        Given a search query string uses that to perform a MultiMatch search query against ElasticSearch indexes.
+        """
+        es_query = MultiMatch(query=search_query, fields=['title', 'tags.slug'])
+        es_search = SolutionDocument.search().query(es_query)
+        solutions_db_queryset = es_search.to_queryset()
+
+        return solutions_db_queryset
+
     def get_queryset(self):
         if self.action == 'list':
             q = self.request.query_params.getlist('q')
             search_query = ' '.join(q)
             if search_query and len(search_query) >= 2:
-                solutions_db_queryset = _get_solutions_db_qs_via_elasticsearch_query(
-                    search_query
+                solutions_db_queryset = (
+                    self._get_solutions_db_qs_via_elasticsearch_query(search_query)
                 )
 
                 return solutions_db_queryset
@@ -147,8 +143,8 @@ def autocomplete_solutions(request):
     q = request.GET.getlist('q')
     search_query = ' '.join(q)
     if search_query and len(search_query) >= 2:
-        solutions_db_queryset = _get_solutions_db_qs_via_elasticsearch_query(
-            search_query
+        solutions_db_queryset = (
+            SolutionViewSet._get_solutions_db_qs_via_elasticsearch_query(search_query)
         )
 
         serializer = SolutionSerializer(solutions_db_queryset, many=True)
