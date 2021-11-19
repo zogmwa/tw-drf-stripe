@@ -22,14 +22,30 @@ class SolutionViewSetPagination(LimitOffsetPagination):
     max_limit = 100
 
 
+def _get_solutions_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
+    """
+    Given a search query string uses that to perform a MultiMatch search query against ElasticSearch indexes.
+    """
+    es_query = MultiMatch(
+        query=search_query,
+        fields=['title', 'tags.slug']
+        # If number of tokenized words/clauses in query is less than or equal to 2, they are all required
+    )
+    es_search = SolutionDocument.search().query(es_query)
+    solutions_db_queryset = es_search.to_queryset()
+
+    return solutions_db_queryset
+
+
 class SolutionViewSet(viewsets.ModelViewSet):
 
     queryset = Solution.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = [
-        'title',
-    ]
+    filterset_fields = {'has_free_trial': ['exact']}
+    ordering_fields = [
+        'upvotes_count'
+    ]  # TODO: This ordering_fields also will be have avg_rating. But it is priority low.
     lookup_field = 'slug'
     serializer_class = SolutionSerializer
     pagination_class = SolutionViewSetPagination
@@ -51,8 +67,16 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list':
-            solutions = Solution.objects.all()
-            return solutions
+            q = self.request.query_params.getlist('q')
+            search_query = ' '.join(q)
+            if search_query and len(search_query) >= 2:
+                solutions_db_queryset = _get_solutions_db_qs_via_elasticsearch_query(
+                    search_query
+                )
+
+                return solutions_db_queryset
+            else:
+                return Response({'results': []})
         elif self.action == 'retrieve':
             slug = self.kwargs['slug']
             solution = Solution.objects.filter(slug=slug)
@@ -67,7 +91,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
         Returns services that are similar to a given solution.
 
         Example:
-        - /solutions/related_assets?slug=<solution_slug>
+        - /solutions/related_assets/?slug=<solution_slug>
         """
         # Either the slug or the name parameter must be used but not both
         solution_slug_param = self.request.query_params.get('slug')
@@ -115,38 +139,6 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    @action(detail=False)
-    def search(self, request, *args, **kwargs):
-        """
-        Search solutions with search query.
-
-        Example:
-        - /solutions/search?q=<search_query>
-        """
-        q = self.request.query_params.getlist('q')
-        search_query = ' '.join(q)
-        if search_query and len(search_query) >= 2:
-            es_query = MultiMatch(
-                query=search_query,
-                fields=['title', 'tags.slug']
-                # If number of tokenized words/clauses in query is less than or equal to 2, they are all required
-            )
-            es_search = SolutionDocument.search().query(es_query)
-            solutions_db_queryset = es_search.to_queryset()
-            page = self.paginate_queryset(solutions_db_queryset)
-
-            if page is not None:
-                serializer = SolutionSerializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-
-            serializer = SolutionSerializer(solutions_db_queryset, many=True)
-            return Response(serializer.data)
-
-        else:
-            results = []
-
-        return Response({'results': results})
-
 
 def autocomplete_solutions(request):
     """
@@ -155,13 +147,9 @@ def autocomplete_solutions(request):
     q = request.GET.getlist('q')
     search_query = ' '.join(q)
     if search_query and len(search_query) >= 2:
-        es_query = MultiMatch(
-            query=search_query,
-            fields=['title', 'tags.slug']
-            # If number of tokenized words/clauses in query is less than or equal to 2, they are all required
+        solutions_db_queryset = _get_solutions_db_qs_via_elasticsearch_query(
+            search_query
         )
-        es_search = SolutionDocument.search().query(es_query)
-        solutions_db_queryset = es_search.to_queryset()
 
         serializer = SolutionSerializer(solutions_db_queryset, many=True)
         results = serializer.data
