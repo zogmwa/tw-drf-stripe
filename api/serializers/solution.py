@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from api.models.solution import Solution
+from api.models.solution_vote import SolutionVote
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
@@ -51,4 +52,29 @@ class SolutionSerializer(ModelSerializer):
             'has_free_trial',
             'upvotes_count',
             'is_published',
+        ]
+
+
+class AuthenticatedSolutionSerializer(SolutionSerializer):
+    my_solution_vote = serializers.SerializerMethodField(
+        method_name="_get_my_solution_vote"
+    )
+
+    def _get_my_solution_vote(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return None
+
+        try:
+            solution_vote = SolutionVote.objects.get(
+                user=logged_in_user, solution=instance
+            )
+            return solution_vote.id
+        except SolutionVote.DoesNotExist:
+            return None
+
+    class Meta(SolutionSerializer.Meta):
+        fields = SolutionSerializer.Meta.fields + [
+            'my_solution_vote',
         ]

@@ -19,6 +19,7 @@ from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
 from api.models.asset_attribute_vote import AssetAttributeVote
 from api.models.solution import Solution
+from api.models.solution_vote import SolutionVote
 from api.models.solution_booking import SolutionBooking
 from api.models.organization import Organization
 from api.models.solution_price import SolutionPrice
@@ -215,6 +216,12 @@ class SolutionQuestionAdmin(admin.ModelAdmin):
     search_fields = ['solution__title', 'title']
 
 
+class SolutionVoteAdmin(admin.ModelAdmin):
+    model = SolutionVote
+    autocomplete_fields = ['solution', 'user']
+    search_fields = ['solution__name', 'user']
+
+
 # Admin site headers
 admin.site.site_header = 'TaggedWeb Admin'
 
@@ -235,3 +242,4 @@ admin.site.register(Solution, SolutionAdmin)
 admin.site.register(SolutionBooking, SolutionBookingAdmin)
 admin.site.register(SolutionPrice, SolutionPriceAdmin)
 admin.site.register(SolutionQuestion, SolutionQuestionAdmin)
+admin.site.register(SolutionVote, SolutionVoteAdmin)
