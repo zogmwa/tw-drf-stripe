@@ -10,7 +10,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from api.documents.solution import SolutionDocument
 from api.models.solution import Solution
-from api.serializers.solution import SolutionSerializer
+from api.serializers.solution import SolutionSerializer, AuthenticatedSolutionSerializer
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
 
@@ -34,6 +34,12 @@ class SolutionViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     serializer_class = SolutionSerializer
     pagination_class = SolutionViewSetPagination
+
+    def get_serializer_class(self):
+        if self.request.user.is_anonymous:
+            return SolutionSerializer
+        else:
+            return AuthenticatedSolutionSerializer
 
     @staticmethod
     def _get_assets_db_qs_via_elasticsearch_query(search_query: str) -> QuerySet:
