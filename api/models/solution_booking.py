@@ -23,6 +23,9 @@ class SolutionBooking(models.Model):
     )
     is_payment_completed = models.BooleanField(default=False)
 
+    # Stripe Checkout Session Id associated with this payment. Can be null if it's not a checkout booking.
+    stripe_session_id = models.CharField(null=True, blank=True, max_length=254)
+
     # The price the user paid at the time of the booking in case the offer price of the Solution changes later
     price_at_booking = models.DecimalField(
         null=True, blank=True, max_digits=7, decimal_places=2

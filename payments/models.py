@@ -1,17 +1,37 @@
-from django.db import models
-
-# Create your models here.
 from djstripe import webhooks
 
-from payments.utils import fulfill_order
+from api.models.solution_booking import SolutionBooking
+from payments.utils import fulfill_order, email_customer_about_failed_payment
 
 
-@webhooks.handler("checkout.session")
+@webhooks.handler('checkout.session.completed')
 def checkout_session_completed_handler(event, **kwargs):
-    # TODO: Create a SolutionBooking object with payment pending
+    """
+    This is triggered when the user completes the Stripe checkout flow and is shown the success page.
+    This doesn't necessarily meant that the payment is completed.
+    """
+    session = event['data']['object']
+    stripe_session_id = session['id']
 
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        fulfill_order(session)
+    # Check if the order is already paid (e.g., from a card payment)
+    #
+    # A delayed notification payment will have an `unpaid` status, as
+    # you're still waiting for funds to be transferred from the customer's
+    # account.
+    if session.payment_status == "paid":
+        fulfill_order(stripe_session_id)
 
-    print("We should probably notify the user at this point by redirecting to frontend")
+
+@webhooks.handler('checkout.session.async_payment_succeeded')
+def checkout_session_async_payment_succeeded(event, **kwargs):
+    session = event['data']['object']
+    stripe_session_id = session['id']
+    fulfill_order(stripe_session_id)
+
+
+@webhooks.handler('checkout.session.async_payment_failed')
+def checkout_session_async_payment_failed(event, **kwargs):
+    session = event['data']['object']
+    stripe_session_id = session['id']
+    # Send an email to the customer asking them to retry their order
+    email_customer_about_failed_payment(stripe_session_id)
