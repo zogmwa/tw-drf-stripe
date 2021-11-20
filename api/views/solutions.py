@@ -27,7 +27,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     queryset = Solution.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = {'has_free_trial': ['exact']}
+    filterset_fields = {'has_free_consultation': ['exact']}
     ordering_fields = [
         'upvotes_count'
     ]  # TODO: This ordering_fields also will be have avg_rating. But it is priority low.
@@ -69,6 +69,13 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list':
+            """
+            Returns solutions that are searched by query param.
+
+            Example:
+            - /solutions/?q=<search_param>
+            - /solutions/?q=<search_param1>&q=<search_param2>
+            """
             q = self.request.query_params.getlist('q')
             search_query = ' '.join(q)
             solutions_db_queryset = self._get_solutions_db_qs_via_elasticsearch_query(

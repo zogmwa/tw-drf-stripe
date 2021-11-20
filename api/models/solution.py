@@ -73,7 +73,7 @@ class Solution(models.Model):
     tags = models.ManyToManyField(
         Tag, through='LinkedSolutionTag', related_name='solutions'
     )
-    has_free_trial = models.BooleanField(default=False)
+    has_free_consultation = models.BooleanField(default=False)
 
     is_published = models.BooleanField(default=True)
 
