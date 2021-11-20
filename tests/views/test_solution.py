@@ -40,7 +40,7 @@ class TestFetchingSolution:
             slug='test-solution2',
             title='Test Solution2',
             type='I',
-            has_free_trial=True,
+            has_free_consultation=True,
             description='bla bla bla',
             scope_of_work='bla bla bla',
         )
@@ -51,7 +51,7 @@ class TestFetchingSolution:
             return_value=Solution.objects.all(),
         )
 
-        solution_list_url = '{}?q={}&has_free_trial={}'.format(
+        solution_list_url = '{}?q={}&has_free_consultation={}'.format(
             SOLUTIONS_BASE_ENDPOINT, 'Test', 'true'
         )
         response = unauthenticated_client.get(solution_list_url)
