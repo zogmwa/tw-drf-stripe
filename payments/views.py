@@ -37,14 +37,6 @@ class CreateStripeCheckoutSession(APIView):
         active_site_obj = Site.objects.get(id=settings.SITE_ID)
         active_site = 'https://{}'.format(active_site_obj.domain)
 
-        SolutionBooking.objects.create(
-            booked_by=request.user,
-            solution=solution_price.solution,
-            status=SolutionBooking.Status.PENDING,
-            is_payment_completed=False,
-            price_at_booking=solution_price.price,
-        )
-
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[
@@ -63,6 +55,16 @@ class CreateStripeCheckoutSession(APIView):
 
         # This endpoint just returns the checkout url, the frontend should do the redirect
         response_data = {'checkout_page_url': checkout_session.url}
+
+        SolutionBooking.objects.create(
+            booked_by=request.user,
+            solution=solution_price.solution,
+            status=SolutionBooking.Status.PENDING,
+            is_payment_completed=False,
+            price_at_booking=solution_price.price,
+            stripe_session_id=checkout_session.id,
+        )
+
         return JsonResponse(response_data)
 
 

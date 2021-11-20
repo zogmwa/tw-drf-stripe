@@ -22,7 +22,7 @@ class SolutionPrice(models.Model):
     # If the price is None that doesn't mean it is 0, it's just that we don't know that yet and this specific
     # solution requires the solution provider to send the user a quote. This will be more of an estimated price
     # and not an actual price.
-    stripe_price_id = models.CharField(null=True, blank=True, max_length=100)
+    stripe_price_id = models.CharField(null=True, blank=True, max_length=254)
 
     # The price value should be stored on the stripe price object as well but we store it here to show it before the
     # user is sent to the checkout page. On the checkout page they will see the price pulled from the mirrored stripe
