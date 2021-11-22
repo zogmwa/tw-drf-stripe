@@ -19,6 +19,7 @@ from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from api.views.newsletter_contact import NewsLetterContactViewSet
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
 from payments.views import CreateStripeCheckoutSession
@@ -81,6 +82,7 @@ router.register(r'asset_reviews', AssetReviewViewSet)
 router.register(r'solutions', SolutionViewSet)
 router.register(r'solution_bookings', SolutionBookingViewSet)
 router.register(r'solution_votes', SolutionVoteViewSet)
+router.register(r'newsletter_contact', NewsLetterContactViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
