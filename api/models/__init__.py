@@ -26,6 +26,7 @@ from .asset_snapshot import AssetSnapshot
 from .linked_solution_tag import LinkedSolutionTag
 from .solution_vote import SolutionVote
 from .solution_question import SolutionQuestion
+from .newsletter_contact import NewsLetterContact
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

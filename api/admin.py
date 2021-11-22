@@ -24,6 +24,7 @@ from api.models.solution_booking import SolutionBooking
 from api.models.organization import Organization
 from api.models.solution_price import SolutionPrice
 from api.models.solution_question import SolutionQuestion
+from api.models.newsletter_contact import NewsLetterContact
 
 
 class TagInline(admin.TabularInline):
@@ -243,3 +244,4 @@ admin.site.register(SolutionBooking, SolutionBookingAdmin)
 admin.site.register(SolutionPrice, SolutionPriceAdmin)
 admin.site.register(SolutionQuestion, SolutionQuestionAdmin)
 admin.site.register(SolutionVote, SolutionVoteAdmin)
+admin.site.register(NewsLetterContact)
