@@ -26,6 +26,7 @@ from .asset_snapshot import AssetSnapshot
 from .linked_solution_tag import LinkedSolutionTag
 from .solution_vote import SolutionVote
 from .solution_question import SolutionQuestion
+from .solution_bookmark import SolutionBookmark
 from .newsletter_contact import NewsLetterContact
 
 
