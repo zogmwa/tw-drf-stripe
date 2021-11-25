@@ -78,3 +78,32 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
         fields = SolutionSerializer.Meta.fields + [
             'my_solution_vote',
         ]
+
+
+class AuthenticatedSolutionForBookmarkSerializer(ModelSerializer):
+    my_solution_vote = serializers.SerializerMethodField(
+        method_name="_get_my_solution_vote"
+    )
+
+    def _get_my_solution_vote(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return None
+
+        try:
+            solution_vote = SolutionVote.objects.get(
+                user=logged_in_user, solution=instance
+            )
+            return solution_vote.id
+        except SolutionVote.DoesNotExist:
+            return None
+
+    class Meta:
+        model = Solution
+        fields = [
+            'id',
+            'slug',
+            'title',
+            'my_solution_vote',
+        ]
