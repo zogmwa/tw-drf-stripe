@@ -26,4 +26,7 @@ class SolutionBookmarkViewSet(viewsets.ModelViewSet):
             solution=solution,
         )
         solution_bookmark.save()
-        return Response(status=status.HTTP_201_CREATED)
+        solution_bookmark_serializer = SolutionBookmarkSerializer(
+            solution_bookmark, context={'request': request}
+        )
+        return Response(solution_bookmark_serializer.data)

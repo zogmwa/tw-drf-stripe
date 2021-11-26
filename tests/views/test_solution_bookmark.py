@@ -1,5 +1,5 @@
 import pytest
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 
 from api.models import SolutionBookmark
 
@@ -55,7 +55,9 @@ class TestSolutionBookmark:
                 'solution': example_solution.id,
             },
         )
-        assert response.status_code == HTTP_201_CREATED
+        assert response.status_code == HTTP_200_OK
+        solution_bookmark = SolutionBookmark.objects.get()
+        assert solution_bookmark.user.id == user_and_password[0].id
 
     def test_solution_bookmark_delete(
         self,
