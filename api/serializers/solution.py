@@ -3,6 +3,7 @@ from rest_framework.serializers import ModelSerializer
 
 from api.models.solution import Solution
 from api.models.solution_vote import SolutionVote
+from api.models.solution_bookmark import SolutionBookmark
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
@@ -59,6 +60,9 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
     my_solution_vote = serializers.SerializerMethodField(
         method_name="_get_my_solution_vote"
     )
+    my_solution_bookmark = serializers.SerializerMethodField(
+        method_name="_get_my_solution_bookmark"
+    )
 
     def _get_my_solution_vote(self, instance):
         logged_in_user = self.context['request'].user
@@ -74,9 +78,24 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
         except SolutionVote.DoesNotExist:
             return None
 
+    def _get_my_solution_bookmark(self, instance):
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return None
+
+        try:
+            solution_bookmark = SolutionBookmark.objects.get(
+                user=logged_in_user, solution=instance
+            )
+            return solution_bookmark.id
+        except SolutionBookmark.DoesNotExist:
+            return None
+
     class Meta(SolutionSerializer.Meta):
         fields = SolutionSerializer.Meta.fields + [
             'my_solution_vote',
+            'my_solution_bookmark',
         ]
 
 
