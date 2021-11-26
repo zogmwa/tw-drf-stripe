@@ -17,6 +17,22 @@ class SolutionBookmarkViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         return SolutionBookmarkSerializer
 
+    def get_queryset(self):
+        if self.action == 'list':
+            # /solution_bookmarks/ (List View)
+            # Returns all bookmarks associated with the currently logged in user, filtering by solution allowed
+            # using the solution__id GET parameter. We only return currently logged in user's bookmarks because,
+            # other users bookmark solutions list is not necessary to others
+            bookmarks = SolutionBookmark.objects.filter(user=self.request.user)
+            return bookmarks
+        elif self.action == 'retrieve' or self.action == 'destroy':
+            solution_bookmark_id = self.kwargs['pk']
+            return SolutionBookmark.objects.filter(
+                pk=solution_bookmark_id, user=self.request.user
+            )
+        else:
+            super(SolutionBookmarkViewSet, self).get_queryset()
+
     def create(self, request, *args, **kwargs):
         user = self.request.user
         solution_id = self.request.data.get('solution')
