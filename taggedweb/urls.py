@@ -27,6 +27,7 @@ from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
 from api.views.solution_questions import autocomplete_solution_questions
 from api.views.solution_votes import SolutionVoteViewSet
+from api.views.solution_bookmarks import SolutionBookmarkViewSet
 from api.views.auth import (
     GoogleLogin,
     LinkedInLogin,
@@ -81,6 +82,7 @@ router.register(r'asset_claims', AssetClaimViewSet)
 router.register(r'asset_reviews', AssetReviewViewSet)
 router.register(r'solutions', SolutionViewSet)
 router.register(r'solution_bookings', SolutionBookingViewSet)
+router.register(r'solution_bookmarks', SolutionBookmarkViewSet)
 router.register(r'solution_votes', SolutionVoteViewSet)
 router.register(r'newsletter_contact', NewsLetterContactViewSet)
 
