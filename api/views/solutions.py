@@ -48,7 +48,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
         """
         es_query = MultiMatch(
             query=search_query,
-            fields=['tags.slug', 'short_description', 'description', 'name'],
+            fields=['tags.slug', 'short_description', 'description', 'title'],
             # If number of tokenized words/clauses in query is less than or equal to 3, they are all required,
             # after that this will even return results if the threshold % of the tags/clauses are present.
         )
