@@ -29,6 +29,13 @@ def autocomplete_tags(request):
     return JsonResponse({'results': tag_serializer.data})
 
 
+def _es_search_asset_and_tag(q):
+    return (
+        TagDocument.search().query('match_phrase_prefix', name=q),
+        AssetDocument.search().query('match_phrase_prefix', name=q),
+    )
+
+
 def autocomplete_assets_and_tags(request):
     """
     The view serves as an endpoint to autocomplete asset names and tags and uses an elasticsearch index.
@@ -43,8 +50,7 @@ def autocomplete_assets_and_tags(request):
     results_dict = {tags_key: [], asset_names_key: [], asset_slugs_key: []}
 
     if q and len(q) >= 2:
-        es_search_tags = TagDocument.search().query('match_phrase_prefix', name=q)
-        es_search_assets = AssetDocument.search().query('match_phrase_prefix', name=q)
+        es_search_tags, es_search_assets = _es_search_asset_and_tag(q)
         results_dict[tags_key] = extract_results_from_matching_query(
             es_search_tags, case='tag'
         )

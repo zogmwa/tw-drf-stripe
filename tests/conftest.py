@@ -11,6 +11,7 @@ from api.models import (
     AssetSnapshot,
     PricePlan,
     Solution,
+    SolutionQuestion,
 )
 
 
@@ -48,6 +49,13 @@ def example_solution():
         type='I',
         description='bla bla bla',
         scope_of_work='bla bla bla',
+    )
+
+
+@pytest.fixture
+def example_solution_question(example_solution):
+    return example_solution.questions.create(
+        title='test solution question',
     )
 
 
