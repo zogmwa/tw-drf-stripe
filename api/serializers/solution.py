@@ -32,6 +32,12 @@ class SolutionSerializer(ModelSerializer):
     assets = AssetSerializerForSolution(read_only=True, many=True)
     upvotes_count = serializers.IntegerField(read_only=True)
     questions = SolutionQuestionSerializer(read_only=True, many=True)
+    booked_count = serializers.SerializerMethodField(
+        method_name="_get_booked_users_count"
+    )
+
+    def _get_booked_users_count(self, instance):
+        return instance.booked_solutions.count()
 
     class Meta:
         model = Solution
@@ -53,6 +59,7 @@ class SolutionSerializer(ModelSerializer):
             'has_free_consultation',
             'upvotes_count',
             'is_published',
+            'booked_count',
         ]
 
 
