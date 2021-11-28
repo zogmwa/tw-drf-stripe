@@ -4,7 +4,7 @@ from allauth.socialaccount.models import SocialApp, SocialAccount
 from django.test import Client
 from rest_framework import status
 
-from api.models import User, Organization, Asset
+from api.models import User, Organization, Asset, SolutionBookmark
 from tests.common import get_random_string
 from tests.views.test_asset import _create_asset
 
@@ -209,3 +209,20 @@ class TestUserPermission:
 
         self._has_permission(admin_client, user_and_password[0].username, True)
         self._has_permission(admin_client, 'admin', True)
+
+    def test_fetch_bookmarked_solutions_of_user(
+        self, authenticated_client, user_and_password, example_solution
+    ):
+        SolutionBookmark.objects.create(
+            solution=example_solution, user=user_and_password[0]
+        )
+        user_profile_url = '{}{}/'.format(
+            USERS_BASE_ENDPOINT, user_and_password[0].username
+        )
+        response = authenticated_client.get(user_profile_url)
+
+        assert response.status_code == 200
+        assert (
+            response.data['bookmarked_solutions'][0]['solution']['title']
+            == example_solution.title
+        )
