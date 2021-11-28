@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from api.serializers.asset import AssetSerializer
 from api.serializers.solution_booking import SolutionBookingSerializer
+from api.serializers.solution_bookmark import SolutionBookmarkSerializerForUserProfile
 from .organization import OrganizationSerializer
 from api.models import User, Organization
 
@@ -17,6 +18,18 @@ class UserSerializer(ModelSerializer):
     )
     social_accounts = serializers.ListField(read_only=True)
     booked_solutions = SolutionBookingSerializer(many=True, read_only=True)
+    bookmarked_solutions = serializers.SerializerMethodField(
+        method_name='_get_bookmarked_solutions'
+    )
+
+    def _get_bookmarked_solutions(self, instance):
+        request = self.context.get('request')
+        serialize_context = {'request': request}
+        bookmarked_solutions_serializer = SolutionBookmarkSerializerForUserProfile(
+            instance.bookmarks, context=serialize_context, many=True
+        )
+
+        return bookmarked_solutions_serializer.data
 
     class Meta:
         model = User
@@ -33,6 +46,7 @@ class UserSerializer(ModelSerializer):
             'pending_asset_ids',
             'social_accounts',
             'booked_solutions',
+            'bookmarked_solutions',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'

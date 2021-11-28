@@ -10,3 +10,11 @@ class SolutionBookmarkSerializer(ModelSerializer):
     class Meta:
         model = SolutionBookmark
         fields = ['id', 'solution', 'user']
+
+
+class SolutionBookmarkSerializerForUserProfile(ModelSerializer):
+    solution = AuthenticatedSolutionForBookmarkSerializer(read_only=True)
+
+    class Meta:
+        model = SolutionBookmark
+        fields = ['id', 'solution']
