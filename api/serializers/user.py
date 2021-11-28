@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from api.serializers.asset import AssetSerializer
 from api.serializers.solution_booking import SolutionBookingSerializer
-from api.serializers.solution_bookmark import SolutionBookmarkSerializerForUser
+from api.serializers.solution_bookmark import SolutionBookmarkSerializerForUserProfile
 from .organization import OrganizationSerializer
 from api.models import User, Organization
 
@@ -25,7 +25,7 @@ class UserSerializer(ModelSerializer):
     def _get_bookmarked_solutions(self, instance):
         request = self.context.get('request')
         serialize_context = {'request': request}
-        bookmarked_solutions_serializer = SolutionBookmarkSerializerForUser(
+        bookmarked_solutions_serializer = SolutionBookmarkSerializerForUserProfile(
             instance.bookmarks, context=serialize_context, many=True
         )
 
