@@ -100,6 +100,10 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
 
 
 class AuthenticatedSolutionForBookmarkSerializer(ModelSerializer):
+    organization = OrganizationSerializer(read_only=True)
+    prices = SolutionPriceSerializer(required=False, many=True)
+    tags = TagSerializer(read_only=True, many=True)
+    upvotes_count = serializers.IntegerField(read_only=True)
     my_solution_vote = serializers.SerializerMethodField(
         method_name="_get_my_solution_vote"
     )
@@ -123,6 +127,11 @@ class AuthenticatedSolutionForBookmarkSerializer(ModelSerializer):
         fields = [
             'id',
             'slug',
+            'tags',
+            'prices',
+            'upvotes_count',
+            'organization',
             'title',
+            'prices',
             'my_solution_vote',
         ]
