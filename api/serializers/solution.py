@@ -37,7 +37,7 @@ class SolutionSerializer(ModelSerializer):
     )
 
     def _get_booked_users_count(self, instance):
-        return instance.booked_solutions.count()
+        return instance.solution_bookings.count()
 
     class Meta:
         model = Solution
