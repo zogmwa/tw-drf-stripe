@@ -20,6 +20,7 @@ class SolutionBooking(models.Model):
         null=True,
         # If we delete a solution offering all bookings should not be lost
         on_delete=models.SET_NULL,
+        related_name='solution_bookings',
     )
     is_payment_completed = models.BooleanField(default=False)
 

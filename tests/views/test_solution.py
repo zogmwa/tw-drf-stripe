@@ -2,6 +2,7 @@ import pytest
 from rest_framework import status
 
 from api.models import Solution
+from api.models.solution_booking import SolutionBooking
 
 from api.views.solutions import SolutionViewSet
 
@@ -87,3 +88,27 @@ class TestFetchingSolution:
         assert response.data['count'] == 2
         assert response.data['results'][0]['title'] == example_solution.title
         assert response.data['results'][1]['title'] == added_example_solution.title
+
+    def test_anonymous_user_should_be_able_to_get_solution_booked_count(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_solution,
+        user_and_password,
+    ):
+        SolutionBooking.objects.create(
+            solution=example_solution,
+            stripe_session_id="zQds2Urgd",
+            price_at_booking=10,
+            booked_by=user_and_password[0],
+            manager=user_and_password[0],
+            status='Pending',
+        )
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = unauthenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['booked_count'] == 1
