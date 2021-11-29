@@ -20,6 +20,10 @@ class SolutionQuestionViewSet(viewsets.ModelViewSet):
         return SolutionQuestionSerializer
 
 
+def _get_solution_questions_db_qs_via_elasticsearch_query(q):
+    return SolutionQuestionDocument.search().query('match_phrase_prefix', title=q)
+
+
 def autocomplete_solution_questions(request):
     """
     The view serves as an endpoint to autocomplete solution question titles and uses an elasticsearch index.
@@ -29,9 +33,7 @@ def autocomplete_solution_questions(request):
     solution = Solution.objects.get(slug=solution_slug)
 
     if q and len(q) >= 3:
-        es_search = SolutionQuestionDocument.search().query(
-            'match_phrase_prefix', title=q
-        )
+        es_search = _get_solution_questions_db_qs_via_elasticsearch_query(q)
         results = extract_results_from_matching_query(
             es_search, case='solution_question'
         )
