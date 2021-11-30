@@ -29,8 +29,9 @@ class TestTestAutocomplete:
             'http://localhost:8000/autocomplete-tags-and-assets/?q=mail'
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()['tags'][0] == example_asset_tag.slug
-        assert response.json()['tags'][1] == example_asset_tag2.slug
+        actual_return_asset_tags = sorted(response.json()['tags'])
+        assert actual_return_asset_tags[0] == example_asset_tag.slug
+        assert actual_return_asset_tags[1] == example_asset_tag2.slug
         assert response.json()['assets'][0] == example_asset.name
         assert response.json()['asset_slugs'][0] == example_asset.slug
 
