@@ -4,6 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from api.models.solution import Solution
 from api.models.solution_vote import SolutionVote
 from api.models.solution_bookmark import SolutionBookmark
+from api.models.solution_booking import SolutionBooking
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
@@ -35,9 +36,19 @@ class SolutionSerializer(ModelSerializer):
     booked_count = serializers.SerializerMethodField(
         method_name="_get_booked_users_count"
     )
+    bookings_pending_fulfillment_count = serializers.SerializerMethodField(
+        method_name="_get_bookings_pending_fulfillment_count"
+    )
 
     def _get_booked_users_count(self, instance):
         return instance.solution_bookings.count()
+
+    def _get_bookings_pending_fulfillment_count(self, instance):
+        return (
+            SolutionBooking.objects.filter(solution=instance)
+            .exclude(status=SolutionBooking.Status.COMPLETED)
+            .count()
+        )
 
     class Meta:
         model = Solution
@@ -56,10 +67,14 @@ class SolutionSerializer(ModelSerializer):
             'questions',
             'scope_of_work',
             'primary_tag',
+            'eta_days',
+            'follow_up_hourly_rate',
+            'capacity',
             'has_free_consultation',
             'upvotes_count',
             'is_published',
             'booked_count',
+            'bookings_pending_fulfillment_count',
         ]
 
 

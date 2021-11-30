@@ -112,3 +112,27 @@ class TestFetchingSolution:
 
         assert response.status_code == 200
         assert response.data['booked_count'] == 1
+
+    def test_returned_bookings_pending_fulfillment_count_with_solution(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_solution,
+        user_and_password,
+    ):
+        SolutionBooking.objects.create(
+            solution=example_solution,
+            stripe_session_id="zQds2Urgd",
+            price_at_booking=10,
+            booked_by=user_and_password[0],
+            manager=user_and_password[0],
+            status='Pending',
+        )
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = unauthenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['bookings_pending_fulfillment_count'] == 1
