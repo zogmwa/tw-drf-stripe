@@ -66,6 +66,8 @@ class Solution(models.Model):
     # in parallel.
     capacity = models.IntegerField(default=10)
 
+    bookings_pending_fulfillment_count = models.IntegerField(default=0)
+
     # Max number of solution bookings that can be in pending/non-active state. Once the existing solution bookings count
     # hits the max queue size then we will not be allowing more solutions to be booked.
     max_queue_size = models.IntegerField(default=10)
