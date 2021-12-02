@@ -26,6 +26,7 @@ from api.models.organization import Organization
 from api.models.solution_price import SolutionPrice
 from api.models.solution_question import SolutionQuestion
 from api.models.newsletter_contact import NewsLetterContact
+from api.models.solution_review import SolutionReview
 
 
 class TagInline(admin.TabularInline):
@@ -147,6 +148,12 @@ class AssetReviewAdmin(admin.ModelAdmin):
     search_fields = ['asset__name']
 
 
+class SolutionReviewAdmin(admin.ModelAdmin):
+    model = SolutionReview
+    autocomplete_fields = ['solution', 'user']
+    search_fields = ['solution__name']
+
+
 class AssetVoteAdmin(admin.ModelAdmin):
     model = AssetVote
     autocomplete_fields = ['asset', 'user']
@@ -253,3 +260,4 @@ admin.site.register(SolutionQuestion, SolutionQuestionAdmin)
 admin.site.register(SolutionVote, SolutionVoteAdmin)
 admin.site.register(SolutionBookmark, SolutionBookmarkAdmin)
 admin.site.register(NewsLetterContact)
+admin.site.register(SolutionReview, SolutionReviewAdmin)
