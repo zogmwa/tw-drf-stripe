@@ -20,6 +20,8 @@ class Solution(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     scope_of_work = models.TextField(blank=True, null=True)
+    avg_rating = models.DecimalField(default=0, decimal_places=7, max_digits=10)
+    reviews_count = models.IntegerField(default=0)
 
     class Type(models.TextChoices):
         INTEGRATION = 'I'
