@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from api.models.user import User
 from api.models.solution import Solution
 from api.models.solution_vote import SolutionVote
 from api.models.solution_bookmark import SolutionBookmark
@@ -10,6 +11,12 @@ from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_price import SolutionPriceSerializer
 from api.serializers.tag import TagSerializer
 from api.serializers.solution_question import SolutionQuestionSerializer
+
+
+class UserSerializerForSolutionContact(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
 
 
 class AssetSerializerForSolution(ModelSerializer):
@@ -33,11 +40,11 @@ class SolutionSerializer(ModelSerializer):
     assets = AssetSerializerForSolution(read_only=True, many=True)
     upvotes_count = serializers.IntegerField(read_only=True)
     questions = SolutionQuestionSerializer(read_only=True, many=True)
+    point_of_contact = UserSerializerForSolutionContact(read_only=True)
     avg_rating = serializers.DecimalField(
         read_only=True, max_digits=10, decimal_places=7
     )
     reviews_count = serializers.IntegerField(read_only=True)
-
     booked_count = serializers.SerializerMethodField(
         method_name="_get_booked_users_count"
     )

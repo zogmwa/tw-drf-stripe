@@ -173,3 +173,34 @@ class TestFetchingSolution:
 
         assert response.status_code == 200
         assert response.data['bookings_pending_fulfillment_count'] == 0
+
+    def test_returned_point_of_contact_user_in_solution(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_solution,
+        user_and_password,
+    ):
+        example_solution.point_of_contact = user_and_password[0]
+        example_solution.save()
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = unauthenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['point_of_contact']['id'] == user_and_password[0].id
+        assert (
+            response.data['point_of_contact']['username']
+            == user_and_password[0].username
+        )
+
+        response = authenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['point_of_contact']['id'] == user_and_password[0].id
+        assert (
+            response.data['point_of_contact']['username']
+            == user_and_password[0].username
+        )
