@@ -41,6 +41,10 @@ class SolutionSerializer(ModelSerializer):
     upvotes_count = serializers.IntegerField(read_only=True)
     questions = SolutionQuestionSerializer(read_only=True, many=True)
     point_of_contact = UserSerializerForSolutionContact(read_only=True)
+    avg_rating = serializers.DecimalField(
+        read_only=True, max_digits=10, decimal_places=7
+    )
+    reviews_count = serializers.IntegerField(read_only=True)
     booked_count = serializers.SerializerMethodField(
         method_name="_get_booked_users_count"
     )
@@ -80,6 +84,8 @@ class SolutionSerializer(ModelSerializer):
             'capacity',
             'has_free_consultation',
             'upvotes_count',
+            'avg_rating',
+            'reviews_count',
             'is_published',
             'booked_count',
             'bookings_pending_fulfillment_count',

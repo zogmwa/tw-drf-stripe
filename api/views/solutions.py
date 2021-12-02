@@ -27,10 +27,14 @@ class SolutionViewSet(viewsets.ModelViewSet):
     queryset = Solution.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = {'has_free_consultation': ['exact']}
+    filterset_fields = {
+        'avg_rating': ['gte', 'lte'],
+        'has_free_consultation': ['exact'],
+    }
     ordering_fields = [
-        'upvotes_count'
-    ]  # TODO: This ordering_fields also will be have avg_rating. But it is priority low.
+        'avg_rating',
+        'upvotes_count',
+    ]
     lookup_field = 'slug'
     serializer_class = SolutionSerializer
     pagination_class = SolutionViewSetPagination
