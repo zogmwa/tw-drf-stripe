@@ -120,7 +120,8 @@ class TestFetchingSolution:
         example_solution,
         user_and_password,
     ):
-        SolutionBooking.objects.create(
+        # When user booking the solution.
+        solution_booking = SolutionBooking.objects.create(
             solution=example_solution,
             stripe_session_id="zQds2Urgd",
             price_at_booking=10,
@@ -136,3 +137,39 @@ class TestFetchingSolution:
 
         assert response.status_code == 200
         assert response.data['bookings_pending_fulfillment_count'] == 1
+
+        # When user solution booking status has changed to 'In Progress'.
+        solution_booking.status = 'In Progress'
+        solution_booking.save()
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = unauthenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['bookings_pending_fulfillment_count'] == 1
+
+        # When user solution booking status has changed to 'In Review'.
+        solution_booking.status = 'In Review'
+        solution_booking.save()
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = unauthenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['bookings_pending_fulfillment_count'] == 1
+
+        # When user solution booking status has changed to 'Complete'.
+        solution_booking.status = 'Completed'
+        solution_booking.save()
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = unauthenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['bookings_pending_fulfillment_count'] == 0
