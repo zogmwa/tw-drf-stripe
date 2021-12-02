@@ -48,19 +48,9 @@ class SolutionSerializer(ModelSerializer):
     booked_count = serializers.SerializerMethodField(
         method_name="_get_booked_users_count"
     )
-    bookings_pending_fulfillment_count = serializers.SerializerMethodField(
-        method_name="_get_bookings_pending_fulfillment_count"
-    )
 
     def _get_booked_users_count(self, instance):
         return instance.solution_bookings.count()
-
-    def _get_bookings_pending_fulfillment_count(self, instance):
-        return (
-            SolutionBooking.objects.filter(solution=instance)
-            .exclude(status=SolutionBooking.Status.COMPLETED)
-            .count()
-        )
 
     class Meta:
         model = Solution
