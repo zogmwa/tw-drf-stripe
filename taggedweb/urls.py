@@ -22,6 +22,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from api.views.newsletter_contact import NewsLetterContactViewSet
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
+from api.views.solution_reviews import SolutionReviewViewSet
 from payments.views import CreateStripeCheckoutSession
 from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
@@ -80,6 +81,7 @@ router.register(r'asset_claims', AssetClaimViewSet)
 # E.g. To filter ratings where asset__slug=makemymails and rating is 10
 # GET: /asset_reviews/?asset__slug=makemymails&rating=10
 router.register(r'asset_reviews', AssetReviewViewSet)
+router.register(r'solution_reviews', SolutionReviewViewSet)
 router.register(r'solutions', SolutionViewSet)
 router.register(r'solution_bookings', SolutionBookingViewSet)
 router.register(r'solution_bookmarks', SolutionBookmarkViewSet)
