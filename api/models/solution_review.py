@@ -77,7 +77,7 @@ def avg_rating_and_count_update_for_new_review(sender, instance=None, **kwargs):
 
 @receiver(post_delete, sender=SolutionReview)
 def avg_rating_and_count_update_on_delete(sender, instance=None, **kwargs):
-    solution_qs = Solution.objects.filter(id=instance.solution_qs)
+    solution_qs = Solution.objects.filter(id=instance.solution_id)
     if solution_qs[0].reviews_count == 1:
         solution_qs.update(
             avg_rating=0,
