@@ -20,6 +20,7 @@ class SolutionReviewViewSet(viewsets.ModelViewSet):
         'solution__slug': ['exact'],
         'user__username': ['exact'],
     }
+    # TODO: Only allow users who have booked the solution to provide reviews in the future.
     # create/update methods for this are overriden at serializer level
 
     def destroy(self, request, *args, **kwargs):
