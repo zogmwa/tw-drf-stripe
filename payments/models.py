@@ -18,7 +18,7 @@ def checkout_session_completed_handler(event, **kwargs):
     # A delayed notification payment will have an `unpaid` status, as
     # you're still waiting for funds to be transferred from the customer's
     # account.
-    if session.payment_status == "paid":
+    if session['payment_status'] == "paid":
         fulfill_order(stripe_session_id)
 
 

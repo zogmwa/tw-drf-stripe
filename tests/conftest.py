@@ -1,6 +1,7 @@
-import pytest
+import pytest, stripe
+from django.conf import settings
 from django.test import Client
-
+from api.models.solution_booking import SolutionBooking
 from api.models import (
     Asset,
     User,
@@ -29,6 +30,26 @@ def patch_elasticsearch(mocker):
 
 
 @pytest.fixture
+def example_event():
+    event = {'data': {}}
+    event['data']['object'] = {}
+    event['data']['object'] = {
+        "id": "cs_test_5PIAqHlxs921ujN9ftgymLMyywUM55VhoRTgE09KWjs6KUYc0uT6y8bV",
+        "object": "checkout.session",
+        "expires_at": 1637391616,
+        "livemode": False,
+        "metadata": {},
+        "mode": "payment",
+        "payment_intent": "pi_3JxPZ8JNxEeFbcNw0exlygHf",
+        "payment_method_options": {},
+        "payment_method_types": ["card"],
+        "payment_status": "paid",
+        "success_url": "https://example.com/success",
+    }
+    return event
+
+
+@pytest.fixture
 def example_asset():
     return Asset.objects.create(
         slug='mailchimp',
@@ -42,13 +63,22 @@ def example_asset():
 
 
 @pytest.fixture
-def example_solution():
+def example_solution(admin_user):
     return Solution.objects.create(
         slug='test-solution',
         title='Test Solution',
         type='I',
         description='bla bla bla',
         scope_of_work='bla bla bla',
+        point_of_contact=admin_user,
+    )
+
+
+@pytest.fixture
+def example_solution_booking(example_solution, admin_user):
+    return SolutionBooking.objects.create(
+        booked_by_id=admin_user.id,
+        solution=example_solution,
     )
 
 
