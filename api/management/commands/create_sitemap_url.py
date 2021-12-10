@@ -32,6 +32,7 @@ def process(default_sitemap_path) -> None:
     solution_slugs = [solution.slug for solution in solutions]
     software_slugs = [software.slug for software in softwares]
 
+    generated_url.add('https://www.taggedweb.com/')
     for solution in solution_slugs:
         generated_url.add('https://www.taggedweb.com/solution/' + solution + '/')
 
