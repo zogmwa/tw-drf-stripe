@@ -36,6 +36,20 @@ def process(default_sitemap_path) -> None:
 
     for software in software_slugs:
         generated_url.add('https://www.taggedweb.com/software/' + software + '/')
+        for compare_soft1 in software_slugs:
+            generated_url.add(
+                'https://www.taggedweb.com/' + software + '-vs-' + compare_soft1 + '/'
+            )
+            for compare_soft2 in software_slugs:
+                generated_url.add(
+                    'https://www.taggedweb.com/'
+                    + software
+                    + '-vs-'
+                    + compare_soft1
+                    + '-vs-'
+                    + compare_soft2
+                    + '/'
+                )
 
     for url in generated_url:
         add_xml_data = ET.SubElement(data, 'url')
@@ -64,7 +78,7 @@ class Command(BaseCommand):
         default_sitemap_path = "../data/sitemap.xml"
         sitemap_path = (
             input(
-                "Enter CSV relative path or leave blank for default ({}):\n".format(
+                "Enter sitemap.xml relative path or leave blank for default ({}):\n".format(
                     default_sitemap_path
                 )
             )
