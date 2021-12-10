@@ -34,6 +34,7 @@ ALLOWED_HOSTS = [
     'taggedweb.com',
     'localhost',
     '127.0.0.1',
+    '192.168.114.130',
 ]
 
 # Difference between ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS:
