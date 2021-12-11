@@ -21,8 +21,8 @@ class Attribute(models.Model):
     updated_on = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'Web Service Attribute'
-        verbose_name_plural = 'Web Service Attributes'
+        verbose_name = 'Software Attribute'
+        verbose_name_plural = 'Software Attributes'
 
     def __str__(self):
         return self.name

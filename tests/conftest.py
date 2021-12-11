@@ -1,4 +1,4 @@
-import pytest, stripe
+import pytest, stripe, collections
 from django.conf import settings
 from django.test import Client
 from api.models.solution_booking import SolutionBooking
@@ -31,6 +31,7 @@ def patch_elasticsearch(mocker):
 
 @pytest.fixture
 def example_event():
+    # TODO: Rename to example_stripe_event
     event = {'data': {}}
     event['data']['object'] = {}
     event['data']['object'] = {
@@ -80,6 +81,30 @@ def example_solution_booking(example_solution, admin_user):
         booked_by_id=admin_user.id,
         solution=example_solution,
     )
+
+
+# TODO: If we don't see the use for this ahead we can remove this later
+def stripe_product_event(self, **params):
+    dictionary = {
+        "id": "prod_KkGmWqkik2VpYo",
+        "stripe_id": "prod_KkGmWqkik2VpYo",
+        "object": "product",
+        "active": True,
+        "created": 1639054823,
+        "description": params['name'],
+        "images": [],
+        "livemode": False,
+        "metadata": {},
+        "name": params['name'],
+        "package_dimensions": None,
+        "shippable": None,
+        "statement_descriptor": None,
+        "tax_code": None,
+        "unit_label": None,
+        "updated": 1639054823,
+        "url": None,
+    }
+    return collections.namedtuple("ObjectName", dictionary.keys())(*dictionary.values())
 
 
 @pytest.fixture

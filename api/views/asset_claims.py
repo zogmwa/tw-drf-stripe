@@ -13,7 +13,7 @@ from api.serializers.claim_asset import (
 
 class AssetClaimViewSet(viewsets.ModelViewSet):
     """
-    This flow is used when a propsective Web Service owner submits a claim that they own a web service and want to
+    This flow is used when a prospective Software owner submits a claim that they own a software and want to
     be able to manage it. A GET operation will only return claims that the currently logged in user has submitted
     unless the user is an admin or staff user.
     """

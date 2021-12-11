@@ -1,6 +1,3 @@
-import pytest
-from rest_framework import status
-
 from api.models import Solution
 from api.models.solution_booking import SolutionBooking
 
@@ -204,3 +201,11 @@ class TestFetchingSolution:
             response.data['point_of_contact']['username']
             == user_and_password[0].username
         )
+
+
+class TestSolutionCreateWithStripeProduct:
+    def test_if_solution_title_and_description_are_used_from_underlying_stripe_product(
+        self, example_solution, mocker, admin_user
+    ):
+        # TODO
+        pass

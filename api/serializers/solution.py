@@ -61,6 +61,7 @@ class SolutionSerializer(ModelSerializer):
             'title',
             'type',
             'prices',
+            'pay_now_price_unit_amount',
             'description',
             'point_of_contact',
             'organization',

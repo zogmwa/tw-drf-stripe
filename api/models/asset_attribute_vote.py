@@ -35,5 +35,5 @@ class AssetAttributeVote(models.Model):
                 fields=['user', 'asset', 'attribute'], name='user_asset_attribute_vote'
             )
         ]
-        verbose_name = 'Web Service Attribute Vote'
-        verbose_name_plural = 'Web Service Attribute Votes'
+        verbose_name = 'Software Attribute Vote'
+        verbose_name_plural = 'Software Attribute Votes'

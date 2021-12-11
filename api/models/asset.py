@@ -81,7 +81,7 @@ class Asset(models.Model):
     tweb_url_clickthrogh_counter = models.IntegerField(default=0)
     is_published = models.BooleanField(default=False)
 
-    # Which user owns this Asset/Web Service (intended for web service owners)
+    # Which user owns this Asset/Software (intended for software owners)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -169,8 +169,8 @@ class Asset(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Web Service'
-        verbose_name_plural = 'Web Services'
+        verbose_name = 'Software'
+        verbose_name_plural = 'Softwares'
 
 
 @receiver(pre_save, sender=Asset)

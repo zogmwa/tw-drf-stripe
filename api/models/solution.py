@@ -1,5 +1,10 @@
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from django.core.signals import request_finished
+from djstripe.models import Product as StripeProduct
+from djstripe.models import Price as StripePrice
 
 from api.models.organization import Organization
 from api.models.tag import Tag
@@ -14,9 +19,22 @@ class Solution(models.Model):
     slug = models.SlugField(null=True, unique=True)
 
     # Every solution will have a corresponding product offering on Stripe
-    stripe_product_id = models.CharField(null=True, blank=True, max_length=100)
+    stripe_product = models.OneToOneField(
+        StripeProduct, null=True, blank=True, on_delete=models.SET_NULL
+    )
 
-    # Same be kept same as the stripe Product name where possible
+    # The price the user will pay if they decide to pay upfront
+    # This can be nullable because not all solutions will have pay now enabled. Some solutions require incremental
+    # billing.
+    pay_now_price = models.OneToOneField(
+        StripePrice, null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    @property
+    def pay_now_price_unit_amount(self):
+        # This will be in cents so frontend will have to divide this by 100 to show dollar value for USD
+        return self.pay_now_price.unit_amount
+
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     scope_of_work = models.TextField(blank=True, null=True)
@@ -25,6 +43,8 @@ class Solution(models.Model):
 
     class Type(models.TextChoices):
         INTEGRATION = 'I'
+        CONSULTATION = 'C'
+        # Usage support is kind of like a consultation but still putting it into it's own category
         USAGE_SUPPORT = 'U'
         OTHER = 'O'
 
@@ -96,3 +116,18 @@ class Solution(models.Model):
     class Meta:
         verbose_name = 'Solution'
         verbose_name_plural = 'Solutions'
+
+
+@receiver(pre_save, sender=Solution)
+def update_stripe_product_from_solution_title(sender, instance=None, **kwargs):
+    """
+    Update the name and caption of the Stripe Product from the Solution Product
+    """
+    # instance_old = sender.objects.get(pk=instance.pk)
+    if instance.stripe_product:
+        instance.title = instance.stripe_product.name
+        instance.description = instance.stripe_product.description
+
+    # If the stripe product does not exist we don't want to attempt automatically creating it for now. That will lead
+    # to a two way sync and complicate things a little. Right now we are assuming Stripe is the primary source of truth
+    # and using that to populate our fields. So stripe product should be manually created for now.

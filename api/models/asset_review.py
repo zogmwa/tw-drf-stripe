@@ -37,8 +37,8 @@ class AssetReview(models.Model):
             UniqueConstraint(fields=['asset', 'user'], name='user_asset_review')
         ]
 
-        verbose_name = 'Web Service Review'
-        verbose_name_plural = 'Web Service Reviews'
+        verbose_name = 'Software Review'
+        verbose_name_plural = 'Software Reviews'
 
 
 @receiver(pre_save, sender=AssetReview)

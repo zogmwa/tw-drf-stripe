@@ -60,7 +60,12 @@ class SolutionDocument(Document):
         # queryset_pagination = 5000
 
     def get_queryset(self):
-        return super(SolutionDocument, self).get_queryset().prefetch_related('tags')
+        return (
+            super(SolutionDocument, self)
+            .get_queryset()
+            .prefetch_related('tags')
+            .select_related('stripe_product', 'pay_now_price')
+        )
 
     def get_instances_from_related(self, related_instance):
         if isinstance(related_instance, Solution):

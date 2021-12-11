@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -278,8 +279,19 @@ ELASTICSEARCH_DSL = {
 # DJStripe pendpoints reside at /stripe/* so this will be at /webhook
 DJSTRIPE_WEBHOOK_URL = r"^webhook/$"
 
+
+# Putting test key in live for now, live key will be added from env variables
+STRIPE_LIVE_SECRET_KEY = os.environ.get(
+    "STRIPE_LIVE_SECRET_KEY",
+    "sk_test_51Jr8jiJNxEeFbcNwF6j8okHix9wHaHsO0eebSr28X0t3Hfan8awLcGTevmkO1fz7uRnFv7uKZGkPTfSN7VmdpsI700Lm7hIwI8",
+)
+
+STRIPE_TEST_SECRET_KEY = os.environ.get(
+    "STRIPE_TEST_SECRET_KEY",
+    "sk_test_51Jr8jiJNxEeFbcNwF6j8okHix9wHaHsO0eebSr28X0t3Hfan8awLcGTevmkO1fz7uRnFv7uKZGkPTfSN7VmdpsI700Lm7hIwI8",
+)
+
 STRIPE_TEST_PUBLISHED_KEY = "pk_test_51Jr8jiJNxEeFbcNwYK4zSYR9QXNpuJFVAwfhPCq6GCbmrEurPmmUZtb8NlWP5corMqGXct9BeJb0E5UuWYBtQftx00i7X2aK18"
-STRIPE_TEST_SECRET_KEY = "sk_test_51Jr8jiJNxEeFbcNwF6j8okHix9wHaHsO0eebSr28X0t3Hfan8awLcGTevmkO1fz7uRnFv7uKZGkPTfSN7VmdpsI700Lm7hIwI8"
 DJSTRIPE_WEBHOOK_SECRET = "whsec_RQ9TJZ4iuWE8THb13keag8DCCc6Lieun"
 # These are test keys, once we are moving live may want to move this key to AWS SSM or some other secrets manager
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"

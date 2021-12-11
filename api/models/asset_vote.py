@@ -27,8 +27,8 @@ class AssetVote(models.Model):
         constraints = [
             UniqueConstraint(fields=['asset', 'user'], name='user_asset_vote')
         ]
-        verbose_name = 'Web Service Vote'
-        verbose_name_plural = 'Web Service Votes'
+        verbose_name = 'Software Vote'
+        verbose_name_plural = 'Software Votes'
 
 
 def _change_upvotes_count(asset_id: int, change_by: int) -> None:

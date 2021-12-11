@@ -47,8 +47,8 @@ class SolutionInLine(admin.TabularInline):
 class AssetInlineWithinSolution(admin.TabularInline):
     model = Asset.solutions.through
     autocomplete_fields = ['asset']
-    verbose_name = "Related Web Services"
-    verbose_name_plural = "Related Web Services"
+    verbose_name = "Related Software"
+    verbose_name_plural = "Related Softwares"
 
 
 class CustomerOrganizationInLine(admin.TabularInline):

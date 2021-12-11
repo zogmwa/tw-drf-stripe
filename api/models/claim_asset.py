@@ -39,8 +39,8 @@ class AssetClaim(models.Model):
         constraints = [
             UniqueConstraint(fields=['asset', 'user'], name='user_asset_claim_request')
         ]
-        verbose_name = 'Web Service Claim Request'
-        verbose_name_plural = 'Web Service Claim Requests'
+        verbose_name = 'Software Claim Request'
+        verbose_name_plural = 'Software Claim Requests'
 
 
 @receiver(pre_save, sender=AssetClaim)
