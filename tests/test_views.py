@@ -6,8 +6,10 @@ class TestAssetViewSet:
     def test__filter_desired_tags(self):
         email_marketing_tag_slug = 'email-marketing'
         aws_ses_tag_slug = 'ses'
-        asset_makemymails = Asset.objects.create(name='MakeMyMails')
-        asset_mailchimp = Asset.objects.create(name='MailChimp')
+        asset_makemymails = Asset.objects.create(
+            slug='make_my_mails', name='MakeMyMails'
+        )
+        asset_mailchimp = Asset.objects.create(slug='mailchimp', name='MailChimp')
 
         email_marketing_tag = Tag.objects.create(
             slug=email_marketing_tag_slug, name='Email Marketing'

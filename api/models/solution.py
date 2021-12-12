@@ -6,8 +6,11 @@ from django.core.signals import request_finished
 from djstripe.models import Product as StripeProduct
 from djstripe.models import Price as StripePrice
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from api.models.organization import Organization
 from api.models.tag import Tag
+from api.management.commands import create_sitemap_url
 
 
 class Solution(models.Model):

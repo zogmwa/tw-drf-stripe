@@ -6,6 +6,7 @@ def test__merge_tags():
     tag1_obj = Tag.objects.create(name='t1', slug='t1')
     tag2_obj = Tag.objects.create(name='t2', slug='t2')
     asset = Asset.objects.create(
+        slug='test-asset',
         name='Test Asset',
         website='example.com',
         short_description='Test',

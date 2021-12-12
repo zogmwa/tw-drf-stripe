@@ -4,7 +4,7 @@ from urllib.error import HTTPError
 
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from furl import furl
 from opengraph import OpenGraph
@@ -15,6 +15,7 @@ from .solution import Solution
 from .tag import Tag
 from .organization import Organization
 from api.utils.video import get_embed_video_url
+from api.management.commands import create_sitemap_url
 
 
 def _upload_to_for_logos(instance, filename):
