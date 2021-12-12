@@ -33,11 +33,11 @@ def process(default_sitemap_path) -> None:
     software_slugs = [software.slug for software in softwares]
 
     generated_url.add('https://www.taggedweb.com/')
+    generated_url.add('https://www.taggedweb.com/softwares/')
     for solution in solution_slugs:
         generated_url.add('https://www.taggedweb.com/solution/' + solution + '/')
 
     for software in software_slugs:
-        generated_url.add('https://www.taggedweb.com/software/' + software + '/')
         for compare_soft1 in software_slugs:
             generated_url.add(
                 'https://www.taggedweb.com/' + software + '-vs-' + compare_soft1 + '/'
