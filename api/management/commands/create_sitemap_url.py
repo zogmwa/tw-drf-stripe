@@ -7,6 +7,7 @@ from io import BytesIO
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import datetime
+from itertools import combinations
 
 from api.models.solution import Solution
 from api.models.asset import Asset
@@ -28,20 +29,20 @@ def process(default_sitemap_path) -> None:
     generated_url.add('https://www.taggedweb.com/')
     generated_url.add('https://www.taggedweb.com/softwares/')
 
-    # iterator doc: https://docs.djangoproject.com/en/3.2/ref/models/querysets/#iterator
-    for main_softwares_record in Asset.objects.all().iterator(chunk_size=1000):
-        for other_softwares_record in Asset.objects.all().iterator(chunk_size=1000):
-            generated_url.add(
-                'https://www.taggedweb.com/'
-                + main_softwares_record.slug
-                + '-vs-'
-                + other_softwares_record.slug
-                + '/'
-            )
-
-    for chunk_solutions in Solution.objects.all().iterator(chunk_size=1000):
+    # conbinations doc: https://www.geeksforgeeks.org/itertools-combinations-module-python-print-possible-combinations/
+    pairs_iterator = combinations(Asset.objects.values('slug'), 2)
+    for compare_slug in pairs_iterator:
         generated_url.add(
-            'https://www.taggedweb.com/solution/' + chunk_solutions.slug + '/'
+            'https://www.taggedweb.com/compare/'
+            + compare_slug[0]['slug']
+            + '-vs-'
+            + compare_slug[1]['slug']
+            + '/'
+        )
+
+    for chunk_solutions in Solution.objects.values('slug').iterator(chunk_size=1000):
+        generated_url.add(
+            'https://www.taggedweb.com/solution/' + chunk_solutions['slug'] + '/'
         )
 
     for url in generated_url:
