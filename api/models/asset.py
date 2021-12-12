@@ -190,14 +190,3 @@ def asset_conditional_updates(sender, instance=None, **kwargs):
         # If it's a new asset/web-service being created for which an old one does not exist then
         # we still want to update the promo video
         instance.promo_video = get_embed_video_url(instance.promo_video)
-
-
-@receiver(post_save, sender=Asset)
-def create_sitemap_url_when_asset_is_saved(sender, instance=None, **kwargs):
-
-    if type(sender) != type(Asset):
-        return
-
-    cmd = create_sitemap_url.Command()
-    opts = {}  # kwargs for sitemap command -- set default url for now...
-    cmd.handle(**opts)

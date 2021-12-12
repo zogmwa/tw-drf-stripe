@@ -99,14 +99,3 @@ class Solution(models.Model):
     class Meta:
         verbose_name = 'Solution'
         verbose_name_plural = 'Solutions'
-
-
-@receiver(post_save, sender=Solution)
-def create_sitemap_url_when_asset_is_saved(sender, instance=None, **kwargs):
-
-    if type(sender) != type(Solution):
-        return
-
-    cmd = create_sitemap_url.Command()
-    opts = {}  # kwargs for sitemap command -- set default url for now...
-    cmd.handle(**opts)
