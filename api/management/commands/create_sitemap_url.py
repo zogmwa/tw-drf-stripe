@@ -28,8 +28,9 @@ def process(default_sitemap_path) -> None:
     generated_url.add('https://www.taggedweb.com/')
     generated_url.add('https://www.taggedweb.com/softwares/')
 
-    for main_softwares_record in Asset.objects.all().iterator(chunk_size=3):
-        for other_softwares_record in Asset.objects.all().iterator(chunk_size=3):
+    # iterator doc: https://docs.djangoproject.com/en/3.2/ref/models/querysets/#iterator
+    for main_softwares_record in Asset.objects.all().iterator(chunk_size=1000):
+        for other_softwares_record in Asset.objects.all().iterator(chunk_size=1000):
             generated_url.add(
                 'https://www.taggedweb.com/'
                 + main_softwares_record.slug
@@ -38,7 +39,7 @@ def process(default_sitemap_path) -> None:
                 + '/'
             )
 
-    for chunk_solutions in Solution.objects.all().iterator(chunk_size=2):
+    for chunk_solutions in Solution.objects.all().iterator(chunk_size=1000):
         generated_url.add(
             'https://www.taggedweb.com/solution/' + chunk_solutions.slug + '/'
         )
