@@ -34,9 +34,14 @@ class Solution(models.Model):
     )
 
     @property
-    def pay_now_price_unit_amount(self):
+    def pay_now_price_stripe_id(self) -> str:
+        # This is needed by the frontend for the "Purchase Now" -> "Stripe Checkout" flow.
+        return self.pay_now_price.id if self.pay_now_price else None
+
+    @property
+    def pay_now_price_unit_amount(self) -> str:
         # This will be in cents so frontend will have to divide this by 100 to show dollar value for USD
-        return self.pay_now_price.unit_amount
+        return self.pay_now_price.unit_amount if self.pay_now_price else None
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)

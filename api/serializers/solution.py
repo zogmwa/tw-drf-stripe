@@ -61,6 +61,7 @@ class SolutionSerializer(ModelSerializer):
             'title',
             'type',
             'prices',
+            'pay_now_price_stripe_id',
             'pay_now_price_unit_amount',
             'description',
             'point_of_contact',
@@ -80,6 +81,10 @@ class SolutionSerializer(ModelSerializer):
             'is_published',
             'booked_count',
             'bookings_pending_fulfillment_count',
+        ]
+        read_only_fields = [
+            'pay_now_price_stripe_id',
+            'pay_now_price_unit_amount',
         ]
 
 
