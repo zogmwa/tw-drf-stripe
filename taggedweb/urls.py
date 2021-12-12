@@ -44,6 +44,7 @@ from api.views.asset_question_votes import AssetQuestionVoteViewSet
 from api.views.analytics import AssetClickThroughCounterRedirectView
 from api.views.asset_votes import AssetVoteViewSet
 from api.views.asset_claims import AssetClaimViewSet
+from api.views.download_sitemap import download_sitemap
 from dj_rest_auth.views import PasswordResetConfirmView
 
 from api.views.organization import autocomplete_organizations
@@ -114,6 +115,8 @@ urlpatterns = [
     path('autocomplete-organizations/', autocomplete_organizations),
     path('autocomplete-solutions/', autocomplete_solutions),
     path('autocomplete-solution-questions/', autocomplete_solution_questions),
+    # Download sitemap file
+    path('download/sitemap/', download_sitemap),
     # DRF Standard Token Auth Views
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', obtain_auth_token),
