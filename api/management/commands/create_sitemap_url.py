@@ -69,5 +69,5 @@ def process(default_sitemap_path) -> None:
 
 class Command(BaseCommand):
     def handle(self, **options):
-        default_sitemap_path = "./data/sitemap.xml"
+        default_sitemap_path = "./static/sitemap.xml"
         process(default_sitemap_path)
