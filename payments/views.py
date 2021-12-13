@@ -6,7 +6,8 @@ from rest_framework.views import APIView
 from django.conf import settings
 
 from api.models.solution_booking import SolutionBooking
-from api.models.solution_price import SolutionPrice
+from api.models.solution import Solution
+from djstripe.models import Price as StripePrice
 from .models import checkout_session_completed_handler
 
 
@@ -33,8 +34,8 @@ class CreateStripeCheckoutSession(APIView):
 
     def post(self, request, *args, **kwargs):
         tweb_solution_price_id = kwargs['solution_price_id']
-        solution_price = SolutionPrice.objects.get(id=tweb_solution_price_id)
-        solution = solution_price.solution
+        pay_now_price = StripePrice(id=tweb_solution_price_id)
+        solution = Solution.objects.get(pay_now_price__id=tweb_solution_price_id)
         active_site_obj = Site.objects.get(id=settings.SITE_ID)
         active_site = 'https://{}'.format(active_site_obj.domain)
 
@@ -42,7 +43,7 @@ class CreateStripeCheckoutSession(APIView):
             payment_method_types=['card'],
             line_items=[
                 {
-                    'price': solution_price.stripe_price_id,
+                    'price': pay_now_price.id,
                     'quantity': 1,
                 },
             ],
@@ -60,10 +61,10 @@ class CreateStripeCheckoutSession(APIView):
 
         SolutionBooking.objects.create(
             booked_by=request.user,
-            solution=solution_price.solution,
+            solution=solution,
             status=SolutionBooking.Status.PENDING,
             is_payment_completed=False,
-            price_at_booking=solution_price.price,
+            price_at_booking=pay_now_price.unit_amount,
             stripe_session_id=checkout_session.id,
         )
 
