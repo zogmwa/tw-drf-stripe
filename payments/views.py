@@ -33,7 +33,9 @@ class CreateStripeCheckoutSession(APIView):
 
     def post(self, request, *args, **kwargs):
         tweb_solution_price_id = kwargs['solution_price_id']
-        solution_price = SolutionPrice.objects.get(id=tweb_solution_price_id)
+        solution_price = SolutionPrice.objects.get(
+            stripe_price_id=tweb_solution_price_id
+        )
         solution = solution_price.solution
         active_site_obj = Site.objects.get(id=settings.SITE_ID)
         active_site = 'https://{}'.format(active_site_obj.domain)
