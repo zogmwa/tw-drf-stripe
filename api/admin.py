@@ -23,7 +23,6 @@ from api.models.solution_vote import SolutionVote
 from api.models.solution_booking import SolutionBooking
 from api.models.solution_bookmark import SolutionBookmark
 from api.models.organization import Organization
-from api.models.solution_price import SolutionPrice
 from api.models.solution_question import SolutionQuestion
 from api.models.newsletter_contact import NewsLetterContact
 from api.models.solution_review import SolutionReview
@@ -73,13 +72,6 @@ class PricePlanInline(admin.TabularInline):
     # For other fields the detailed PricePlanAdmin will be used
     # Restricting number of inline fields to make the admin display compact
     fields = ['name', 'price', 'per']
-
-
-class SolutionPriceInLine(admin.TabularInline):
-    model = SolutionPrice
-    # For other fields the detailed PricePlanAdmin will be used
-    # Restricting number of inline fields to make the admin display compact
-    fields = ['solution', 'stripe_price_id', 'price', 'currency', 'is_primary']
 
 
 class SolutionQuestionInline(admin.TabularInline):
@@ -196,7 +188,6 @@ class SolutionAdmin(admin.ModelAdmin):
     list_display = ('title', 'type', 'organization')
     inlines = [
         AssetInlineWithinSolution,
-        SolutionPriceInLine,
         SolutionTagInline,
         SolutionQuestionInline,
     ]
@@ -209,14 +200,6 @@ class SolutionBookingAdmin(admin.ModelAdmin):
         'manager',
     ]
     list_display = ('booked_by', 'status', 'created')
-
-
-class SolutionPriceAdmin(admin.ModelAdmin):
-    model = SolutionPrice
-    autocomplete_fields = [
-        'solution',
-    ]
-    list_display = ('stripe_price_id', 'price', 'currency', 'is_primary')
 
 
 class SolutionQuestionAdmin(admin.ModelAdmin):
@@ -255,7 +238,6 @@ admin.site.register(AssetQuestionVote, AssetQuestionVoteAdmin)
 admin.site.register(AssetClaim, AssetClaimAdmin)
 admin.site.register(Solution, SolutionAdmin)
 admin.site.register(SolutionBooking, SolutionBookingAdmin)
-admin.site.register(SolutionPrice, SolutionPriceAdmin)
 admin.site.register(SolutionQuestion, SolutionQuestionAdmin)
 admin.site.register(SolutionVote, SolutionVoteAdmin)
 admin.site.register(SolutionBookmark, SolutionBookmarkAdmin)
