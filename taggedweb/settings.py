@@ -305,15 +305,6 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
-# Celery setting
-
-# redis://:password@hostname:port/db_number
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_BACKEND = 'redis://localhost:6379/0'
-CELERY_TIMEZONE = 'EST'
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # In 30 mins
-
 try:
     # Over-ride settigs be defined for customization on production servers/local
     from .override_settings import *
