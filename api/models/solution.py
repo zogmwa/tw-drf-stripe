@@ -130,7 +130,10 @@ def update_stripe_product_from_solution_title(sender, instance=None, **kwargs):
     # instance_old = sender.objects.get(pk=instance.pk)
     if instance.stripe_product:
         instance.title = instance.stripe_product.name
-        instance.description = instance.stripe_product.description
+
+        if instance.stripe_product.prices.all().count() == 1:
+            # If the Stripe product already has exactly one price we will assume that it's the pay now price for now.
+            instance.pay_now_price = instance.stripe_product.prices.first()
 
     # If the stripe product does not exist we don't want to attempt automatically creating it for now. That will lead
     # to a two way sync and complicate things a little. Right now we are assuming Stripe is the primary source of truth
