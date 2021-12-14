@@ -8,7 +8,6 @@ class TestSolutionCreateWithStripeProduct:
     ):
         product = StripeProduct(
             name='test stripe product',
-            description='test stripe product description',
             id='prod_KkGmWqkik2VpYo',
         )
         product.save()
@@ -22,13 +21,10 @@ class TestSolutionCreateWithStripeProduct:
             stripe_product=product,
         )
         solution_pk = solution.pk
-        assert solution.description == product.description
         assert solution.title == product.name
         product.name = 'updated stripe product name'
-        product.description = 'updted stripe product description'
         product.save()
         solution = Solution.objects.get(pk=solution_pk)
         solution.save()
         solution = Solution.objects.get(pk=solution_pk)
-        assert solution.description == product.description
         assert solution.title == product.name
