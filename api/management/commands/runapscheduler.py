@@ -14,7 +14,7 @@ from api.management.commands import create_sitemap_url
 logger = logging.getLogger(__name__)
 
 
-def my_job():
+def sitemap_generator():
     cmd = create_sitemap_url.Command()
     opts = {}  # kwargs for sitemap command -- set default url for now...
     cmd.handle(**opts)
