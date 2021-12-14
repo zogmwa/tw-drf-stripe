@@ -11,6 +11,6 @@ def download_sitemap(request):
     opts = {}  # kwargs for sitemap command -- set default url for now...
     cmd.handle(**opts)
 
-    response = FileResponse(open(u'./data/sitemap.xml', 'rb'))
+    response = FileResponse(open(u'./static/sitemap.xml', 'rb'))
     response['Content-Disposition'] = 'attachment; filename="%s"' % 'sitemap.xml'
     return response

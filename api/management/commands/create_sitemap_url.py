@@ -8,12 +8,13 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import datetime
 from itertools import combinations
+from django.core.files.storage import default_storage
 
 from api.models.solution import Solution
 from api.models.asset import Asset
 
 
-def process(default_sitemap_path) -> None:
+def process() -> None:
     """
     Output sitemap urls to given sitemap.xml location.
     """
@@ -63,11 +64,11 @@ def process(default_sitemap_path) -> None:
     xmlstr = minidom.parseString(xml).toprettyxml(indent="   ")
     print(xmlstr)
 
-    with open(default_sitemap_path, "wb") as f:
-        f.write(xmlstr.encode('utf-8'))
+    file = default_storage.open('sitemap.xml', 'w')
+    file.write(xmlstr.encode('utf-8'))
+    file.close()
 
 
 class Command(BaseCommand):
     def handle(self, **options):
-        default_sitemap_path = "./data/sitemap.xml"
-        process(default_sitemap_path)
+        process()
