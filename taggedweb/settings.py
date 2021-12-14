@@ -302,11 +302,6 @@ DJSTRIPE_USE_NATIVE_JSONFIELD = True
 # Change to True in production
 STRIPE_LIVE_MODE = False
 
-# Static files (Resource files)
-STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
-
 # django-apscheduler setting
 
 # Format string for displaying run time timestamps in the Django admin site. The default
