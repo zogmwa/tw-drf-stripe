@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from api.models import Attribute, Asset, AssetAttributeVote, LinkedAttribute
+from api.models import Attribute, Asset, AssetAttributeVote
 
 
 class AssetAttributeSerializer(ModelSerializer):
@@ -81,9 +81,9 @@ class AuthenticatedAssetAttributeSerializer(AssetAttributeSerializer):
             asset = Asset.objects.get(id=asset_id)
             attribute.assets.add(asset)
             attribute.save()
-            link_attribute = LinkedAttribute.objects.create(
-                asset=asset, attribute=attribute, user=self.request.user
+            asset_attribute_vote = AssetAttributeVote.objects.create(
+                asset=asset, attribute=attribute, user=request.user
             )
-            link_attribute.save()
+            asset_attribute_vote.save()
 
         return attribute
