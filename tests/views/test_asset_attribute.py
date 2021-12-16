@@ -1,6 +1,6 @@
 from rest_framework import status
 import pytest
-from api.models import LinkedAttribute
+from api.models import LinkedAttribute, AssetAttributeVote
 
 
 ASSET_ATTRIBUTES_ENDPOINT = 'http://127.0.0.1:8000/asset_attributes/'
@@ -107,3 +107,22 @@ class TestAssetAttributeLinkedWithAsset:
         )
 
         assert linked_attribute is not None
+
+    def test_for_asset_attribute_vote_should_be_create_when_creating_attribute(
+        self,
+        authenticated_client,
+        user_and_password,
+        example_asset,
+    ):
+        response = authenticated_client.post(
+            ASSET_ATTRIBUTES_ENDPOINT,
+            {'name': 'Test Adding Asset Attribute', 'asset': example_asset.id},
+            content_type='application/json',
+        )
+
+        asset_attribute_vote = AssetAttributeVote.objects.filter(
+            asset__id=example_asset.id, attribute__id=response.data['id']
+        )
+
+        assert response.status_code == 201
+        assert asset_attribute_vote[0].user.id == user_and_password[0].id
