@@ -4,10 +4,9 @@ from django.core import mail
 
 
 class TestCheckoutSessionWebhook:
-    def check_mail_content(self, subject, body, to):
+    def check_mail_content(self, subject, to):
         email = mail.outbox[0]
         assert email.to == to
-        assert email.body == body
         assert email.subject == subject
 
     def test_checkout_session_completed(
@@ -24,7 +23,6 @@ class TestCheckoutSessionWebhook:
         assert solution_booking.is_payment_completed is True
         self.check_mail_content(
             'Solution Booked',
-            'Solution Booking ID: {}'.format(example_solution_booking.id),
             [admin_user.email],
         )
 
@@ -42,7 +40,6 @@ class TestCheckoutSessionWebhook:
         assert solution_booking.is_payment_completed is True
         self.check_mail_content(
             'Solution Booked',
-            'Solution Booking ID: {}'.format(example_solution_booking.id),
             [admin_user.email],
         )
 
@@ -57,8 +54,5 @@ class TestCheckoutSessionWebhook:
         models.checkout_session_async_payment_failed(example_event)
         self.check_mail_content(
             'There was a problem with your order',
-            'Kindly retry order or reach out to contact@taggedweb.com Booking Reference: {}'.format(
-                example_solution_booking.id
-            ),
             [example_solution_booking.booked_by.email],
         )
