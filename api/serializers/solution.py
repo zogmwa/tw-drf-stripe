@@ -82,6 +82,7 @@ class SolutionSerializer(ModelSerializer):
             'is_published',
             'booked_count',
             'bookings_pending_fulfillment_count',
+            'consultation_scheduling_link',
         ]
         read_only_fields = [
             'pay_now_price_stripe_id',
