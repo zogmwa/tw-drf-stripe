@@ -48,7 +48,11 @@ class SolutionSerializer(ModelSerializer):
     )
 
     def _get_booked_users_count(self, instance):
-        return instance.solution_bookings.count()
+        """
+        This is more of a total bookings count than a users count because it counts all the bookings for this solution.
+        Maybe renamne this later if appropriate.
+        """
+        return instance.bookings.count()
 
     class Meta:
         model = Solution
