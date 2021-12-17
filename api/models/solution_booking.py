@@ -24,7 +24,7 @@ class SolutionBooking(models.Model):
         null=True,
         # If we delete a solution offering all bookings should not be lost
         on_delete=models.SET_NULL,
-        related_name='solution_bookings',
+        related_name='bookings',
     )
     is_payment_completed = models.BooleanField(default=False)
 
@@ -39,14 +39,14 @@ class SolutionBooking(models.Model):
     booked_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='booked_solutions',
+        related_name='solution_bookings',
     )
     manager = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='managed_solutions',
+        related_name='managed_solution_bookings',
     )
     status = models.CharField(
         max_length=15,
