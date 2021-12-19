@@ -105,11 +105,11 @@ def process() -> None:
     current_gzip_file.write(sitemap_config_str.encode())
 
     # Create software compare pages' url in sitemap
-    for chunk_softwares1 in Asset.objects.all()[:20].iterator(chunk_size=100):
+    for chunk_softwares1 in Asset.objects.all().iterator(chunk_size=100):
         chunk_softwares1_tags = set(
             chunk_softwares1.tags.values_list('slug', flat=True)
         )
-        for chunk_softwares2 in Asset.objects.all()[:20].iterator(chunk_size=100):
+        for chunk_softwares2 in Asset.objects.all().iterator(chunk_size=100):
             if chunk_softwares1.slug >= chunk_softwares2.slug:
                 continue
             chunk_softwares2_tags = set(
