@@ -18,5 +18,5 @@ class TestFetchingSolutionBooking:
         response = authenticated_client.get(SOLUTIONS_BASE_ENDPOINT)
 
         assert response.status_code == 200
-        assert response.data[0]['solution'] == example_solution.pk
-        assert response.data[0]['booked_by'] == user_and_password[0].pk
+        assert response.data[0]['solution']['id'] == example_solution.id
+        assert response.data[0]['booked_by'] == user_and_password[0].id
