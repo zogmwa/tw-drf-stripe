@@ -104,39 +104,40 @@ def send_email_to_user_and_provider_when_solution_type_is_consultation(
     sender, instance=None, **kwargs
 ):
 
-    solution = instance.solution
-    if solution.type == Solution.Type.CONSULTATION:
-        if solution.point_of_contact.email is None:
-            send_mail(
-                subject='{} needs consultation'.format(solution.title),
-                message='{} {} user needs consultation about {}'.format(
-                    instance.booked_by.first_name,
-                    instance.booked_by.last_name,
-                    solution.title,
-                ),
-                from_email='noreply@taggedweb.com',
-                recipient_list=['contact@taggedweb.com'],
-            )
-        else:
-            send_mail(
-                subject='{} needs consultation'.format(solution.title),
-                message='{} {} user needs consultation about {}'.format(
-                    instance.booked_by.first_name,
-                    instance.booked_by.last_name,
-                    solution.title,
-                ),
-                from_email='noreply@taggedweb.com',
-                recipient_list=[solution.point_of_contact.email],
-            )
+    if instance is not None:
+        solution = instance.solution
+        if solution.type == Solution.Type.CONSULTATION:
+            if solution.point_of_contact.email is None:
+                send_mail(
+                    subject='{} needs consultation'.format(solution.title),
+                    message='{} {} user needs consultation about {}'.format(
+                        instance.booked_by.first_name,
+                        instance.booked_by.last_name,
+                        solution.title,
+                    ),
+                    from_email='noreply@taggedweb.com',
+                    recipient_list=['contact@taggedweb.com'],
+                )
+            else:
+                send_mail(
+                    subject='{} needs consultation'.format(solution.title),
+                    message='{} {} user needs consultation about {}'.format(
+                        instance.booked_by.first_name,
+                        instance.booked_by.last_name,
+                        solution.title,
+                    ),
+                    from_email='noreply@taggedweb.com',
+                    recipient_list=[solution.point_of_contact.email],
+                )
 
-        send_mail(
-            subject='Your consultation has received',
-            message='Your consultation about {} has received. We will reply in shortly'.format(
-                solution.title,
-            ),
-            from_email='noreply@taggedweb.com',
-            recipient_list=[instance.booked_by.email],
-        )
+            send_mail(
+                subject='Your consultation has received',
+                message='Your consultation about {} has received. We will reply in shortly'.format(
+                    solution.title,
+                ),
+                from_email='noreply@taggedweb.com',
+                recipient_list=[instance.booked_by.email],
+            )
 
 
 # https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave

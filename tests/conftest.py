@@ -226,6 +226,16 @@ def example_featured_tag():
 
 @pytest.fixture
 def user_and_password():
+    username = 'username'
+    password = 'password'
+    user = User.objects.create(username=username)
+    user.set_password(password)
+    user.save()
+    return user, password
+
+
+@pytest.fixture
+def user_and_password_with_first_last_name():
     first_name = 'user'
     last_name = 'name'
     username = 'username'
