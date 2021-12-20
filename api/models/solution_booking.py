@@ -103,22 +103,31 @@ def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
 def send_email_to_user_and_provider_when_solution_type_is_consultation(
     sender, instance=None, **kwargs
 ):
-    if type(sender) != type(SolutionBooking):
-        return
 
     solution = instance.solution
-
-    if solution.type == 'C':
-        send_mail(
-            subject='{} needs consultation'.format(solution.title),
-            message='{} {} user needs consultation about {}'.format(
-                instance.booked_by.first_name,
-                instance.booked_by.last_name,
-                solution.title,
-            ),
-            from_email='noreply@taggedweb.com',
-            recipient_list=[solution.point_of_contact.email],
-        )
+    if solution.type == Solution.Type.CONSULTATION:
+        if solution.point_of_contact.email is None:
+            send_mail(
+                subject='{} needs consultation'.format(solution.title),
+                message='{} {} user needs consultation about {}'.format(
+                    instance.booked_by.first_name,
+                    instance.booked_by.last_name,
+                    solution.title,
+                ),
+                from_email='noreply@taggedweb.com',
+                recipient_list=['contact@taggedweb.com'],
+            )
+        else:
+            send_mail(
+                subject='{} needs consultation'.format(solution.title),
+                message='{} {} user needs consultation about {}'.format(
+                    instance.booked_by.first_name,
+                    instance.booked_by.last_name,
+                    solution.title,
+                ),
+                from_email='noreply@taggedweb.com',
+                recipient_list=[solution.point_of_contact.email],
+            )
 
         send_mail(
             subject='Your consultation has received',
