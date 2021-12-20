@@ -4,7 +4,6 @@ Allows Making sitemap.xml file from assets and solutions.
 from django.core.management.base import BaseCommand
 
 import codecs
-import datetime
 from django.core.files.storage import default_storage
 from gzip import GzipFile
 import gzip
@@ -13,13 +12,14 @@ from django.conf import settings
 from api.models.solution import Solution
 from api.models.asset import Asset
 from api.models.tag import Tag
+from api.utils.convert_str_to_date import get_now_converted_google_date
 
 
 def process() -> None:
     """
     Output sitemap urls to given sitemap.xml location.
     """
-    print(datetime.datetime.now())
+    print(get_now_converted_google_date())
     max_url_per_sitemap = (
         50000  # maximum url of each sitemap - google recommended it should be 50K.
     )
@@ -47,7 +47,9 @@ def process() -> None:
 <url><loc>https://www.taggedweb.com/</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>
 <url><loc>https://www.taggedweb.com/softwares</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>
 <url><loc>https://www.taggedweb.com/solutions</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
-        datetime.datetime.now(), datetime.datetime.now(), datetime.datetime.now()
+        get_now_converted_google_date(),
+        get_now_converted_google_date(),
+        get_now_converted_google_date(),
     )
     current_gzip_file.write(write_xml_str.encode())
     current_url_count = current_url_count + 2
@@ -56,7 +58,7 @@ def process() -> None:
     for chunk_tags in Tag.objects.values('slug').iterator(chunk_size=100):
         write_xml_str = """
 <url><loc>https://www.taggedweb.com/softwares/{}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
-            chunk_tags['slug'], datetime.datetime.now()
+            chunk_tags['slug'], get_now_converted_google_date()
         )
         current_gzip_file.write(write_xml_str.encode())
         current_url_count = current_url_count + 1
@@ -77,7 +79,8 @@ def process() -> None:
     for chunk_solutions in Solution.objects.values('slug').iterator(chunk_size=100):
         write_xml_str = """
 <url><loc>https://www.taggedweb.com/solution/{}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
-            chunk_solutions['slug'], datetime.datetime.now()
+            chunk_solutions['slug'],
+            get_now_converted_google_date(),
         )
         current_gzip_file.write(write_xml_str.encode())
         current_url_count = current_url_count + 1
@@ -123,7 +126,7 @@ def process() -> None:
 <url><loc>https://www.taggedweb.com/compare/{}-vs-{}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
                     chunk_softwares1.slug,
                     chunk_softwares2.slug,
-                    datetime.datetime.now(),
+                    get_now_converted_google_date(),
                 )
                 current_gzip_file.write(write_xml_str.encode())
                 # if current urls count is 50K we should create a new sitemap file.
@@ -154,7 +157,9 @@ def process() -> None:
     <loc>{}{}</loc>
     <lastmod>{}</lastmod>
 </sitemap>""".format(
-            settings.STATIC_URL, url, datetime.datetime.now()
+            settings.STATIC_URL,
+            url,
+            get_now_converted_google_date(),
         )
         file = default_storage.open(url, 'w')
         split_file = gzip.open('./static/{}'.format(url), 'rb')
@@ -173,7 +178,7 @@ def process() -> None:
     file.write(sitemap_index_content.encode('utf-8'))
     file.close()
 
-    print(datetime.datetime.now())
+    print(get_now_converted_google_date())
 
 
 class Command(BaseCommand):
