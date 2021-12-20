@@ -44,7 +44,9 @@ class Command(BaseCommand):
 
         scheduler.add_job(
             delete_old_job_executions,
-            trigger=CronTrigger(hour="02", minute="00"),  # Everyday 2.00 a.m.
+            trigger=CronTrigger(
+                day_of_week="mon", hour="00", minute="00"
+            ),  # Monday 0:00 a.m.
             id="delete_old_job_executions",
             max_instances=1,
             replace_existing=True,

@@ -8,7 +8,6 @@ from api.models.solution_bookmark import SolutionBookmark
 from api.models.solution_booking import SolutionBooking
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
-from api.serializers.solution_price import SolutionPriceSerializer
 from api.serializers.tag import TagSerializer
 from api.serializers.solution_question import SolutionQuestionSerializer
 
@@ -34,7 +33,6 @@ class AssetSerializerForSolution(ModelSerializer):
 
 class SolutionSerializer(ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
-    prices = SolutionPriceSerializer(required=False, many=True)
     tags = TagSerializer(read_only=True, many=True)
     primary_tag = TagSerializer(read_only=True)
     assets = AssetSerializerForSolution(read_only=True, many=True)
@@ -50,7 +48,11 @@ class SolutionSerializer(ModelSerializer):
     )
 
     def _get_booked_users_count(self, instance):
-        return instance.solution_bookings.count()
+        """
+        This is more of a total bookings count than a users count because it counts all the bookings for this solution.
+        Maybe renamne this later if appropriate.
+        """
+        return instance.bookings.count()
 
     class Meta:
         model = Solution
@@ -60,7 +62,6 @@ class SolutionSerializer(ModelSerializer):
             'stripe_product_id',
             'title',
             'type',
-            'prices',
             'pay_now_price_stripe_id',
             'pay_now_price_unit_amount',
             'description',
@@ -81,6 +82,7 @@ class SolutionSerializer(ModelSerializer):
             'is_published',
             'booked_count',
             'bookings_pending_fulfillment_count',
+            'consultation_scheduling_link',
         ]
         read_only_fields = [
             'pay_now_price_stripe_id',
@@ -133,7 +135,6 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
 
 class AuthenticatedSolutionForBookmarkSerializer(ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
-    prices = SolutionPriceSerializer(required=False, many=True)
     tags = TagSerializer(read_only=True, many=True)
     upvotes_count = serializers.IntegerField(read_only=True)
     my_solution_vote = serializers.SerializerMethodField(
@@ -160,10 +161,8 @@ class AuthenticatedSolutionForBookmarkSerializer(ModelSerializer):
             'id',
             'slug',
             'tags',
-            'prices',
             'upvotes_count',
             'organization',
             'title',
-            'prices',
             'my_solution_vote',
         ]

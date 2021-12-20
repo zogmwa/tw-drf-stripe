@@ -22,11 +22,7 @@
 server {
 
   server_name api.taggedweb.com;
-  access_log /var/log/nginx/domain-access.log;
-
-  #location /static/ {
-  #  rewrite ^/static(.*)$ http://taggedweb.s3.amazonaws.com/static redirect;
-  #}
+  access_log /var/log/nginx/api-access.log;
 
   location / {
     proxy_pass_header Server;
@@ -42,7 +38,4 @@ server {
     proxy_pass http://127.0.0.1:8001/;
   }
 
-}
-
-server {
 }

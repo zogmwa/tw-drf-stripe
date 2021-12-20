@@ -12,7 +12,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import Asset, Tag, Attribute
+from api.models import Asset, Tag, Attribute, AssetAttributeVote
 from api.models.user_asset_usage import UserAssetUsage
 from api.documents.asset import AssetDocument
 from api.serializers.asset import AssetSerializer, AuthenticatedAssetSerializer
@@ -252,6 +252,17 @@ class AssetViewSet(viewsets.ModelViewSet):
             asset = Asset.objects.get(slug=kwargs['slug'])
             asset.attributes.add(attribute)
             asset.save()
+            try:
+                asset_attribute_vote = AssetAttributeVote.objects.get(
+                    asset=asset, attribute=attribute, user=self.request.user
+                )
+            except:
+                asset_attribute_vote = None
+            if asset_attribute_vote is None:
+                asset_attribute_vote = AssetAttributeVote.objects.create(
+                    asset=asset, attribute=attribute, user=self.request.user
+                )
+                asset_attribute_vote.save()
             serializer_context = {'request': request, 'asset_id': asset.id}
             attribute_serializer = AuthenticatedAssetAttributeSerializer(
                 attribute, context=serializer_context
