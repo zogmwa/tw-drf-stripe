@@ -81,6 +81,7 @@ class SolutionSerializer(ModelSerializer):
             'reviews_count',
             'is_published',
             'booked_count',
+            'is_searchable',
             'bookings_pending_fulfillment_count',
             'consultation_scheduling_link',
         ]
