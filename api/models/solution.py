@@ -114,6 +114,8 @@ class Solution(models.Model):
 
     upvotes_count = models.IntegerField(default=0)
 
+    is_searchable = models.BooleanField(default=True)
+
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
 
