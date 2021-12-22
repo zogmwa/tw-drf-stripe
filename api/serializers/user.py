@@ -21,7 +21,6 @@ class UserSerializer(ModelSerializer):
         child=serializers.IntegerField(min_value=0), read_only=True
     )
     social_accounts = serializers.ListField(read_only=True)
-    solution_bookings = SolutionBookingSerializer(many=True, read_only=True)
     bookmarked_solutions = serializers.SerializerMethodField(
         method_name='_get_bookmarked_solutions'
     )
@@ -66,7 +65,6 @@ class UserSerializer(ModelSerializer):
             'owned_assets',
             'pending_asset_ids',
             'social_accounts',
-            'solution_bookings',
             'bookmarked_solutions',
             'solution_bookings',
         ]
