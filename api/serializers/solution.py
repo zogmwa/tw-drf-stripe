@@ -8,6 +8,7 @@ from api.models.solution_bookmark import SolutionBookmark
 from api.models.solution_booking import SolutionBooking
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
+from api.serializers.solution_booking import SolutionBookingSerializer
 from api.serializers.tag import TagSerializer
 from api.serializers.solution_question import SolutionQuestionSerializer
 
@@ -98,9 +99,20 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
         method_name="_get_my_solution_bookmark"
     )
 
+    last_solution_booking = serializers.SerializerMethodField()
+
+    def get_last_solution_booking(self, obj):
+        try:
+            queryset = SolutionBooking.objects.filter(
+                booked_by_id=self.context['request'].user.pk,
+                solution_id=obj.id,
+            ).order_by('-updated')[:1]
+            return SolutionBookingSerializer(queryset, many=True).data
+        except ():
+            return None
+
     def _get_my_solution_vote(self, instance):
         logged_in_user = self.context['request'].user
-
         if not logged_in_user:
             return None
 
@@ -130,6 +142,7 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
         fields = SolutionSerializer.Meta.fields + [
             'my_solution_vote',
             'my_solution_bookmark',
+            'last_solution_booking',
         ]
 
 
