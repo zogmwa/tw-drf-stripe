@@ -25,8 +25,8 @@ class UserSerializer(ModelSerializer):
     bookmarked_solutions = serializers.SerializerMethodField(
         method_name='_get_bookmarked_solutions'
     )
-    booked_solutions = serializers.SerializerMethodField(
-        method_name='_get_booked_solutions'
+    solution_bookings = serializers.SerializerMethodField(
+        method_name='_get_solution_bookings'
     )
 
     def _get_bookmarked_solutions(self, instance):
@@ -38,7 +38,7 @@ class UserSerializer(ModelSerializer):
 
         return bookmarked_solutions_serializer.data
 
-    def _get_booked_solutions(self, instance):
+    def _get_solution_bookings(self, instance):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return None
@@ -68,7 +68,7 @@ class UserSerializer(ModelSerializer):
             'social_accounts',
             'solution_bookings',
             'bookmarked_solutions',
-            'booked_solutions',
+            'solution_bookings',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'
