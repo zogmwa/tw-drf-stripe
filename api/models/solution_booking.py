@@ -59,6 +59,11 @@ class SolutionBooking(models.Model):
     # Notes from the solution provider as the solution booking progresses along that will be visible to the customer
     provider_notes = models.TextField(null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['booked_by'], name='booked_by_index'),
+        ]
+
 
 @receiver(pre_save, sender=SolutionBooking)
 def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
