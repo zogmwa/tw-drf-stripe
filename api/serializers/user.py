@@ -2,10 +2,7 @@ from email.headerregistry import Group
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from api.serializers.asset import AssetSerializer
-from api.serializers.solution_booking import (
-    SolutionBookingSerializer,
-    AuthenticatedSolutionBookingSerializer,
-)
+from api.serializers.solution_booking import AuthenticatedSolutionBookingSerializer
 from api.serializers.solution_bookmark import SolutionBookmarkSerializerForUserProfile
 from .organization import OrganizationSerializer
 from api.models.solution_booking import SolutionBooking
@@ -24,9 +21,7 @@ class UserSerializer(ModelSerializer):
     bookmarked_solutions = serializers.SerializerMethodField(
         method_name='_get_bookmarked_solutions'
     )
-    solution_bookings = serializers.SerializerMethodField(
-        method_name='_get_solution_bookings'
-    )
+    contracts = serializers.SerializerMethodField(method_name='_get_contracts')
 
     def _get_bookmarked_solutions(self, instance):
         request = self.context.get('request')
@@ -37,7 +32,7 @@ class UserSerializer(ModelSerializer):
 
         return bookmarked_solutions_serializer.data
 
-    def _get_solution_bookings(self, instance):
+    def _get_contracts(self, instance):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return None
@@ -66,7 +61,7 @@ class UserSerializer(ModelSerializer):
             'pending_asset_ids',
             'social_accounts',
             'bookmarked_solutions',
-            'solution_bookings',
+            'contracts',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'
