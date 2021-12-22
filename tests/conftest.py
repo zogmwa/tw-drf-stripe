@@ -76,6 +76,18 @@ def example_solution(admin_user):
 
 
 @pytest.fixture
+def example_consultation_solution(admin_user):
+    return Solution.objects.create(
+        slug='test-solution',
+        title='Test Solution',
+        type=Solution.Type.CONSULTATION,
+        description='bla bla bla',
+        scope_of_work='bla bla bla',
+        point_of_contact=admin_user,
+    )
+
+
+@pytest.fixture
 def example_solution_booking(example_solution, admin_user):
     return SolutionBooking.objects.create(
         booked_by_id=admin_user.id,
@@ -238,6 +250,20 @@ def user_and_password():
     username = 'username'
     password = 'password'
     user = User.objects.create(username=username)
+    user.set_password(password)
+    user.save()
+    return user, password
+
+
+@pytest.fixture
+def user_and_password_with_first_last_name():
+    first_name = 'user'
+    last_name = 'name'
+    username = 'username'
+    password = 'password'
+    user = User.objects.create(
+        username=username, first_name=first_name, last_name=last_name
+    )
     user.set_password(password)
     user.save()
     return user, password

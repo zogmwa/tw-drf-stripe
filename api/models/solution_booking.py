@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.db import models
+from django.core.mail import send_mail
 
 from django.db.models import F
 from api.models import Solution
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.core.signals import request_finished
 
@@ -103,8 +104,54 @@ def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
         )
 
 
+@receiver(post_save, sender=SolutionBooking)
+def send_email_to_user_and_provider_when_solution_type_is_consultation(
+    sender, instance=None, created=False, **kwargs
+):
+
+    if created:
+        solution = instance.solution
+        if solution.type == Solution.Type.CONSULTATION:
+            if solution.point_of_contact.email is None:
+                send_mail(
+                    subject='{} needs consultation'.format(solution.title),
+                    message='{} {} user needs consultation about {}'.format(
+                        instance.booked_by.first_name,
+                        instance.booked_by.last_name,
+                        solution.title,
+                    ),
+                    from_email='noreply@taggedweb.com',
+                    recipient_list=['contact@taggedweb.com'],
+                )
+            else:
+                send_mail(
+                    subject='{} needs consultation'.format(solution.title),
+                    message='{} {} user needs consultation about {}'.format(
+                        instance.booked_by.first_name,
+                        instance.booked_by.last_name,
+                        solution.title,
+                    ),
+                    from_email='noreply@taggedweb.com',
+                    recipient_list=[solution.point_of_contact.email],
+                )
+
+            send_mail(
+                subject='Your consultation has received',
+                message='Your consultation about {} has received. We will reply in shortly'.format(
+                    solution.title,
+                ),
+                from_email='noreply@taggedweb.com',
+                recipient_list=[instance.booked_by.email],
+            )
+
+
 # https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave
 request_finished.connect(
     count_update_for_new_or_complete_booking,
     dispatch_uid="count_update_for_new_or_complete_booking",
+)
+
+request_finished.connect(
+    send_email_to_user_and_provider_when_solution_type_is_consultation,
+    dispatch_uid="send_email_to_user_and_provider_when_solution_type_is_consultation",
 )
