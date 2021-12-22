@@ -27,13 +27,13 @@ class TestCheckoutSessionWebhook:
             stripe_session_id=example_event['data']['object']['id'],
         )
         assert solution_booking.is_payment_completed is True
-        SOLUTION_URL = (
-            'https://taggedweb.com/solutions/' + solution_booking.solution.slug
+        SOLUTION_URL = 'https://taggedweb.com/solutions/{}'.format(
+            example_solution_booking.solution.slug
         )
         self.check_mail_content(
             'Solution Booked',
             [admin_user.email],
-            'Solution Booking ID: {}, to view the solution for which booking was done please click on this link:{}'.format(
+            'Solution Booking ID: {}. Here is the link to the solution that you attempted booking: {}'.format(
                 solution_booking.id, SOLUTION_URL
             ),
         )
@@ -50,14 +50,14 @@ class TestCheckoutSessionWebhook:
             stripe_session_id=example_event['data']['object']['id'],
         )
         assert solution_booking.is_payment_completed is True
-        SOLUTION_URL = (
-            'https://taggedweb.com/solutions/' + solution_booking.solution.slug
+        SOLUTION_URL = 'https://taggedweb.com/solutions/{}'.format(
+            example_solution_booking.solution.slug
         )
 
         self.check_mail_content(
             'Solution Booked',
             [admin_user.email],
-            'Solution Booking ID: {}, to view the solution for which booking was done please click on this link:{}'.format(
+            'Solution Booking ID: {}. Here is the link to the solution that you attempted booking: {}'.format(
                 solution_booking.id, SOLUTION_URL
             ),
         )
@@ -71,13 +71,13 @@ class TestCheckoutSessionWebhook:
         ]
         example_solution_booking.save()
         models.checkout_session_async_payment_failed(example_event)
-        SOLUTION_URL = (
-            'https://taggedweb.com/solutions/' + example_solution_booking.solution.slug
+        SOLUTION_URL = 'https://taggedweb.com/solutions/{}'.format(
+            example_solution_booking.solution.slug
         )
         self.check_mail_content(
             'There was a problem with your order',
             [example_solution_booking.booked_by.email],
-            'Kindly retry order or reach out to contact@taggedweb.com Booking Reference: {}, to view the solution for which booking was done please click on this link:{}'.format(
+            'Kindly retry order or reach out to contact@taggedweb.com Booking Reference: {}. Here is the link to the solution that you attempted booking: {}'.format(
                 example_solution_booking.id, SOLUTION_URL
             ),
         )
