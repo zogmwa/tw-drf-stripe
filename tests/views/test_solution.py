@@ -1,3 +1,5 @@
+import time
+
 from api.models import Solution
 from api.models.solution_booking import SolutionBooking
 
@@ -229,6 +231,52 @@ class TestFetchingSolution:
         assert response.status_code == 200
         assert response.data['count'] == 1
         assert response.data['results'][0]['title'] == example_solution.title
+
+
+class TestSolutionDetailSolutionBooking:
+    def test_more_than_1_solution_booking_is_done_by_user_last_solution_booking_should_be_shown(
+        self,
+        example_solution,
+        example_solution_booking,
+        example_solution_booking2,
+        admin_client,
+    ):
+        example_solution_booking2.provider_notes = '2nd solution_booking'
+        example_solution_booking2.save()
+
+        solution_detail_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = admin_client.get(solution_detail_url)
+        assert len(response.data['last_solution_booking']) == 1
+        assert (
+            response.data['last_solution_booking'][0]['provider_notes']
+            == example_solution_booking2.provider_notes
+        )
+
+        '''
+        The reason to update this field is to change the update time of the 1st solution booking. This is to check that 
+        the solution_booking instance which was updated last should be shown in the last_solution_booking on a solution detail page
+        '''
+        example_solution_booking = SolutionBooking.objects.get(
+            id=example_solution_booking.id
+        )
+        example_solution_booking.provider_notes = '1st solution_booking'
+        example_solution_booking.save()
+        response = admin_client.get(solution_detail_url)
+        assert (
+            response.data['last_solution_booking'][0]['provider_notes']
+            == example_solution_booking.provider_notes
+        )
+
+    def test_if_no_solution_booking_is_done_by_user_last_solution_booking_should_be_empty(
+        self, example_solution, admin_client
+    ):
+        solution_detail_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = admin_client.get(solution_detail_url)
+        assert len(response.data['last_solution_booking']) == 0
 
 
 class TestSolutionCreateWithStripeProduct:
