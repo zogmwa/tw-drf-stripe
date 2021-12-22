@@ -106,10 +106,10 @@ def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
 
 @receiver(post_save, sender=SolutionBooking)
 def send_email_to_user_and_provider_when_solution_type_is_consultation(
-    sender, instance=None, **kwargs
+    sender, instance=None, created=False, **kwargs
 ):
 
-    if kwargs.get('created'):
+    if created:
         solution = instance.solution
         if solution.type == Solution.Type.CONSULTATION:
             if solution.point_of_contact.email is None:
