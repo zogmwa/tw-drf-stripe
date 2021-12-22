@@ -109,7 +109,7 @@ def send_email_to_user_and_provider_when_solution_type_is_consultation(
     sender, instance=None, **kwargs
 ):
 
-    if instance is not None:
+    if kwargs.get('created'):
         solution = instance.solution
         if solution.type == Solution.Type.CONSULTATION:
             if solution.point_of_contact.email is None:
