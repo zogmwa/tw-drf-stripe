@@ -2,7 +2,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
 
 from api.models.solution_booking import SolutionBooking
-from api.serializers.solution_booking import SolutionBookingSerializer
+from api.serializers.solution_booking import (
+    SolutionBookingSerializer,
+    AuthenticatedSolutionBookingSerializer,
+)
 
 
 class SolutionBookingViewSet(viewsets.ModelViewSet):
@@ -15,4 +18,22 @@ class SolutionBookingViewSet(viewsets.ModelViewSet):
         'updated': ['gte', 'lte'],
         'status': ['exact'],
     }
-    serializer_class = SolutionBookingSerializer
+
+    def get_serializer_class(self):
+        if self.request.user.is_anonymous:
+            return SolutionBookingSerializer
+        else:
+            return AuthenticatedSolutionBookingSerializer
+
+    def get_queryset(self):
+        if self.action == 'list':
+            if self.request.user.is_anonymous:
+                solution_booking_queryset = SolutionBooking.objects.all()
+
+                return solution_booking_queryset
+            else:
+                solution_booking_queryset = SolutionBooking.objects.filter(
+                    booked_by=self.request.user
+                )
+
+                return solution_booking_queryset

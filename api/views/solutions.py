@@ -67,7 +67,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
         """
         es_query = MultiMatch(query=search_query, fields=['title', 'tags.slug'])
         es_search = SolutionDocument.search().query(es_query)
-        solutions_db_queryset = es_search.to_queryset()
+        solutions_db_queryset = es_search.to_queryset().filter(is_searchable=True)
 
         return solutions_db_queryset
 

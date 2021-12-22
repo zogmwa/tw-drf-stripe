@@ -4,11 +4,16 @@ from django.core import mail
 
 
 class TestCheckoutSessionWebhook:
-    def check_mail_content(self, subject, body, to):
+    SOLUTION_BASE_ENDPOINT = 'https://taggedweb.com/solutions/'
+    SOLUTION_DETAIL_MSG = ', to view the solution for which booking was done please click on this link:{}'.format(
+        SOLUTION_BASE_ENDPOINT
+    )
+
+    def check_mail_content(self, subject, to, body):
         email = mail.outbox[0]
         assert email.to == to
-        assert email.body == body
         assert email.subject == subject
+        assert email.body == body
 
     def test_checkout_session_completed(
         self, example_solution_booking, example_event, admin_user
@@ -22,10 +27,15 @@ class TestCheckoutSessionWebhook:
             stripe_session_id=example_event['data']['object']['id'],
         )
         assert solution_booking.is_payment_completed is True
+        SOLUTION_URL = 'https://taggedweb.com/solutions/{}'.format(
+            example_solution_booking.solution.slug
+        )
         self.check_mail_content(
             'Solution Booked',
-            'Solution Booking ID: {}'.format(example_solution_booking.id),
             [admin_user.email],
+            'Solution Booking ID: {}. Here is the link to the solution that you attempted booking: {}'.format(
+                solution_booking.id, SOLUTION_URL
+            ),
         )
 
     def test_checkout_session_async_payment_succeed(
@@ -40,10 +50,16 @@ class TestCheckoutSessionWebhook:
             stripe_session_id=example_event['data']['object']['id'],
         )
         assert solution_booking.is_payment_completed is True
+        SOLUTION_URL = 'https://taggedweb.com/solutions/{}'.format(
+            example_solution_booking.solution.slug
+        )
+
         self.check_mail_content(
             'Solution Booked',
-            'Solution Booking ID: {}'.format(example_solution_booking.id),
             [admin_user.email],
+            'Solution Booking ID: {}. Here is the link to the solution that you attempted booking: {}'.format(
+                solution_booking.id, SOLUTION_URL
+            ),
         )
 
     def test_checkout_session_async_payment_failed(
@@ -55,10 +71,13 @@ class TestCheckoutSessionWebhook:
         ]
         example_solution_booking.save()
         models.checkout_session_async_payment_failed(example_event)
+        SOLUTION_URL = 'https://taggedweb.com/solutions/{}'.format(
+            example_solution_booking.solution.slug
+        )
         self.check_mail_content(
             'There was a problem with your order',
-            'Kindly retry order or reach out to contact@taggedweb.com Booking Reference: {}'.format(
-                example_solution_booking.id
-            ),
             [example_solution_booking.booked_by.email],
+            'Kindly retry order or reach out to contact@taggedweb.com Booking Reference: {}. Here is the link to the solution that you attempted booking: {}'.format(
+                example_solution_booking.id, SOLUTION_URL
+            ),
         )

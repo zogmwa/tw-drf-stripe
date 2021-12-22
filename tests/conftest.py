@@ -80,6 +80,15 @@ def example_solution_booking(example_solution, admin_user):
     return SolutionBooking.objects.create(
         booked_by_id=admin_user.id,
         solution=example_solution,
+        provider_notes='first solution booking',
+    )
+
+
+@pytest.fixture
+def example_solution_booking2(example_solution, admin_user):
+    return SolutionBooking.objects.create(
+        booked_by_id=admin_user.id,
+        solution=example_solution,
     )
 
 

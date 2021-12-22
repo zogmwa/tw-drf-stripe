@@ -2,9 +2,10 @@ from email.headerregistry import Group
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from api.serializers.asset import AssetSerializer
-from api.serializers.solution_booking import SolutionBookingSerializer
+from api.serializers.solution_booking import AuthenticatedSolutionBookingSerializer
 from api.serializers.solution_bookmark import SolutionBookmarkSerializerForUserProfile
 from .organization import OrganizationSerializer
+from api.models.solution_booking import SolutionBooking
 from api.models import User, Organization
 
 
@@ -17,10 +18,10 @@ class UserSerializer(ModelSerializer):
         child=serializers.IntegerField(min_value=0), read_only=True
     )
     social_accounts = serializers.ListField(read_only=True)
-    solution_bookings = SolutionBookingSerializer(many=True, read_only=True)
     bookmarked_solutions = serializers.SerializerMethodField(
         method_name='_get_bookmarked_solutions'
     )
+    contracts = serializers.SerializerMethodField(method_name='_get_contracts')
 
     def _get_bookmarked_solutions(self, instance):
         request = self.context.get('request')
@@ -30,6 +31,20 @@ class UserSerializer(ModelSerializer):
         )
 
         return bookmarked_solutions_serializer.data
+
+    def _get_contracts(self, instance):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return None
+        else:
+            solution_booking_queryset = SolutionBooking.objects.filter(
+                booked_by=request.user
+            )
+            solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+                solution_booking_queryset, many=True
+            )
+
+            return solution_booking_serializer.data
 
     class Meta:
         model = User
@@ -45,8 +60,8 @@ class UserSerializer(ModelSerializer):
             'owned_assets',
             'pending_asset_ids',
             'social_accounts',
-            'solution_bookings',
             'bookmarked_solutions',
+            'contracts',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'
