@@ -204,6 +204,34 @@ class TestFetchingSolution:
             == user_and_password[0].username
         )
 
+    def test_user_should_not_be_able_to_fetch_solution_that_its_is_searchable_is_false(
+        self, unauthenticated_client, example_solution, mocker
+    ):
+        Solution.objects.create(
+            slug='test-solution2',
+            title='Test Solution2',
+            type='I',
+            description='bla bla bla',
+            scope_of_work='bla bla bla',
+            is_searchable=False,
+        )
+
+        mocker.patch.object(
+            SolutionViewSet,
+            '_get_solutions_db_qs_via_elasticsearch_query',
+            return_value=Solution.objects.filter(is_searchable=True),
+        )
+
+        solution_list_url = '{}?q={}'.format(
+            SOLUTIONS_BASE_ENDPOINT,
+            'Test',
+        )
+        response = unauthenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['count'] == 1
+        assert response.data['results'][0]['title'] == example_solution.title
+
 
 class TestSolutionDetailSolutionBooking:
     def test_more_than_1_solution_booking_is_done_by_user_last_solution_booking_should_be_shown(
