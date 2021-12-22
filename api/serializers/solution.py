@@ -5,7 +5,6 @@ from api.models.user import User
 from api.models.solution import Solution
 from api.models.solution_vote import SolutionVote
 from api.models.solution_bookmark import SolutionBookmark
-from api.models.solution_booking import SolutionBooking
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.tag import TagSerializer
