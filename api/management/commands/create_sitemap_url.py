@@ -154,10 +154,9 @@ def process() -> None:
     for url in sitemap_index_url:
         sitemap_index_content += """
 <sitemap>
-    <loc>{}{}</loc>
+    <loc>https://www.taggedweb.com/{}</loc>
     <lastmod>{}</lastmod>
 </sitemap>""".format(
-            settings.STATIC_URL,
             url,
             get_now_converted_google_date(),
         )
