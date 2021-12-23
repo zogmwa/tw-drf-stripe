@@ -23,7 +23,7 @@ class CreateStripeCheckoutSession(APIView):
     Example:
 
         curl -H "Authorization: <Token/Bearer> <replace_with_token>" -H 'Content-Type: application/json' -X POST \
-         http://localhost:8000/solution-price-checkout/<stripe_price_id>
+         http://localhost:8000/solution-price-checkout/<pay_now_stripe_price_id>
 
     Later on we may want to move this under solution_prices API endpoint (if we want to add that). As of date of
     this comment I don't expect too many prices for a given solution.
@@ -39,7 +39,9 @@ class CreateStripeCheckoutSession(APIView):
         the frontend to pass the stripe_price_id instead.
         """
         stripe_price_id = kwargs['pay_now_stripe_price_id']
-        solution = Solution.objects.get(pay_now_price__id=stripe_price_id)
+        solution = Solution.objects.select_related('pay_now_price').get(
+            pay_now_price__id=stripe_price_id
+        )
         pay_now_price = solution.pay_now_price
         active_site_obj = Site.objects.get(id=settings.SITE_ID)
         active_site = 'https://{}'.format(active_site_obj.domain)
