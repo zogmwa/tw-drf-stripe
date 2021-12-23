@@ -66,12 +66,16 @@ class CreateStripeCheckoutSession(APIView):
         # This endpoint just returns the checkout url, the frontend should do the redirect
         response_data = {'checkout_page_url': checkout_session.url}
 
+        # Convert cents to dollars
+        # TODO: This may need a change when we move to non USD payments
+        pay_now_price_dollars = pay_now_price.unit_amount / 100
+
         SolutionBooking.objects.create(
             booked_by=request.user,
             solution=solution,
             status=SolutionBooking.Status.PENDING,
             is_payment_completed=False,
-            price_at_booking=pay_now_price.unit_amount,
+            price_at_booking=pay_now_price_dollars,
             stripe_session_id=checkout_session.id,
         )
 
