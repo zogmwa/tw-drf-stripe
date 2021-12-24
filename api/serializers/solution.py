@@ -12,10 +12,9 @@ from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_booking import SolutionBookingSerializer
 from api.serializers.tag import TagSerializer
 from api.serializers.solution_question import SolutionQuestionSerializer
-from api.serializers.solution_review import SolutionReviewSerializer
 
 
-class UserSerializerForSolutionContact(ModelSerializer):
+class UserContactSerializerForSolution(ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
@@ -41,11 +40,10 @@ class SolutionSerializer(ModelSerializer):
     assets = AssetSerializerForSolution(read_only=True, many=True)
     upvotes_count = serializers.IntegerField(read_only=True)
     questions = SolutionQuestionSerializer(read_only=True, many=True)
-    point_of_contact = UserSerializerForSolutionContact(read_only=True)
+    point_of_contact = UserContactSerializerForSolution(read_only=True)
     sad_count = serializers.IntegerField(read_only=True)
     neutral_count = serializers.IntegerField(read_only=True)
     happy_count = serializers.IntegerField(read_only=True)
-    reivews = serializers.SerializerMethodField(method_name='_get_reviews')
     booked_count = serializers.SerializerMethodField(
         method_name="_get_booked_users_count"
     )
@@ -75,7 +73,6 @@ class SolutionSerializer(ModelSerializer):
             'upvotes_count',
             'sad_count',
             'neutral_count',
-            'reivews',
             'happy_count',
             'is_published',
             'booked_count',
@@ -94,11 +91,6 @@ class SolutionSerializer(ModelSerializer):
         Maybe renamne this later if appropriate.
         """
         return instance.bookings.count()
-
-    def _get_reviews(self, instance):
-        solution_reviews = SolutionReviewSerializer(instance.reviews, many=True)
-
-        return solution_reviews.data
 
 
 class AuthenticatedSolutionSerializer(SolutionSerializer):
@@ -152,6 +144,9 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
             return None
 
     def _get_my_solution_review(self, instance):
+        """
+        Return solution review type of authenticated user
+        """
         logged_in_user = self.context['request'].user
 
         if not logged_in_user:
