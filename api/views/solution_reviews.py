@@ -8,7 +8,7 @@ from api.serializers.solution_review import SolutionReviewSerializer
 
 class SolutionReviewViewSet(viewsets.ModelViewSet):
     queryset = SolutionReview.objects.filter()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = SolutionReviewSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
@@ -18,7 +18,7 @@ class SolutionReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == 'list':
-            reviews = SolutionReview.objects.filter(user=self.request.user)
+            reviews = SolutionReview.objects.all()
             return reviews
         elif self.action == 'retrieve' or self.action == 'destroy':
             solution_reivew_id = self.kwargs['pk']
