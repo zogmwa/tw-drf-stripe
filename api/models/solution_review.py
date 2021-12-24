@@ -44,38 +44,40 @@ class SolutionReview(models.Model):
 
 
 def decrease_status_count_of_solution(solution_review):
+    """
+    Decreasing solution's status count of solution revivew instance
+    """
+    solution_id = solution_review.solution_id
     if solution_review.type == SolutionReview.Type.SAD:
-        Solution.objects.filter(id=solution_review.solution_id).update(
-            sad_count=F('sad_count') - 1
-        )
+        Solution.objects.filter(id=solution_id).update(sad_count=F('sad_count') - 1)
     elif solution_review.type == SolutionReview.Type.NEUTRAL:
-        Solution.objects.filter(id=solution_review.solution_id).update(
+        Solution.objects.filter(id=solution_id).update(
             neutral_count=F('neutral_count') - 1
         )
     elif solution_review.type == SolutionReview.Type.HAPPY:
-        Solution.objects.filter(id=solution_review.solution_id).update(
-            happy_count=F('happy_count') - 1
-        )
+        Solution.objects.filter(id=solution_id).update(happy_count=F('happy_count') - 1)
 
 
 def increase_status_count_of_solution(solution_review):
+    """
+    Increasing solution's status count of solution revivew instance
+    """
+    solution_id = solution_review.solution_id
     if solution_review.type == SolutionReview.Type.SAD:
-        Solution.objects.filter(id=solution_review.solution_id).update(
-            sad_count=F('sad_count') + 1
-        )
+        Solution.objects.filter(id=solution_id).update(sad_count=F('sad_count') + 1)
     elif solution_review.type == SolutionReview.Type.NEUTRAL:
-        Solution.objects.filter(id=solution_review.solution_id).update(
+        Solution.objects.filter(id=solution_id).update(
             neutral_count=F('neutral_count') + 1
         )
     elif solution_review.type == SolutionReview.Type.HAPPY:
-        Solution.objects.filter(id=solution_review.solution_id).update(
-            happy_count=F('happy_count') + 1
-        )
+        Solution.objects.filter(id=solution_id).update(happy_count=F('happy_count') + 1)
 
 
 @receiver(pre_save, sender=SolutionReview)
 def status_count_update_for_solution_review(sender, instance=None, **kwargs):
-
+    """
+    When a new solution review is added, the status count of solution is recalculated and updated.
+    """
     if type(sender) != type(SolutionReview):
         return
 
@@ -87,8 +89,9 @@ def status_count_update_for_solution_review(sender, instance=None, **kwargs):
             # When a old solution review is being updated.
             if instance.type != old_instance.type:
                 """
-                If instance type is same different between old instance type, delete old instance and add new instance
-                Decrease old status type count in solution and increase new status type count in solution.
+                If new solution review type is different from old one,
+                then old status type count should be decreased
+                and new status type count should be increased in solution.
                 """
                 decrease_status_count_of_solution(old_instance)
                 increase_status_count_of_solution(instance)
@@ -97,7 +100,7 @@ def status_count_update_for_solution_review(sender, instance=None, **kwargs):
             increase_status_count_of_solution(instance)
 
     except sender.DoesNotExist:
-        # New review is being added
+        # New solution review is being added
         increase_status_count_of_solution(instance)
 
 
