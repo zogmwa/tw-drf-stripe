@@ -8,6 +8,8 @@ from django.dispatch import receiver
 from api.models.organization import Organization
 from api.models.tag import Tag
 
+from django.db.models.signals import post_save
+
 
 class Solution(models.Model):
     """
@@ -127,19 +129,19 @@ class Solution(models.Model):
         verbose_name_plural = 'Solutions'
 
 
-@receiver(pre_save, sender=Solution)
-def update_stripe_product_from_solution_title(sender, instance=None, **kwargs):
-    """
-    Update the name and caption of the Stripe Product from the Solution Product
-    """
-    # instance_old = sender.objects.get(pk=instance.pk)
-    if instance.stripe_product:
-        instance.title = instance.stripe_product.name
-
-        if instance.stripe_product.prices.all().count() == 1:
-            # If the Stripe product already has exactly one price we will assume that it's the pay now price for now.
-            instance.pay_now_price = instance.stripe_product.prices.first()
-
-    # If the stripe product does not exist we don't want to attempt automatically creating it for now. That will lead
-    # to a two way sync and complicate things a little. Right now we are assuming Stripe is the primary source of truth
-    # and using that to populate our fields. So stripe product should be manually created for now.
+# @receiver(pre_save, sender=Solution)
+# def update_stripe_product_from_solution_title(sender, instance=None, **kwargs):
+#     """
+#     Update the name and caption of the Stripe Product from the Solution Product
+#     """
+#     # instance_old = sender.objects.get(pk=instance.pk)
+#     if instance.stripe_product:
+#         instance.title = instance.stripe_product.name
+#
+#         if instance.stripe_product.prices.all().count() == 1:
+#             # If the Stripe product already has exactly one price we will assume that it's the pay now price for now.
+#             instance.pay_now_price = instance.stripe_product.prices.first()
+#
+#     # If the stripe product does not exist we don't want to attempt automatically creating it for now. That will lead
+#     # to a two way sync and complicate things a little. Right now we are assuming Stripe is the primary source of truth
+#     # and using that to populate our fields. So stripe product should be manually created for now.

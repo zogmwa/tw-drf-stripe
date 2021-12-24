@@ -1,5 +1,6 @@
 import pytest, stripe, collections
 from django.conf import settings
+from djstripe.models import Product, Price
 from django.test import Client
 from api.models.solution_booking import SolutionBooking
 from api.models import (
@@ -27,6 +28,10 @@ def patch_elasticsearch(mocker):
     # in the tests. Later on figure out how to patch this in a better way with some data so that we can still have a
     # mock index that can be used for testing search flows.
     mocker.patch('elasticsearch.Transport.perform_request')
+
+
+# @pytest.fixture
+# def example_stripe_product():
 
 
 @pytest.fixture

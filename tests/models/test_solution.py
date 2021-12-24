@@ -1,8 +1,11 @@
+import pytest
+
 from api.models import Solution
 from djstripe.models import Product as StripeProduct
 
 
 class TestSolutionCreateWithStripeProduct:
+    @pytest.mark.skip(reason="syncing style is changed, no need for this test now")
     def test_if_solution_title_and_description_are_used_from_underlying_stripe_product(
         self, admin_user
     ):
