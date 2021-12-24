@@ -30,8 +30,22 @@ def patch_elasticsearch(mocker):
     mocker.patch('elasticsearch.Transport.perform_request')
 
 
-# @pytest.fixture
-# def example_stripe_product():
+@pytest.fixture
+def example_stripe_product():
+    return Product.objects.create(
+        name='test stripe product', description='description for stripe product'
+    )
+
+
+@pytest.fixture
+def example_stripe_price(example_stripe_product):
+    return Price.objects.create(
+        currency='usd',
+        product_id=example_stripe_product.id,
+        unit_amount=20000,
+        unit_amount_decimal=20000.000000000000,
+        active=True,
+    )
 
 
 @pytest.fixture
