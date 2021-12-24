@@ -9,11 +9,7 @@ class SolutionSerializerForSolutionReview(serializers.ModelSerializer):
         model = Solution
         fields = [
             'id',
-            'title',
             'slug',
-            'sad_count',
-            'neutral_count',
-            'happy_count',
         ]
 
 
