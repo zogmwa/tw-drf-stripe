@@ -27,22 +27,20 @@ class SolutionReviewViewSet(viewsets.ModelViewSet):
                 solution_review = SolutionReview.objects.get(
                     user=user,
                     solution=solution,
-                    type=review_type,
                 )
-            except SolutionReview.DoesNotExist:
-                try:
-                    solution_review = SolutionReview.objects.get(
-                        user=user,
-                        solution=solution,
-                    )
+
+                if solution_review.type == review_type:
+                    solution_review.delete()
+                    return Response(status=status.HTTP_200_OK)
+                else:
                     solution_review.type = review_type
                     solution_review.save()
-                except SolutionReview.DoesNotExist:
-                    solution_review = SolutionReview.objects.create(
-                        user=user,
-                        solution=solution,
-                        type=review_type,
-                    )
+            except SolutionReview.DoesNotExist:
+                solution_review = SolutionReview.objects.create(
+                    user=user,
+                    solution=solution,
+                    type=review_type,
+                )
 
             solution_review_serializer = SolutionReviewSerializer(solution_review)
 
