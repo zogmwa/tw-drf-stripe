@@ -162,7 +162,7 @@ urlpatterns = [
     # Payments
     path('stripe/', include('djstripe.urls', namespace='djstripe')),
     path(
-        'solution-price-checkout/<str:solution_price_id>',
+        'solution-price-checkout/<str:pay_now_stripe_price_id>',
         CreateStripeCheckoutSession.as_view(),
         name='create_stripe_checkout_session',
     ),

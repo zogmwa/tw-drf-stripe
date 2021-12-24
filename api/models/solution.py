@@ -15,7 +15,7 @@ class Solution(models.Model):
     related to one or more web service(s), which is provided by a specific organization or a user.
     """
 
-    slug = models.SlugField(null=True, unique=True)
+    slug = models.SlugField(null=True, unique=True, max_length=200)
 
     # Every solution will have a corresponding product offering on Stripe
     stripe_product = models.OneToOneField(
