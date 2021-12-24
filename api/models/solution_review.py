@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.db.models import UniqueConstraint, F
-from django.db.models.signals import pre_save, post_save, post_delete
+from django.db.models.signals import pre_save, post_delete
 from django.dispatch import receiver
 from django.core.signals import request_finished
 
@@ -48,11 +48,11 @@ def decrease_status_count_of_solution(solution_review):
         Solution.objects.filter(id=solution_review.solution_id).update(
             sad_count=F('sad_count') - 1
         )
-    if solution_review.type == SolutionReview.Type.NEUTRAL:
+    elif solution_review.type == SolutionReview.Type.NEUTRAL:
         Solution.objects.filter(id=solution_review.solution_id).update(
             neutral_count=F('neutral_count') - 1
         )
-    if solution_review.type == SolutionReview.Type.HAPPY:
+    elif solution_review.type == SolutionReview.Type.HAPPY:
         Solution.objects.filter(id=solution_review.solution_id).update(
             happy_count=F('happy_count') - 1
         )
@@ -63,11 +63,11 @@ def increase_status_count_of_solution(solution_review):
         Solution.objects.filter(id=solution_review.solution_id).update(
             sad_count=F('sad_count') + 1
         )
-    if solution_review.type == SolutionReview.Type.NEUTRAL:
+    elif solution_review.type == SolutionReview.Type.NEUTRAL:
         Solution.objects.filter(id=solution_review.solution_id).update(
             neutral_count=F('neutral_count') + 1
         )
-    if solution_review.type == SolutionReview.Type.HAPPY:
+    elif solution_review.type == SolutionReview.Type.HAPPY:
         Solution.objects.filter(id=solution_review.solution_id).update(
             happy_count=F('happy_count') + 1
         )
