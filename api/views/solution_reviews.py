@@ -1,39 +1,60 @@
-from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 
-from api.models import SolutionReview
-from api.permissions.allow_anonymous_reads_and_owner_writes import (
-    AllowAnonymousReadsAndOwnerOrAdminWrites,
-)
+from api.models import SolutionReview, Solution
 from api.serializers.solution_review import SolutionReviewSerializer
 
 
 class SolutionReviewViewSet(viewsets.ModelViewSet):
     queryset = SolutionReview.objects.filter()
-    permission_classes = [AllowAnonymousReadsAndOwnerOrAdminWrites]
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = SolutionReviewSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
-        'rating': ['gte', 'lte'],
-        'solution__slug': ['exact'],
+        'solution_id': ['exact'],
         'user__username': ['exact'],
     }
-    # TODO: Only allow users who have booked the solution to provide reviews in the future.
-    # create/update methods for this are overriden at serializer level
 
-    def destroy(self, request, *args, **kwargs):
-        instance = SolutionReview.objects.get(id=self.kwargs['pk'])
+    def get_queryset(self):
+        if self.action == 'list':
+            reviews = SolutionReview.objects.filter(user=self.request.user)
+            return reviews
+        elif self.action == 'retrieve' or self.action == 'destroy':
+            solution_reivew_id = self.kwargs['pk']
+            return SolutionReview.objects.filter(
+                id=solution_reivew_id, user=self.request.user
+            )
+        else:
+            super(SolutionReviewViewSet, self).get_queryset()
+
+    def create(self, request, *args, **kwargs):
+        user = self.request.user
+        solution_id = self.request.data.get('solution')
+        review_type = self.request.data.get('type')
+        solution = Solution.objects.get(id=solution_id)
 
         try:
-            # Only the user who owns the review should be able to delete it
-            if instance.user.id == self.request.user.id:
-                self.perform_destroy(instance)
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            else:
-                return Response(status=status.HTTP_304_NOT_MODIFIED)
-        except Http404:
-            pass
+            solution_review = SolutionReview.objects.get(
+                user=user,
+                solution=solution,
+                type=review_type,
+            )
+        except SolutionReview.DoesNotExist:
+            try:
+                solution_review = SolutionReview.objects.get(
+                    user=user,
+                    solution=solution,
+                )
+                solution_review.type = review_type
+                solution_review.save()
+            except SolutionReview.DoesNotExist:
+                solution_review = SolutionReview.objects.create(
+                    user=user,
+                    solution=solution,
+                    type=review_type,
+                )
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        solution_review_serializer = SolutionReviewSerializer(solution_review)
+
+        return Response(solution_review_serializer.data)
