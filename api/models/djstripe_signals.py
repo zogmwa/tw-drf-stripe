@@ -8,7 +8,9 @@ from django.utils.text import slugify
 
 @receiver(post_save, sender=StripeProduct)
 def sync_solution_instance_with_stripe_product(sender, instance=None, **kwargs):
-    solution_slug = instance.name[:200] if len(instance.name) > 200 else instance.name
+    solution_slug = slugify(
+        instance.name[:200] if len(instance.name) > 200 else instance.name
+    )
     try:
         '''
         In updating the solution, we will not change the description. The description will be set to the description of the
@@ -18,14 +20,14 @@ def sync_solution_instance_with_stripe_product(sender, instance=None, **kwargs):
         '''
         solution = Solution.objects.get(stripe_product_id=instance.pk)
         solution.title = instance.name
-        solution.slug = slugify(solution_slug)
+        solution.slug = solution_slug
         solution.save()
 
     except Solution.DoesNotExist:
         Solution.objects.create(
             title=instance.name,
             stripe_product_id=instance.pk,
-            slug=slugify(solution_slug),
+            slug=solution_slug,
             description=instance.description,
         )
 

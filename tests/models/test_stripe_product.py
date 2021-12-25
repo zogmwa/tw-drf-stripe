@@ -12,12 +12,12 @@ class TestSolutionProductSync:
         solution = Solution.objects.get(stripe_product=example_stripe_product)
         assert solution.stripe_product == example_stripe_product
         assert solution.pay_now_price == example_stripe_price
-        solution_slug = (
+        solution_slug = slugify(
             example_stripe_product.name[:200]
             if len(example_stripe_product.name) > 200
             else example_stripe_product.name
         )
-        assert solution.slug == slugify(solution_slug)
+        assert solution.slug == solution_slug
         assert solution.description == example_stripe_product.description
 
     def test_updating_description_of_stripe_product_should_not_change_solution_desciption(
@@ -37,8 +37,8 @@ class TestSolutionProductSync:
         example_stripe_product.save()
         solution = Solution.objects.get(stripe_product=example_stripe_product)
         assert solution.title == new_name
-        solution_slug = new_name[:200] if len(new_name) > 200 else new_name
-        assert solution.slug == slugify(solution_slug)
+        solution_slug = slugify(new_name[:200] if len(new_name) > 200 else new_name)
+        assert solution.slug == solution_slug
 
     def test_when_new_price_for_stripe_product_is_created_it_should_be_linked_with_corresponding_solution(
         self, example_stripe_product, example_stripe_price
