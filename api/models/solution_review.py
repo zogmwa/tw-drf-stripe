@@ -26,7 +26,7 @@ class SolutionReview(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    type = models.CharField(max_length=2, choices=Type.choices)
+    type = models.CharField(max_length=1, choices=Type.choices)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -80,36 +80,37 @@ def status_count_update_for_solution_review(sender, instance=None, **kwargs):
     """
     if type(sender) != type(SolutionReview):
         return
-
+    solution_review_instance = instance
     try:
-        old_instance = sender.objects.get(
-            solution=instance.solution, user=instance.user
+        old_solution_review_instance = sender.objects.get(
+            solution=solution_review_instance.solution,
+            user=solution_review_instance.user,
         )
-        if old_instance:
+        if old_solution_review_instance:
             # When a old solution review is being updated.
-            if instance.type != old_instance.type:
+            if solution_review_instance.type != old_solution_review_instance.type:
                 """
                 If new solution review type is different from old one,
                 then old status type count should be decreased
                 and new status type count should be increased in solution.
                 """
-                decrease_status_count_of_solution(old_instance)
-                increase_status_count_of_solution(instance)
+                decrease_status_count_of_solution(old_solution_review_instance)
+                increase_status_count_of_solution(solution_review_instance)
         else:
             # When a new solution review is being added, status type count in solution is increased.
-            increase_status_count_of_solution(instance)
+            increase_status_count_of_solution(solution_review_instance)
 
     except sender.DoesNotExist:
         # New solution review is being added
-        increase_status_count_of_solution(instance)
+        increase_status_count_of_solution(solution_review_instance)
 
 
 @receiver(post_delete, sender=SolutionReview)
 def decrease_status_type_count_of_solution(sender, instance=None, **kwargs):
     if type(sender) != type(SolutionReview):
         return
-
-    decrease_status_count_of_solution(instance)
+    solution_review_instance = instance
+    decrease_status_count_of_solution(solution_review_instance)
 
 
 # https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave
