@@ -41,9 +41,9 @@ class SolutionSerializer(ModelSerializer):
     upvotes_count = serializers.IntegerField(read_only=True)
     questions = SolutionQuestionSerializer(read_only=True, many=True)
     point_of_contact = UserContactSerializerForSolution(read_only=True)
-    sad_count = serializers.IntegerField(read_only=True)
-    neutral_count = serializers.IntegerField(read_only=True)
-    happy_count = serializers.IntegerField(read_only=True)
+    avg_rating = serializers.SerializerMethodField(
+        method_name="_get_solution_review_avg_rating"
+    )
     booked_count = serializers.SerializerMethodField(
         method_name="_get_booked_users_count"
     )
@@ -71,9 +71,7 @@ class SolutionSerializer(ModelSerializer):
             'capacity',
             'has_free_consultation',
             'upvotes_count',
-            'sad_count',
-            'neutral_count',
-            'happy_count',
+            'avg_rating',
             'is_published',
             'booked_count',
             'is_searchable',
@@ -90,7 +88,22 @@ class SolutionSerializer(ModelSerializer):
         This is more of a total bookings count than a users count because it counts all the bookings for this solution.
         Maybe renamne this later if appropriate.
         """
-        return instance.bookings.count()
+        solution_instance = instance
+        return solution_instance.bookings.count()
+
+    def _get_solution_review_avg_rating(self, instance):
+        """
+        Calculating avg_rating from status counts
+        """
+        solution_instance = instance
+        sad_count = solution_instance.sad_count
+        happy_count = solution_instance.happy_count
+        if happy_count - sad_count > 0:
+            return 1
+        elif happy_count - sad_count == 0:
+            return 0
+        else:
+            return -1
 
 
 class AuthenticatedSolutionSerializer(SolutionSerializer):
