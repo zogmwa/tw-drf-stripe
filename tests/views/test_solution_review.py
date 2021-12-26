@@ -45,7 +45,7 @@ class TestSolutionReview:
         response = unauthenticated_client.get(solution_list_url)
 
         assert 'my_solution_review' not in response.data['results'][0].keys()
-        assert response.data['results'][0]['sad_count'] == 1
+        assert response.data['results'][0]['avg_rating'] == -1
 
         # authenticated user could fetch my_solution_review field and sad_count
         response = authenticated_client.get(solution_list_url)
@@ -53,9 +53,7 @@ class TestSolutionReview:
         assert (
             response.data['results'][0]['my_solution_review'] == SolutionReview.Type.SAD
         )
-        assert response.data['results'][0]['sad_count'] == 1
-        assert response.data['results'][0]['happy_count'] == 0
-        assert response.data['results'][0]['neutral_count'] == 0
+        assert response.data['results'][0]['avg_rating'] == -1
 
         # Re submit solution review with another type status and same authenticated user
         response = authenticated_client.post(
@@ -73,9 +71,7 @@ class TestSolutionReview:
             response.data['results'][0]['my_solution_review']
             == SolutionReview.Type.HAPPY
         )
-        assert response.data['results'][0]['sad_count'] == 0
-        assert response.data['results'][0]['happy_count'] == 1
-        assert response.data['results'][0]['neutral_count'] == 0
+        assert response.data['results'][0]['avg_rating'] == 1
 
         # Resubmit solution review with same type status and same authenticated user
         response = authenticated_client.post(
@@ -93,6 +89,4 @@ class TestSolutionReview:
         response = authenticated_client.get(solution_list_url)
 
         assert response.data['results'][0]['my_solution_review'] == None
-        assert response.data['results'][0]['sad_count'] == 0
-        assert response.data['results'][0]['happy_count'] == 0
-        assert response.data['results'][0]['neutral_count'] == 0
+        assert response.data['results'][0]['avg_rating'] == 0
