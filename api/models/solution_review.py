@@ -35,9 +35,7 @@ class SolutionReview(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(
-                fields=['solution', 'user', 'type'], name='user_solution_review'
-            )
+            UniqueConstraint(fields=['solution', 'user'], name='user_solution_review')
         ]
         verbose_name = 'Solution Review'
         verbose_name_plural = 'Solution Reviews'
