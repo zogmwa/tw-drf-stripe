@@ -23,9 +23,7 @@ class SolutionBookingViewSet(viewsets.ModelViewSet):
         if self.request.user.is_anonymous:
             return SolutionBookingSerializer
         else:
-            request = self.context.get('request')
-            serialize_context = {'request': request}
-            return AuthenticatedSolutionBookingSerializer(context=serialize_context)
+            return AuthenticatedSolutionBookingSerializer
 
     def get_queryset(self):
         if self.action == 'list':
