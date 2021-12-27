@@ -98,12 +98,7 @@ class SolutionSerializer(ModelSerializer):
         solution_instance = instance
         sad_count = solution_instance.sad_count
         happy_count = solution_instance.happy_count
-        if happy_count - sad_count > 0:
-            return 1
-        elif happy_count - sad_count == 0:
-            return 0
-        else:
-            return -1
+        return happy_count - sad_count
 
 
 class AuthenticatedSolutionSerializer(SolutionSerializer):
