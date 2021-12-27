@@ -1,8 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, status, permissions
-from rest_framework.response import Response
+from rest_framework import viewsets, permissions
 
-from api.models import SolutionReview, Solution
+from api.models import SolutionReview
 from api.serializers.solution_review import SolutionReviewSerializer
 
 
@@ -15,20 +14,3 @@ class SolutionReviewViewSet(viewsets.ModelViewSet):
         'solution__id': ['exact'],
         'user__username': ['exact'],
     }
-
-    def create(self, request, *args, **kwargs):
-        user = self.request.user
-        solution_id = self.request.data.get('solution')
-        review_type = self.request.data.get('type')
-        try:
-            solution = Solution.objects.get(id=solution_id)
-            solution_review = SolutionReview.objects.create(
-                user=user,
-                solution=solution,
-                type=review_type,
-            )
-            solution_review.save()
-            solution_review_serializer = SolutionReviewSerializer(solution_review)
-            return Response(solution_review_serializer.data)
-        except Solution.DoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)

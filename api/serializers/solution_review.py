@@ -2,35 +2,8 @@ from rest_framework import serializers
 from api.models import SolutionReview, Solution
 
 
-class SolutionSerializerForSolutionReview(serializers.ModelSerializer):
-    avg_rating = serializers.SerializerMethodField(
-        method_name="_get_solution_review_avg_rating"
-    )
-
-    class Meta:
-        model = Solution
-        fields = [
-            'id',
-            'slug',
-            'avg_rating',
-        ]
-
-    def _get_solution_review_avg_rating(self, solution_instance):
-        """
-        Calculating avg_rating from status counts
-        """
-        sad_count = solution_instance.sad_count
-        happy_count = solution_instance.happy_count
-        if happy_count - sad_count > 0:
-            return 1
-        elif happy_count - sad_count == 0:
-            return 0
-        else:
-            return -1
-
-
 class SolutionReviewSerializer(serializers.ModelSerializer):
-    solution = SolutionSerializerForSolutionReview(read_only=True)
+    solution_avg_rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = SolutionReview
@@ -39,4 +12,36 @@ class SolutionReviewSerializer(serializers.ModelSerializer):
             'solution',
             'type',
             'created',
+            'solution_avg_rating',
         ]
+
+    def _inject_logged_in_user_into_validated_data(self, validated_data: dict):
+        logged_in_user = self.context['request'].user
+        if logged_in_user:
+            # Only set user if we have a reference to a logged in user instance
+            validated_data['user'] = self.context['request'].user
+
+    def validate(self, attrs: dict):
+        validated_data = super().validate(attrs)
+        self._inject_logged_in_user_into_validated_data(validated_data)
+        return validated_data
+
+    def create(self, validated_data):
+        solution_review_instance = super().create(validated_data)
+        solution_instance = Solution.objects.get(
+            pk=solution_review_instance.solution.id
+        )
+        solution_review_instance.solution_avg_rating = (
+            solution_instance.happy_count - solution_instance.sad_count
+        )
+        return solution_review_instance
+
+    def update(self, instance, validated_data):
+        solution_review_instance = super().update(instance, validated_data)
+        solution_instance = Solution.objects.get(
+            pk=solution_review_instance.solution.id
+        )
+        solution_review_instance.solution_avg_rating = (
+            solution_instance.happy_count - solution_instance.sad_count
+        )
+        return solution_review_instance
