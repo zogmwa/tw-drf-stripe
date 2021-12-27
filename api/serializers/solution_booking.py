@@ -31,6 +31,9 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
     my_solution_review = serializers.SerializerMethodField(
         method_name="_get_my_solution_review"
     )
+    my_solution_review_id = serializers.SerializerMethodField(
+        method_name="_get_my_solution_review_id"
+    )
 
     class Meta:
         model = Solution
@@ -44,12 +47,31 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'upvotes_count',
             'avg_rating',
             'my_solution_review',
+            'my_solution_review_id',
         ]
         read_only_fields = [
             'pay_now_price_unit_amount',
             'my_solution_review',
+            'my_solution_review_id',
             'avg_rating',
         ]
+
+    def _get_my_solution_review_id(self, instance):
+        """
+        Return solution review type of authenticated user
+        """
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return None
+
+        try:
+            solution_review = SolutionReview.objects.get(
+                user=logged_in_user, solution=instance
+            )
+            return solution_review.id
+        except SolutionReview.DoesNotExist:
+            return None
 
     def _get_my_solution_review(self, instance):
         """
