@@ -36,11 +36,10 @@ class TestSolutionReview:
         response = authenticated_client.post(
             SOLUTION_REVIEWS_ENDPOINT,
             {'solution': example_solution.id, 'type': SolutionReview.Type.SAD},
-            content_type='application/json',
         )
-        assert response.status_code == 200
-        assert response.data['solution']['id'] == example_solution.id
+        assert response.status_code == 201
         assert response.data['type'] == SolutionReview.Type.SAD
+        assert response.data['solution_avg_rating'] == -1
 
         # unauthenticated user couldn't fetch my_solution_review field
         response = unauthenticated_client.get(solution_list_url)
@@ -83,8 +82,8 @@ class TestSolutionReview:
             content_type='application/json',
         )
         assert response.status_code == 200
-        assert response.data['solution']['id'] == example_solution.id
         assert response.data['type'] == SolutionReview.Type.HAPPY
+        assert response.data['solution_avg_rating'] == 1
 
         # authenticated user could fetch my_solution_review field and sad_count
         response = authenticated_client.get(solution_list_url)
