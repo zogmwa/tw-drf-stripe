@@ -29,6 +29,7 @@ DEBUG = True
 TAGGEDWEB_ELASTIC_IP = '18.213.87.2'
 
 BASE_API_URL = 'api.taggedweb.com'
+BASE_FRONTEND_URL = 'www.taggedweb.com'
 ALLOWED_HOSTS = [
     TAGGEDWEB_ELASTIC_IP,
     BASE_API_URL,
