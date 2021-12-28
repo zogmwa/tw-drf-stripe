@@ -139,6 +139,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'created',
             'updated',
             'provider_notes',
+            'started_at',
         ]
         read_only_fields = [
             'solution',
@@ -149,4 +150,5 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'created',
             'updated',
             'provider_notes',
+            'started_at',
         ]
