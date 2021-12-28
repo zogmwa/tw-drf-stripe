@@ -9,9 +9,8 @@ from api.serializers.solution_booking import (
 
 
 class SolutionBookingViewSet(viewsets.ModelViewSet):
-
-    queryset = SolutionBooking.objects.filter()
-    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
+    queryset = SolutionBooking.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'created': ['gte', 'lte'],
