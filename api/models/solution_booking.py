@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 
 from django.db.models import F
 from api.models import Solution
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.core.signals import request_finished
 
@@ -143,6 +143,16 @@ def send_email_to_user_and_provider_when_solution_type_is_consultation(
                 from_email='noreply@taggedweb.com',
                 recipient_list=[instance.booked_by.email],
             )
+
+
+@receiver(post_delete, sender=SolutionBooking)
+def decrease_bookings_pending_fulfillment_count_field_of_solution(
+    sender, instance=None, **kwargs
+):
+    contract_instance = instance
+    Solution.objects.filter(id=contract_instance.solution.id).update(
+        bookings_pending_fulfillment_count=F('bookings_pending_fulfillment_count') - 1,
+    )
 
 
 # https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave

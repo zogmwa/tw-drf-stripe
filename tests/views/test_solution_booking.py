@@ -1,8 +1,10 @@
 from api.models.solution_booking import Solution, SolutionBooking
 
 from django.core import mail
+from api.views.solutions import SolutionViewSet
 
-SOLUTIONS_BASE_ENDPOINT = 'http://127.0.0.1:8000/solution_bookings/'
+SOLUTIONBOOKINGS_BASE_ENDPOINT = 'http://127.0.0.1:8000/solution_bookings/'
+SOLUTIONS_BASE_ENDPOINT = 'http://127.0.0.1:8000/solutions/'
 
 
 class TestFetchingSolutionBooking:
@@ -17,7 +19,7 @@ class TestFetchingSolutionBooking:
         )
         solution_booking.save()
 
-        response = authenticated_client.get(SOLUTIONS_BASE_ENDPOINT)
+        response = authenticated_client.get(SOLUTIONBOOKINGS_BASE_ENDPOINT)
 
         assert response.status_code == 200
         assert response.data[0]['solution']['id'] == example_solution.id
@@ -52,3 +54,28 @@ class TestCreatingSolutionBooking:
                 example_consultation_solution.title,
             ),
         )
+
+
+class TestDeletingSolutionBooking:
+    def test_decrease_pending_solution_booking_fulfillment_count_of_solution(
+        self, mocker, authenticated_client, example_solution, user_and_password
+    ):
+        mocker.patch.object(
+            SolutionViewSet,
+            '_get_solutions_db_qs_via_elasticsearch_query',
+            return_value=Solution.objects.all(),
+        )
+        example_solution_booking = SolutionBooking.objects.create(
+            solution=example_solution,
+            booked_by=user_and_password[0],
+            status=SolutionBooking.Status.PENDING,
+        )
+
+        example_solution_booking.delete()
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = authenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['bookings_pending_fulfillment_count'] == 0
