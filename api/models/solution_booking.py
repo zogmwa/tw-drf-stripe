@@ -3,6 +3,8 @@ from django.db import models
 from django.core.mail import send_mail
 
 from django.db.models import F
+import datetime
+from api.utils.convert_str_to_date import get_now_converted_google_date
 from api.models import Solution
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
@@ -36,6 +38,9 @@ class SolutionBooking(models.Model):
     price_at_booking = models.DecimalField(
         null=True, blank=True, max_digits=7, decimal_places=2
     )
+
+    # The timestamp that created when solution booking status from pending to some other status.
+    started_at = models.DateTimeField(null=True, blank=True)
 
     booked_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -102,6 +107,29 @@ def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
             bookings_pending_fulfillment_count=F('bookings_pending_fulfillment_count')
             + 1,
         )
+
+
+@receiver(pre_save, sender=SolutionBooking)
+def set_created_at_field_when_solution_status_from_pending_to_others(
+    sender, instance=None, **kwargs
+):
+    """
+    When solution bookings status is changed from pending to others, `started_at` field is updated to now date.
+    """
+
+    if type(sender) != type(SolutionBooking):
+        return
+
+    contract_instance = instance
+    try:
+        old_contract_instance = sender.objects.get(pk=contract_instance.pk)
+        if old_contract_instance.status == sender.Status.PENDING:
+            if instance.status != sender.Status.PENDING:
+                instance.started_at = get_now_converted_google_date()
+
+    except sender.DoesNotExist:
+        if instance.status != sender.Status.PENDING:
+            instance.started_at = datetime.datetime.now().date()
 
 
 @receiver(post_save, sender=SolutionBooking)
