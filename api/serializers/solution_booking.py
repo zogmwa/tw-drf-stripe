@@ -111,6 +111,7 @@ class SolutionBookingSerializer(ModelSerializer):
             'created',
             'updated',
             'provider_notes',
+            'started_at',
         ]
         read_only_fields = [
             'solution',
@@ -120,6 +121,7 @@ class SolutionBookingSerializer(ModelSerializer):
             'created',
             'updated',
             'provider_notes',
+            'started_at',
         ]
 
 
