@@ -6,6 +6,7 @@ from api.models.solution import Solution
 from api.models.solution_vote import SolutionVote
 from api.models.solution_bookmark import SolutionBookmark
 from api.models.solution_booking import SolutionBooking
+from api.models.solution_review import SolutionReview
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
 from api.serializers.solution_booking import SolutionBookingSerializer
@@ -13,7 +14,7 @@ from api.serializers.tag import TagSerializer
 from api.serializers.solution_question import SolutionQuestionSerializer
 
 
-class UserSerializerForSolutionContact(ModelSerializer):
+class UserContactSerializerForSolution(ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
@@ -39,21 +40,13 @@ class SolutionSerializer(ModelSerializer):
     assets = AssetSerializerForSolution(read_only=True, many=True)
     upvotes_count = serializers.IntegerField(read_only=True)
     questions = SolutionQuestionSerializer(read_only=True, many=True)
-    point_of_contact = UserSerializerForSolutionContact(read_only=True)
-    avg_rating = serializers.DecimalField(
-        read_only=True, max_digits=10, decimal_places=7
+    point_of_contact = UserContactSerializerForSolution(read_only=True)
+    avg_rating = serializers.SerializerMethodField(
+        method_name="_get_solution_review_avg_rating"
     )
-    reviews_count = serializers.IntegerField(read_only=True)
     booked_count = serializers.SerializerMethodField(
         method_name="_get_booked_users_count"
     )
-
-    def _get_booked_users_count(self, instance):
-        """
-        This is more of a total bookings count than a users count because it counts all the bookings for this solution.
-        Maybe renamne this later if appropriate.
-        """
-        return instance.bookings.count()
 
     class Meta:
         model = Solution
@@ -79,7 +72,6 @@ class SolutionSerializer(ModelSerializer):
             'has_free_consultation',
             'upvotes_count',
             'avg_rating',
-            'reviews_count',
             'is_published',
             'booked_count',
             'is_searchable',
@@ -91,6 +83,23 @@ class SolutionSerializer(ModelSerializer):
             'pay_now_price_unit_amount',
         ]
 
+    def _get_booked_users_count(self, instance):
+        """
+        This is more of a total bookings count than a users count because it counts all the bookings for this solution.
+        Maybe renamne this later if appropriate.
+        """
+        solution_instance = instance
+        return solution_instance.bookings.count()
+
+    def _get_solution_review_avg_rating(self, instance):
+        """
+        Calculating avg_rating from status counts
+        """
+        solution_instance = instance
+        sad_count = solution_instance.sad_count
+        happy_count = solution_instance.happy_count
+        return happy_count - sad_count
+
 
 class AuthenticatedSolutionSerializer(SolutionSerializer):
     my_solution_vote = serializers.SerializerMethodField(
@@ -98,6 +107,9 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
     )
     my_solution_bookmark = serializers.SerializerMethodField(
         method_name="_get_my_solution_bookmark"
+    )
+    my_solution_review = serializers.SerializerMethodField(
+        method_name="_get_my_solution_review"
     )
 
     last_solution_booking = serializers.SerializerMethodField()
@@ -139,11 +151,29 @@ class AuthenticatedSolutionSerializer(SolutionSerializer):
         except SolutionBookmark.DoesNotExist:
             return None
 
+    def _get_my_solution_review(self, instance):
+        """
+        Return solution review type of authenticated user
+        """
+        logged_in_user = self.context['request'].user
+
+        if not logged_in_user:
+            return None
+
+        try:
+            solution_review = SolutionReview.objects.get(
+                user=logged_in_user, solution=instance
+            )
+            return solution_review.type
+        except SolutionReview.DoesNotExist:
+            return None
+
     class Meta(SolutionSerializer.Meta):
         fields = SolutionSerializer.Meta.fields + [
             'my_solution_vote',
             'my_solution_bookmark',
             'last_solution_booking',
+            'my_solution_review',
         ]
 
 

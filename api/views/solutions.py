@@ -28,11 +28,11 @@ class SolutionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = {
-        'avg_rating': ['gte', 'lte'],
+        'happy_count': ['gte', 'lte'],
         'has_free_consultation': ['exact'],
     }
     ordering_fields = [
-        'avg_rating',
+        'happy_count',
         'upvotes_count',
     ]
     lookup_field = 'slug'

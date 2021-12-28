@@ -37,11 +37,12 @@ class UserSerializer(ModelSerializer):
         if request.user.is_anonymous:
             return None
         else:
+            context_serializer = {'request': request}
             solution_booking_queryset = SolutionBooking.objects.filter(
                 booked_by=request.user
             )
             solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
-                solution_booking_queryset, many=True
+                solution_booking_queryset, context=context_serializer, many=True
             )
 
             return solution_booking_serializer.data
