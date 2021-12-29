@@ -79,3 +79,22 @@ class TestDeletingSolutionBooking:
 
         assert response.status_code == 200
         assert response.data['bookings_pending_fulfillment_count'] == 0
+
+
+class TestChangeStatus:
+    def test_creating_started_at_field_when_status_from_pending_to_others(
+        self,
+        admin_user,
+        user_and_password,
+        example_solution,
+    ):
+        example_solution_booking = SolutionBooking.objects.create(
+            solution=example_solution,
+            booked_by=user_and_password[0],
+        )
+        example_solution_booking.status = SolutionBooking.Status.IN_PROGRESS
+        example_solution_booking.save()
+
+        contract_instance = SolutionBooking.objects.get(id=example_solution_booking.id)
+
+        assert contract_instance.started_at is not None
