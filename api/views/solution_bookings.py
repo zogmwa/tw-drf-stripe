@@ -36,3 +36,9 @@ class SolutionBookingViewSet(viewsets.ModelViewSet):
                 )
 
                 return solution_booking_queryset
+
+        elif self.action == 'retrieve' or self.action == 'destroy':
+            contract_id = self.kwargs['pk']
+            return SolutionBooking.objects.filter(id=contract_id)
+        else:
+            return super().get_queryset()
