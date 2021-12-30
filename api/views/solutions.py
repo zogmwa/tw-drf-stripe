@@ -29,6 +29,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = {
         'happy_count': ['gte', 'lte'],
+        'pay_now_price_unit_amount': ['gte', 'lte'],
         'has_free_consultation': ['exact'],
     }
     ordering_fields = [
