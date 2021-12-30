@@ -1,6 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
+from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
 from api.serializers.solution_booking import (
     SolutionBookingSerializer,
@@ -42,3 +46,28 @@ class SolutionBookingViewSet(viewsets.ModelViewSet):
             return SolutionBooking.objects.filter(id=contract_id)
         else:
             return super().get_queryset()
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['patch'])
+    def checkout_contract(self, request, *args, **kwargs):
+        solution_slug = request.data.get('solution')
+        stripe_session_id = request.data.get('stripe_session_id')
+        try:
+            contract_instance = SolutionBooking.objects.get(
+                solution=Solution.objects.get(slug=solution_slug),
+                stripe_session_id=stripe_session_id,
+                booked_by=self.request.user,
+                status=SolutionBooking.Status.CANCELLED,
+            )
+
+            SolutionBooking.objects.filter(id=contract_instance.pk).update(
+                status=SolutionBooking.Status.PENDING
+            )
+
+            contract_serializer = AuthenticatedSolutionBookingSerializer(
+                SolutionBooking.objects.get(id=contract_instance.pk),
+                context={'request': request},
+            )
+
+            return Response(contract_serializer.data)
+        except SolutionBooking.DoesNotExist:
+            return Response(status=status.HTTP_409_CONFLICT)
