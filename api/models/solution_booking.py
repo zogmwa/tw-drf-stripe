@@ -208,7 +208,7 @@ def decrease_bookings_pending_fulfillment_count_field_of_solution(
     sender, instance=None, **kwargs
 ):
     contract_instance = instance
-    if contract_instance != sender.Status.COMPLETED:
+    if contract_instance.status != sender.Status.COMPLETED:
         Solution.objects.filter(id=contract_instance.solution.id).update(
             bookings_pending_fulfillment_count=F('bookings_pending_fulfillment_count')
             - 1,
