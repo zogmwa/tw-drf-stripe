@@ -56,7 +56,8 @@ class CreateStripeCheckoutSession(APIView):
             ],
             mode='payment',
             success_url=active_site
-            + '/payment-success/?session_id={CHECKOUT_SESSION_ID}',
+            + '/payment-success/?session_id={CHECKOUT_SESSION_ID}&solution='
+            + solution.slug,
             cancel_url=active_site
             + '/payment-cancel/?session_id={CHECKOUT_SESSION_ID}&solution='
             + solution.slug,
@@ -73,7 +74,7 @@ class CreateStripeCheckoutSession(APIView):
         SolutionBooking.objects.create(
             booked_by=request.user,
             solution=solution,
-            status=SolutionBooking.Status.PENDING,
+            status=SolutionBooking.Status.CANCELLED,
             is_payment_completed=False,
             price_at_booking=pay_now_price_dollars,
             stripe_session_id=checkout_session.id,
