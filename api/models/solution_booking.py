@@ -86,12 +86,43 @@ def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
         # Try to get an old reference to this instance.
         old_instance = sender.objects.get(pk=instance.pk)
         if old_instance:
-            if instance.status == sender.Status.COMPLETED:
+            if (old_instance.status != sender.Status.CANCELLED) and (
+                instance.status == sender.Status.COMPLETED
+            ):
                 Solution.objects.filter(id=instance.solution.id).update(
                     bookings_pending_fulfillment_count=F(
                         'bookings_pending_fulfillment_count'
                     )
                     - 1,
+                )
+            elif (
+                (old_instance.status == sender.Status.CANCELLED)
+                and (instance.status != sender.Status.CANCELLED)
+                and (instance.status != sender.Status.COMPLETED)
+            ):
+                Solution.objects.filter(id=instance.solution.id).update(
+                    bookings_pending_fulfillment_count=F(
+                        'bookings_pending_fulfillment_count'
+                    )
+                    + 1,
+                )
+            elif (old_instance.status != sender.Status.CANCELLED) and (
+                instance.status == sender.Status.CANCELLED
+            ):
+                Solution.objects.filter(id=instance.solution.id).update(
+                    bookings_pending_fulfillment_count=F(
+                        'bookings_pending_fulfillment_count'
+                    )
+                    - 1,
+                )
+            elif (old_instance.status == sender.Status.COMPLETED) and (
+                instance.status != sender.Status.COMPLETED
+            ):
+                Solution.objects.filter(id=instance.solution.id).update(
+                    bookings_pending_fulfillment_count=F(
+                        'bookings_pending_fulfillment_count'
+                    )
+                    + 1,
                 )
     except sender.DoesNotExist:
         # New solution booking is being added
@@ -177,9 +208,11 @@ def decrease_bookings_pending_fulfillment_count_field_of_solution(
     sender, instance=None, **kwargs
 ):
     contract_instance = instance
-    Solution.objects.filter(id=contract_instance.solution.id).update(
-        bookings_pending_fulfillment_count=F('bookings_pending_fulfillment_count') - 1,
-    )
+    if contract_instance != sender.Status.COMPLETED:
+        Solution.objects.filter(id=contract_instance.solution.id).update(
+            bookings_pending_fulfillment_count=F('bookings_pending_fulfillment_count')
+            - 1,
+        )
 
 
 # https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave
