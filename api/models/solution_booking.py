@@ -58,7 +58,7 @@ class SolutionBooking(models.Model):
     status = models.CharField(
         max_length=15,
         choices=Status.choices,
-        default=Status.PENDING,
+        default=Status.CANCELLED,
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
