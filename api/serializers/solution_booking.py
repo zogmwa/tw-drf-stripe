@@ -168,7 +168,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             if self.context['request'].data.get('status'):
                 validated_data['status'] = self.context['request'].data.get('status')
             else:
-                validated_data['status'] = SolutionBooking.Status.PENDING
+                validated_data['status'] = SolutionBooking.Status.CANCELLED
 
             if self.context['request'].data.get('stripe_session_id'):
                 validated_data['stripe_session_id'] = self.context['request'].data.get(
