@@ -8,17 +8,17 @@ from django.core.files.storage import default_storage
 from gzip import GzipFile
 import gzip
 
-from api.models.asset import Asset
+from django.apps import apps
 from api.utils.convert_str_to_date import get_now_converted_google_date
 
 
 def process() -> None:
     print(get_now_converted_google_date())
+    asset = apps.get_model('api', 'Asset')
     sitemap_index_name = 'software_detail'
     max_url_per_sitemap = (
         500  # maximum url of each sitemap - google recommended it should be 50K.
     )
-    sitemap_name_index = 0  # index of each sitemap file name
     sitemap_file_index = 1  # each sitemap file index.
     current_url_count = 0  # url counter of each sitemap file
     sitemap_index_url = set()  # sitemap files' url saver.
@@ -53,7 +53,7 @@ def process() -> None:
     current_url_count = current_url_count + 2
 
     # Write software list pages' url to sitemap.
-    for chunk_software in Asset.objects.all().iterator(chunk_size=100):
+    for chunk_software in asset.objects.all().iterator(chunk_size=100):
         write_xml_str = """
         <url><loc>https://www.taggedweb.com/softwares/{}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
             chunk_software.slug, get_now_converted_google_date()

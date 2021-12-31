@@ -8,12 +8,13 @@ from django.core.files.storage import default_storage
 from gzip import GzipFile
 import gzip
 
-from api.models.solution import Solution
+from django.apps import apps
 from api.utils.convert_str_to_date import get_now_converted_google_date
 
 
 def process() -> None:
     print(get_now_converted_google_date())
+    solution = apps.get_model('api', 'Solution')
     sitemap_index_name = 'solution_detail'
     max_url_per_sitemap = (
         500  # maximum url of each sitemap - google recommended it should be 50K.
@@ -52,7 +53,7 @@ def process() -> None:
     current_url_count = current_url_count + 2
 
     # Write solution detail page's url to sitemap.
-    for chunk_solutions in Solution.objects.values('slug').iterator(chunk_size=100):
+    for chunk_solutions in solution.objects.values('slug').iterator(chunk_size=100):
         write_xml_str = """
 <url><loc>https://www.taggedweb.com/solution/{}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
             chunk_solutions['slug'],

@@ -18,7 +18,6 @@ def process() -> None:
     max_url_per_sitemap = (
         500  # maximum url of each sitemap - google recommended it should be 50K.
     )
-    sitemap_name_index = 0  # index of each sitemap file name
     sitemap_file_index = 1  # each sitemap file index.
     current_url_count = 0  # url counter of each sitemap file
     sitemap_index_url = set()  # sitemap files' url saver.
