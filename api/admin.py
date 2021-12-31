@@ -183,14 +183,17 @@ class SolutionAdmin(admin.ModelAdmin):
         'organization',
         'point_of_contact',
         'assets',
+        'stripe_product',
+        'pay_now_price',
     ]
     search_fields = ['title']
-    list_display = ('title', 'type', 'organization')
+    list_display = ('title', 'type', 'organization', 'is_for_testing')
     inlines = [
         AssetInlineWithinSolution,
         SolutionTagInline,
         SolutionQuestionInline,
     ]
+    readonly_fields = ('is_for_testing', 'pay_now_price_unit_amount')
 
 
 class SolutionBookingAdmin(admin.ModelAdmin):

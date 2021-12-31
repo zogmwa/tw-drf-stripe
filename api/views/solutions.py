@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch_dsl.query import MultiMatch
@@ -24,7 +25,9 @@ class SolutionViewSetPagination(LimitOffsetPagination):
 
 class SolutionViewSet(viewsets.ModelViewSet):
 
-    queryset = Solution.objects.all()
+    queryset = Solution.objects.filter(
+        stripe_product__livemode=settings.STRIPE_LIVE_MODE
+    )
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = {
@@ -67,7 +70,10 @@ class SolutionViewSet(viewsets.ModelViewSet):
         """
         es_query = MultiMatch(query=search_query, fields=['title', 'tags.slug'])
         es_search = SolutionDocument.search().query(es_query)
-        solutions_db_queryset = es_search.to_queryset().filter(is_searchable=True)
+        solutions_db_queryset = es_search.to_queryset().filter(
+            is_searchable=True,
+            stripe_product__livemode=settings.STRIPE_LIVE_MODE,
+        )
 
         return solutions_db_queryset
 
