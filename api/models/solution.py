@@ -128,7 +128,7 @@ class Solution(models.Model):
     # Some solutions will be mapped to test products (STRIPE_LIVE_MODE=False), we want to have a property field that
     # can be displayed as a read only field in admin for convenience.
     @property
-    def is_for_testing(self) -> bool:
+    def livemode(self) -> bool:
         return not self.stripe_product.livemode
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
