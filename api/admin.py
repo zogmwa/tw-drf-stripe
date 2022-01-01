@@ -187,13 +187,13 @@ class SolutionAdmin(admin.ModelAdmin):
         'pay_now_price',
     ]
     search_fields = ['title']
-    list_display = ('title', 'type', 'organization', 'is_for_testing')
+    list_display = ('title', 'type', 'organization', 'livemode')
     inlines = [
         AssetInlineWithinSolution,
         SolutionTagInline,
         SolutionQuestionInline,
     ]
-    readonly_fields = ('is_for_testing', 'pay_now_price_unit_amount')
+    readonly_fields = ('livemode', 'pay_now_price_unit_amount')
 
 
 class SolutionBookingAdmin(admin.ModelAdmin):
