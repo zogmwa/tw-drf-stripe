@@ -1,8 +1,13 @@
+import djstripe.models
 import pytest, stripe, collections
 from django.conf import settings
 from djstripe.models import Product, Price
 from django.test import Client
 from api.models.solution_booking import SolutionBooking
+from api.models.webhooks_stripe import (
+    product_created_handler,
+    price_created_handler,
+)
 from api.models import (
     Asset,
     User,
@@ -46,6 +51,69 @@ def example_stripe_price(example_stripe_product):
         unit_amount_decimal=20000.000000000000,
         active=True,
     )
+
+
+@pytest.fixture
+def example_stripe_product_create_event():
+    event = {'data': {}}
+    event['data'] = {
+        "id": "prod_KsBIblHh5OozDu",
+        "stripe_id": "prod_KsBIblHh5OozDu",
+        "object": "product",
+        "active": True,
+        "created": 1639054823,
+        "description": 'description for stripe product',
+        "images": [],
+        "livemode": False,
+        "metadata": {},
+        "name": 'name of stripe product',
+        "package_dimensions": None,
+        "shippable": None,
+        "statement_descriptor": None,
+        "tax_code": None,
+        "unit_label": None,
+        "updated": 1639054823,
+        "url": None,
+    }
+    return event
+
+
+@pytest.fixture
+def example_stripe_price_create_event(example_stripe_product_create_event):
+
+    # A stripe price is always associated with a stripe product, so a corresponding product must exist for this stripe
+    # price.
+    product_event_data = example_stripe_product_create_event['data']
+    Product.sync_from_stripe_data(product_event_data)
+
+    event = {'data': {}}
+    event['data'] = {
+        "id": "price_1KCQvV2eZvKYlo2CgsqdiqIU",
+        "object": "price",
+        "active": True,
+        "billing_scheme": "per_unit",
+        "created": 1640879545,
+        "currency": "usd",
+        "livemode": False,
+        "lookup_key": "3434",
+        "metadata": {},
+        "nickname": None,
+        "product": product_event_data["id"],
+        "recurring": {
+            "aggregate_usage": None,
+            "interval": "day",
+            "interval_count": 1,
+            "usage_type": "licensed",
+        },
+        "tax_behavior": "unspecified",
+        "tiers_mode": None,
+        "transform_quantity": None,
+        "type": "recurring",
+        "unit_amount": 3400,
+        "unit_amount_decimal": "3400",
+    }
+
+    return event
 
 
 @pytest.fixture

@@ -1,8 +1,5 @@
-import time
-
 from api.models import Solution
 from api.models.solution_booking import SolutionBooking
-
 from api.views.solutions import SolutionViewSet
 
 SOLUTIONS_BASE_ENDPOINT = 'http://127.0.0.1:8000/solutions/'
@@ -277,11 +274,3 @@ class TestSolutionDetailSolutionBooking:
         )
         response = admin_client.get(solution_detail_url)
         assert len(response.data['last_solution_booking']) == 0
-
-
-class TestSolutionCreateWithStripeProduct:
-    def test_if_solution_title_and_description_are_used_from_underlying_stripe_product(
-        self, example_solution, mocker, admin_user
-    ):
-        # TODO
-        pass

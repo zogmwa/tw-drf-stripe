@@ -1,9 +1,14 @@
+import pytest
 from djstripe.models import Price
 
 from api.models.solution import Solution
 from django.utils.text import slugify
 
 
+# TODO: Remove these when the webhooks have been well tested
+@pytest.mark.skip(
+    reason="these tests were for djstripe signal receivers but we switched to webhooks and webhook handlers"
+)
 class TestSolutionProductSync:
     def test_create_solution_when_new_stripe_product_is_created(
         self, example_stripe_product, example_stripe_price
