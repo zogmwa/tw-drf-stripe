@@ -39,17 +39,13 @@ def process() -> None:
     current_gzip_file = GzipFile(current_output_filename, 'w')
     # Write sitemap file content.
     current_gzip_file.write(sitemap_config_str.encode())
-    # Write homepage and software list page url to sitemap.
+    # Write software list index page url to sitemap.
     write_xml_str = """
-<url><loc>https://www.taggedweb.com/</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>
-<url><loc>https://www.taggedweb.com/softwares</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>
-<url><loc>https://www.taggedweb.com/solutions</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
-        get_now_converted_google_date(),
-        get_now_converted_google_date(),
+    <url><loc>https://www.taggedweb.com/softwares</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
         get_now_converted_google_date(),
     )
     current_gzip_file.write(write_xml_str.encode())
-    current_url_count = current_url_count + 2
+    current_url_count = current_url_count + 1
 
     # Write software list pages' url to sitemap.
     for chunk_tags in Tag.objects.values('slug').iterator(chunk_size=100):
