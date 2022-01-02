@@ -2,6 +2,7 @@ from django.conf import settings
 from djstripe import webhooks
 from djstripe.models import Product
 from djstripe.models import Price
+from djstripe.models import Event
 from api.models.solution import Solution
 from django.utils.text import slugify
 
@@ -13,14 +14,10 @@ def price_created_handler(event, **kwargs):
     which corresponds to the product which is linked with this new price to the price
     """
 
-    price_data = event['data']
+    price_data = event.data
     price = Price.sync_from_stripe_data(price_data)
 
-    stripe_product_id = price_data['product']
-    # It's possible that the Product instance for this price hasn't been crated yet because this handler can be running
-    # before the product.created handler completes.
-    product, _ = Product.objects.get_or_create(id=stripe_product_id)
-
+    product = price.product
     solution, _ = Solution.objects.get_or_create(stripe_product=product)
     solution.title = product.name
     solution.slug = _get_slug_from_solution_title(solution.title)
@@ -30,15 +27,15 @@ def price_created_handler(event, **kwargs):
 
 
 @webhooks.handler('product.created')
-def product_created_handler(event, **kwargs):
+def product_created_handler(event: Event, **kwargs):
     """
     When the new product is created, we create the price in db(sync) and  update the pay_now_price of a solution
     which corresponds to the product which is linked with this new price to the price
     """
 
-    product = Product.sync_from_stripe_data(event['data'])
+    product = Product.sync_from_stripe_data(event.data)
 
-    solution, _ = Solution.objects.get_or_create(stripe_product=product)
+    solution, is_created = Solution.objects.get_or_create(stripe_product=product)
     solution.title = product.name
     solution.slug = _get_slug_from_solution_title(solution.title)
     solution.is_published = False
