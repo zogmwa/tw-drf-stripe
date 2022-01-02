@@ -70,6 +70,7 @@ class TestDeletingSolutionBooking:
             booked_by=user_and_password[0],
             status=SolutionBooking.Status.PENDING,
         )
+        example_solution_booking.save()
 
         example_solution_booking.delete()
         solution_list_url = '{}{}/'.format(

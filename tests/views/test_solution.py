@@ -125,6 +125,7 @@ class TestFetchingSolution:
             manager=user_and_password[0],
             status='Pending',
         )
+        solution_booking.save()
 
         solution_list_url = '{}{}/'.format(
             SOLUTIONS_BASE_ENDPOINT, example_solution.slug

@@ -82,7 +82,6 @@ def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
 
     try:
         # Update operation (an existing review is being updated case)
-        # Try to get an old reference to this instance.
         old_instance = sender.objects.get(pk=instance.pk)
         if old_instance:
             if instance.status == sender.Status.COMPLETED:
@@ -94,13 +93,10 @@ def count_update_for_new_or_complete_booking(sender, instance=None, **kwargs):
                 )
     except sender.DoesNotExist:
         # New solution booking is being added
-        if instance.status != SolutionBooking.Status.PENDING:
-            Solution.objects.filter(id=instance.solution.id).update(
-                bookings_pending_fulfillment_count=F(
-                    'bookings_pending_fulfillment_count'
-                )
-                + 1,
-            )
+        Solution.objects.filter(id=instance.solution.id).update(
+            bookings_pending_fulfillment_count=F('bookings_pending_fulfillment_count')
+            + 1,
+        )
 
 
 @receiver(pre_save, sender=SolutionBooking)
@@ -118,15 +114,10 @@ def set_created_at_field_when_solution_status_from_pending_to_others(
     try:
         old_contract_instance = sender.objects.get(pk=contract_instance.pk)
         if old_contract_instance.status == sender.Status.PENDING:
-            if (instance.status != sender.Status.PENDING) and (
-                instance.status != sender.Status.PENDING
-            ):
+            if instance.status != sender.Status.PENDING:
                 instance.started_at = get_now_converted_google_date()
-
     except sender.DoesNotExist:
-        if (instance.status != sender.Status.PENDING) and (
-            instance.status != sender.Status.PENDING
-        ):
+        if instance.status != sender.Status.PENDING:
             instance.started_at = datetime.datetime.now().date()
 
 
