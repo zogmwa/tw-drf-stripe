@@ -1,7 +1,7 @@
 import djstripe.models
 import pytest, stripe, collections
 from django.conf import settings
-from djstripe.models import Product, Price
+from djstripe.models import Product, Price, Event
 from django.test import Client
 from api.models.solution_booking import SolutionBooking
 from api.models.webhooks_stripe import (
@@ -54,9 +54,8 @@ def example_stripe_price(example_stripe_product):
 
 
 @pytest.fixture
-def example_stripe_product_create_event():
-    event = {'data': {}}
-    event['data'] = {
+def example_stripe_product_create_event() -> Event:
+    data = {
         "id": "prod_KsBIblHh5OozDu",
         "stripe_id": "prod_KsBIblHh5OozDu",
         "object": "product",
@@ -75,19 +74,20 @@ def example_stripe_product_create_event():
         "updated": 1639054823,
         "url": None,
     }
-    return event
+    return Event(data=data)
 
 
 @pytest.fixture
-def example_stripe_price_create_event(example_stripe_product_create_event):
+def example_stripe_price_create_event(
+    example_stripe_product_create_event: Event,
+) -> Event:
 
     # A stripe price is always associated with a stripe product, so a corresponding product must exist for this stripe
     # price.
-    product_event_data = example_stripe_product_create_event['data']
+    product_event_data = example_stripe_product_create_event.data
     Product.sync_from_stripe_data(product_event_data)
 
-    event = {'data': {}}
-    event['data'] = {
+    data = {
         "id": "price_1KCQvV2eZvKYlo2CgsqdiqIU",
         "object": "price",
         "active": True,
@@ -113,28 +113,28 @@ def example_stripe_price_create_event(example_stripe_product_create_event):
         "unit_amount_decimal": "3400",
     }
 
-    return event
+    return Event(data=data)
 
 
 @pytest.fixture
 def example_event():
     # TODO: Rename to example_stripe_event
-    event = {'data': {}}
-    event['data']['object'] = {}
-    event['data']['object'] = {
-        "id": "cs_test_5PIAqHlxs921ujN9ftgymLMyywUM55VhoRTgE09KWjs6KUYc0uT6y8bV",
-        "object": "checkout.session",
-        "expires_at": 1637391616,
-        "livemode": False,
-        "metadata": {},
-        "mode": "payment",
-        "payment_intent": "pi_3JxPZ8JNxEeFbcNw0exlygHf",
-        "payment_method_options": {},
-        "payment_method_types": ["card"],
-        "payment_status": "paid",
-        "success_url": "https://example.com/success",
+    data = {
+        'object': {
+            "id": "cs_test_5PIAqHlxs921ujN9ftgymLMyywUM55VhoRTgE09KWjs6KUYc0uT6y8bV",
+            "object": "checkout.session",
+            "expires_at": 1637391616,
+            "livemode": False,
+            "metadata": {},
+            "mode": "payment",
+            "payment_intent": "pi_3JxPZ8JNxEeFbcNw0exlygHf",
+            "payment_method_options": {},
+            "payment_method_types": ["card"],
+            "payment_status": "paid",
+            "success_url": "https://example.com/success",
+        }
     }
-    return event
+    return Event(data=data)
 
 
 @pytest.fixture

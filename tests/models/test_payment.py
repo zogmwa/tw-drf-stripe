@@ -15,13 +15,11 @@ class TestCheckoutSessionWebhook:
     def test_checkout_session_completed(
         self, example_solution_booking, example_event, admin_user
     ):
-        example_solution_booking.stripe_session_id = example_event['data']['object'][
-            'id'
-        ]
+        example_solution_booking.stripe_session_id = example_event.data['object']['id']
         example_solution_booking.save()
         models.checkout_session_completed_handler(example_event)
         solution_booking = SolutionBooking.objects.get(
-            stripe_session_id=example_event['data']['object']['id'],
+            stripe_session_id=example_event.data['object']['id'],
         )
         assert solution_booking.is_payment_completed is True
 
@@ -37,13 +35,11 @@ class TestCheckoutSessionWebhook:
     def test_checkout_session_async_payment_succeed(
         self, example_solution_booking, example_event, admin_user
     ):
-        example_solution_booking.stripe_session_id = example_event['data']['object'][
-            'id'
-        ]
+        example_solution_booking.stripe_session_id = example_event.data['object']['id']
         example_solution_booking.save()
         models.checkout_session_async_payment_succeeded(example_event)
         solution_booking = SolutionBooking.objects.get(
-            stripe_session_id=example_event['data']['object']['id'],
+            stripe_session_id=example_event.data['object']['id'],
         )
         assert solution_booking.is_payment_completed is True
 
@@ -59,10 +55,8 @@ class TestCheckoutSessionWebhook:
     def test_checkout_session_async_payment_failed(
         self, example_solution_booking, example_event, admin_user
     ):
-        example_event['data']['object']['payment_status'] = 'failed'
-        example_solution_booking.stripe_session_id = example_event['data']['object'][
-            'id'
-        ]
+        example_event.data['object']['payment_status'] = 'failed'
+        example_solution_booking.stripe_session_id = example_event.data['object']['id']
         example_solution_booking.save()
         models.checkout_session_async_payment_failed(example_event)
 
