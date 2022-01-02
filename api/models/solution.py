@@ -8,8 +8,8 @@ from django.core.signals import request_finished
 
 from api.models.organization import Organization
 from api.models.tag import Tag
-from api.management.commands import sitemap_solution_detail
-from api.management.commands import sitemap_index
+from api.management.commands import generate_sitemap_solution_detail
+from api.management.commands import generate_sitemap_index
 import sys
 
 
@@ -145,8 +145,8 @@ class Solution(models.Model):
 
 
 def solution_detail_sitemap_generator():
-    solution_detail_cmd = sitemap_solution_detail.Command()
-    sitemap_index_cmd = sitemap_index.Command()
+    solution_detail_cmd = generate_sitemap_solution_detail.Command()
+    sitemap_index_cmd = generate_sitemap_index.Command()
     solution_detail_cmd.handle(**{})
     sitemap_index_cmd.handle(**{})
 
@@ -178,16 +178,11 @@ def generate_solution_detail_pages_sitemap_files_post_save(
         solution_detail_sitemap_generator()
 
 
-if not 'test' in sys.argv:
-    post_save.connect(
-        generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
-    )
-if not 'test' in sys.argv:
-    pre_save.connect(
-        generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution
-    )
-if not 'test' in sys.argv:
-    request_finished.connect(
-        generate_solution_detail_pages_sitemap_files_post_save,
-        dispatch_uid="generate_solution_detail_pages_sitemap_files",
-    )
+post_save.connect(
+    generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
+)
+pre_save.connect(generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution)
+request_finished.connect(
+    generate_solution_detail_pages_sitemap_files_post_save,
+    dispatch_uid="generate_solution_detail_pages_sitemap_files",
+)
