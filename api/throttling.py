@@ -2,6 +2,8 @@ from rest_framework.throttling import UserRateThrottle
 
 from api.models import User
 
+#  from sentry_sdk import capture_message
+
 
 class SubscriptionDailyRateThrottle(UserRateThrottle):
     """
@@ -52,5 +54,11 @@ class SubscriptionDailyRateThrottle(UserRateThrottle):
         while self.history and self.history[-1] <= self.now - self.duration:
             self.history.pop()
         if len(self.history) >= self.num_requests:
+            # capture_message(
+            #     'Rate Limit Error for user: {}, request path: {}!'.format(
+            #         request.user, request.path
+            #     ),
+            #     level="error",
+            # )
             return self.throttle_failure()
         return self.throttle_success()

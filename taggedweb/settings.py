@@ -327,13 +327,15 @@ APSCHEDULER_RUN_NOW_TIMEOUT = 7200  # Seconds
 sentry_sdk.init(
     dsn="https://ae3e3499901e40a0a7848f5485d32587@o1064580.ingest.sentry.io/6055486",
     integrations=[DjangoIntegration()],
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    # We recommend adjusting this value in production,
-    traces_sample_rate=1.0,
+    # Set traces_sample_rate to 1.0 to capture 100% and 0.0 to disable.
+    # We are disabling this in prodution and will re-enable in our respective environments.
+    traces_sample_rate=0.0,
     # If you wish to associate users to errors (assuming you are using
     # django.contrib.auth) you may enable sending PII data.
     send_default_pii=True,
+    debug=False,
+    # development/staging/production
+    environment='development',
     # By default the SDK will try to use the SENTRY_RELEASE
     # environment variable, or infer a git commit
     # SHA as release, however you may want to set
