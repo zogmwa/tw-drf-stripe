@@ -40,22 +40,19 @@ def process() -> None:
     current_gzip_file = GzipFile(current_output_filename, 'w')
     # Write sitemap file content.
     current_gzip_file.write(sitemap_config_str.encode())
-    # Write homepage and software list page url to sitemap.
+    # Write solution list index page url to sitemap.
     write_xml_str = """
-<url><loc>https://www.taggedweb.com/</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>
-<url><loc>https://www.taggedweb.com/softwares</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>
-<url><loc>https://www.taggedweb.com/solutions</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
-        get_now_converted_google_date(),
+    <url><loc>https://www.taggedweb.com/solutions</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
         get_now_converted_google_date(),
         get_now_converted_google_date(),
     )
     current_gzip_file.write(write_xml_str.encode())
-    current_url_count = current_url_count + 2
+    current_url_count = current_url_count + 1
 
     # Write solution detail page's url to sitemap.
     for chunk_solutions in solution.objects.values('slug').iterator(chunk_size=100):
         write_xml_str = """
-<url><loc>https://www.taggedweb.com/solution/{}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
+    <url><loc>https://www.taggedweb.com/solution/{}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>{}</lastmod></url>""".format(
             chunk_solutions['slug'],
             get_now_converted_google_date(),
         )
