@@ -1,8 +1,11 @@
 from django.conf import settings
+from django.http import HttpResponse
 from djstripe import webhooks
 from djstripe.models import Product
 from djstripe.models import Price
 from djstripe.models import Event
+from rest_framework.status import HTTP_200_OK
+
 from api.models.solution import Solution
 from django.utils.text import slugify
 
@@ -15,7 +18,7 @@ def price_created_handler(event, **kwargs):
     """
 
     price_data = event.data
-    price = Price.sync_from_stripe_data(price_data)
+    price = Price.sync_from_stripe_data(price_data['object'])
 
     product = price.product
     solution, _ = Solution.objects.get_or_create(stripe_product=product)
@@ -33,7 +36,7 @@ def product_created_handler(event: Event, **kwargs):
     which corresponds to the product which is linked with this new price to the price
     """
 
-    product = Product.sync_from_stripe_data(event.data)
+    product = Product.sync_from_stripe_data(event.data['object'])
 
     solution, is_created = Solution.objects.get_or_create(stripe_product=product)
     solution.title = product.name

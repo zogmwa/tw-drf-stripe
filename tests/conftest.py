@@ -56,23 +56,26 @@ def example_stripe_price(example_stripe_product):
 @pytest.fixture
 def example_stripe_product_create_event() -> Event:
     data = {
-        "id": "prod_KsBIblHh5OozDu",
-        "stripe_id": "prod_KsBIblHh5OozDu",
-        "object": "product",
-        "active": True,
-        "created": 1639054823,
-        "description": 'description for stripe product',
-        "images": [],
-        "livemode": False,
-        "metadata": {},
-        "name": 'name of stripe product',
-        "package_dimensions": None,
-        "shippable": None,
-        "statement_descriptor": None,
-        "tax_code": None,
-        "unit_label": None,
-        "updated": 1639054823,
-        "url": None,
+        "object": {
+            "id": "prod_Kszx5SEOfUDUQZ",
+            "object": "product",
+            "active": True,
+            "attributes": [],
+            "created": 1641068051,
+            "description": "Mailchimp is an email marketing tool. This solution will be focused on running an email marketing campaign using Mailchimp given an email template and an excel sheet with emails and other information.",
+            "images": [],
+            "livemode": False,
+            "metadata": {},
+            "name": "Run an email marketing campaign given an excel sheet with Mailchimp",
+            "package_dimensions": None,
+            "shippable": None,
+            "statement_descriptor": None,
+            "tax_code": None,
+            "type": "service",
+            "unit_label": None,
+            "updated": 1641068051,
+            "url": None,
+        },
     }
     return Event(data=data)
 
@@ -84,36 +87,32 @@ def example_stripe_price_create_event(
 
     # A stripe price is always associated with a stripe product, so a corresponding product must exist for this stripe
     # price.
-    product_event_data = example_stripe_product_create_event.data
-    Product.sync_from_stripe_data(product_event_data)
+    product_dict = example_stripe_product_create_event.data['object']
+    Product.sync_from_stripe_data(product_dict)
 
     data = {
-        "id": "price_1KCQvV2eZvKYlo2CgsqdiqIU",
-        "object": "price",
-        "active": True,
-        "billing_scheme": "per_unit",
-        "created": 1640879545,
-        "currency": "usd",
-        "livemode": False,
-        "lookup_key": "3434",
-        "metadata": {},
-        "nickname": None,
-        "product": product_event_data["id"],
-        "recurring": {
-            "aggregate_usage": None,
-            "interval": "day",
-            "interval_count": 1,
-            "usage_type": "licensed",
-        },
-        "tax_behavior": "unspecified",
-        "tiers_mode": None,
-        "transform_quantity": None,
-        "type": "recurring",
-        "unit_amount": 3400,
-        "unit_amount_decimal": "3400",
+        "object": {
+            "id": "price_1KDDxvJNxEeFbcNwlynxIXH2",
+            "object": "price",
+            "active": True,
+            "billing_scheme": "per_unit",
+            "created": 1641068051,
+            "currency": "usd",
+            "livemode": False,
+            "lookup_key": None,
+            "metadata": {},
+            "nickname": None,
+            "product": "prod_Kszx5SEOfUDUQZ",
+            "recurring": None,
+            "tax_behavior": "unspecified",
+            "tiers_mode": None,
+            "transform_quantity": None,
+            "type": "one_time",
+            "unit_amount": 100000,
+            "unit_amount_decimal": "100000",
+        }
     }
-
-    return Event(data=data)
+    return Event(data=data, type="price.created")
 
 
 @pytest.fixture
