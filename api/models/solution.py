@@ -1,10 +1,9 @@
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import pre_save
 from djstripe.models import Product as StripeProduct
 from djstripe.models import Price as StripePrice
-
-from django.dispatch import receiver
+from django.db.models import Q
+from django.apps import apps
 from api.models.organization import Organization
 from api.models.tag import Tag
 
@@ -40,6 +39,13 @@ class Solution(models.Model):
     def pay_now_price_unit_amount(self) -> str:
         # This will be in cents so frontend will have to divide this by 100 to show dollar value for USD
         return self.pay_now_price.unit_amount if self.pay_now_price else None
+
+    @property
+    def capacity_used(self) -> int:
+        solution_booking = apps.get_model('api', 'SolutionBooking')
+        return self.bookings.filter(
+            ~Q(status=solution_booking.Status.COMPLETED), is_payment_completed=True
+        ).count()
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
