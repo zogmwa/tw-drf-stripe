@@ -91,7 +91,6 @@ class TestChangeStatus:
         example_solution_booking = SolutionBooking.objects.create(
             solution=example_solution,
             booked_by=user_and_password[0],
-            status=SolutionBooking.Status.PENDING,
         )
         example_solution_booking.status = SolutionBooking.Status.IN_PROGRESS
         example_solution_booking.save()
@@ -100,8 +99,12 @@ class TestChangeStatus:
 
         assert contract_instance.started_at is not None
 
-    def test_contract_status_when_creating_or_updating_contract_status(
-        self, mocker, authenticated_client, user_and_password, example_solution
+    def test_increase_capacity_used_field_when_payment_checkout(
+        self,
+        mocker,
+        authenticated_client,
+        user_and_password,
+        example_solution,
     ):
         mocker.patch.object(
             SolutionViewSet,
@@ -113,39 +116,22 @@ class TestChangeStatus:
             solution=example_solution,
             booked_by=user_and_password[0],
         )
-        # When solution contract is created at first, pending count will not increase.
+
         solution_list_url = '{}{}/'.format(
             SOLUTIONS_BASE_ENDPOINT, example_solution.slug
         )
         response = authenticated_client.get(solution_list_url)
-        assert response.status_code == 200
-        assert response.data['bookings_pending_fulfillment_count'] == 0
 
-        # When solution contract status is changed from CANCELLED to other status, pending count will increase.
-        example_solution_booking.status = SolutionBooking.Status.PENDING
+        assert response.status_code == 200
+        assert response.data['capacity_used'] == 0
+
+        example_solution_booking.is_payment_completed = True
         example_solution_booking.save()
-        solution_list_url = '{}{}/'.format(
-            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
-        )
-        response = authenticated_client.get(solution_list_url)
-        assert response.status_code == 200
-        assert response.data['bookings_pending_fulfillment_count'] == 1
 
-        # When solution contract status is changed to COMPLETED, pending count will decrease.
-        example_solution_booking.status = SolutionBooking.Status.COMPLETED
-        example_solution_booking.save()
         solution_list_url = '{}{}/'.format(
             SOLUTIONS_BASE_ENDPOINT, example_solution.slug
         )
         response = authenticated_client.get(solution_list_url)
-        assert response.status_code == 200
-        assert response.data['bookings_pending_fulfillment_count'] == 0
 
-        # When solution contract is deleted and its status is COMPLETED, pending count will not decrease.
-        SolutionBooking.objects.filter(id=example_solution_booking.id).delete()
-        solution_list_url = '{}{}/'.format(
-            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
-        )
-        response = authenticated_client.get(solution_list_url)
         assert response.status_code == 200
-        assert response.data['bookings_pending_fulfillment_count'] == 0
+        assert response.data['capacity_used'] == 1
