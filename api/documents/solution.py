@@ -1,4 +1,5 @@
-from django_elasticsearch_dsl import Document, fields, search
+from django_elasticsearch_dsl.documents import Document
+from django_elasticsearch_dsl import fields, search
 from django_elasticsearch_dsl.registries import registry
 
 from api.documents.common import html_strip

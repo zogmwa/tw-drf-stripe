@@ -1,8 +1,13 @@
+import djstripe.models
 import pytest, stripe, collections
 from django.conf import settings
-from djstripe.models import Product, Price
+from djstripe.models import Product, Price, Event
 from django.test import Client
 from api.models.solution_booking import SolutionBooking
+from api.models.webhooks_stripe import (
+    product_created_handler,
+    price_created_handler,
+)
 from api.models import (
     Asset,
     User,
@@ -49,24 +54,86 @@ def example_stripe_price(example_stripe_product):
 
 
 @pytest.fixture
+def example_stripe_product_create_event() -> Event:
+    data = {
+        "object": {
+            "id": "prod_Kszx5SEOfUDUQZ",
+            "object": "product",
+            "active": True,
+            "attributes": [],
+            "created": 1641068051,
+            "description": "Mailchimp is an email marketing tool. This solution will be focused on running an email marketing campaign using Mailchimp given an email template and an excel sheet with emails and other information.",
+            "images": [],
+            "livemode": False,
+            "metadata": {},
+            "name": "Run an email marketing campaign given an excel sheet with Mailchimp",
+            "package_dimensions": None,
+            "shippable": None,
+            "statement_descriptor": None,
+            "tax_code": None,
+            "type": "service",
+            "unit_label": None,
+            "updated": 1641068051,
+            "url": None,
+        },
+    }
+    return Event(data=data)
+
+
+@pytest.fixture
+def example_stripe_price_create_event(
+    example_stripe_product_create_event: Event,
+) -> Event:
+
+    # A stripe price is always associated with a stripe product, so a corresponding product must exist for this stripe
+    # price.
+    product_dict = example_stripe_product_create_event.data['object']
+    Product.sync_from_stripe_data(product_dict)
+
+    data = {
+        "object": {
+            "id": "price_1KDDxvJNxEeFbcNwlynxIXH2",
+            "object": "price",
+            "active": True,
+            "billing_scheme": "per_unit",
+            "created": 1641068051,
+            "currency": "usd",
+            "livemode": False,
+            "lookup_key": None,
+            "metadata": {},
+            "nickname": None,
+            "product": "prod_Kszx5SEOfUDUQZ",
+            "recurring": None,
+            "tax_behavior": "unspecified",
+            "tiers_mode": None,
+            "transform_quantity": None,
+            "type": "one_time",
+            "unit_amount": 100000,
+            "unit_amount_decimal": "100000",
+        }
+    }
+    return Event(data=data, type="price.created")
+
+
+@pytest.fixture
 def example_event():
     # TODO: Rename to example_stripe_event
-    event = {'data': {}}
-    event['data']['object'] = {}
-    event['data']['object'] = {
-        "id": "cs_test_5PIAqHlxs921ujN9ftgymLMyywUM55VhoRTgE09KWjs6KUYc0uT6y8bV",
-        "object": "checkout.session",
-        "expires_at": 1637391616,
-        "livemode": False,
-        "metadata": {},
-        "mode": "payment",
-        "payment_intent": "pi_3JxPZ8JNxEeFbcNw0exlygHf",
-        "payment_method_options": {},
-        "payment_method_types": ["card"],
-        "payment_status": "paid",
-        "success_url": "https://example.com/success",
+    data = {
+        'object': {
+            "id": "cs_test_5PIAqHlxs921ujN9ftgymLMyywUM55VhoRTgE09KWjs6KUYc0uT6y8bV",
+            "object": "checkout.session",
+            "expires_at": 1637391616,
+            "livemode": False,
+            "metadata": {},
+            "mode": "payment",
+            "payment_intent": "pi_3JxPZ8JNxEeFbcNw0exlygHf",
+            "payment_method_options": {},
+            "payment_method_types": ["card"],
+            "payment_status": "paid",
+            "success_url": "https://example.com/success",
+        }
     }
-    return event
+    return Event(data=data)
 
 
 @pytest.fixture

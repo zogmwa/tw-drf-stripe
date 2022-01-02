@@ -27,7 +27,7 @@ class Solution(models.Model):
     )
 
     # The price the user will pay if they decide to pay upfront
-    # This can be nullable because not all solutions will have pay now enabled. Some solutions require incremental
+    # This can be nullable because not all solutions will have pay now enabled. Some solutions require metered
     # billing.
     pay_now_price = models.OneToOneField(
         StripePrice, null=True, blank=True, on_delete=models.SET_NULL
@@ -120,7 +120,18 @@ class Solution(models.Model):
 
     upvotes_count = models.IntegerField(default=0)
 
-    is_searchable = models.BooleanField(default=True)
+    # Some solution links will be unlisted so we don't want to show them in the search but users should be able to
+    # directly get to the links of such solutions.
+    is_searchable = models.BooleanField(
+        default=True,
+        help_text='Do we want this solution to show up in search results? (Or be like an unlisted link)',
+    )
+
+    # Some solutions will be mapped to test products (STRIPE_LIVE_MODE=False), we want to have a property field that
+    # can be displayed as a read only field in admin for convenience.
+    @property
+    def livemode(self) -> bool:
+        return not self.stripe_product.livemode
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
