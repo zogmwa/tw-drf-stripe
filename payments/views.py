@@ -74,7 +74,7 @@ class CreateStripeCheckoutSession(APIView):
         SolutionBooking.objects.create(
             booked_by=request.user,
             solution=solution,
-            status=SolutionBooking.Status.CANCELLED,
+            status=SolutionBooking.Status.PENDING,
             is_payment_completed=False,
             price_at_booking=pay_now_price_dollars,
             stripe_session_id=checkout_session.id,

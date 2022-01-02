@@ -143,52 +143,14 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'provider_notes',
             'started_at',
         ]
-        extra_kwargs = {'booked_by': {'required': False}}
-
-    def _inject_logged_in_user_into_validated_data(self, validated_data: dict):
-        logged_in_user = self.context['request'].user
-        if logged_in_user:
-            # Only set user if we have a reference to a logged in user instance
-            validated_data['booked_by'] = self.context['request'].user
-            if self.context['request'].data.get('solution'):
-                solution = Solution.objects.get(
-                    slug=self.context['request'].data.get('solution')
-                )
-                price_at_booking = solution.pay_now_price.unit_amount / 100
-                validated_data['solution'] = solution
-                validated_data['price_at_booking'] = price_at_booking
-
-            if self.context['request'].data.get('is_payment_completed'):
-                validated_data['is_payment_completed'] = self.context[
-                    'request'
-                ].data.get('is_payment_completed')
-            else:
-                validated_data['is_payment_completed'] = False
-
-            if self.context['request'].data.get('status'):
-                validated_data['status'] = self.context['request'].data.get('status')
-            else:
-                validated_data['status'] = SolutionBooking.Status.CANCELLED
-
-            if self.context['request'].data.get('stripe_session_id'):
-                validated_data['stripe_session_id'] = self.context['request'].data.get(
-                    'stripe_session_id'
-                )
-
-    def validate(self, attrs: dict):
-        validated_data = super().validate(attrs)
-        self._inject_logged_in_user_into_validated_data(validated_data)
-        return validated_data
-
-    def create(self, validated_data):
-        try:
-            solution_booking = SolutionBooking.objects.get(
-                stripe_session_id=validated_data['stripe_session_id'],
-                solution=validated_data['solution'],
-            )
-            return solution_booking
-        except SolutionBooking.DoesNotExist:
-            return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
+        read_only_fields = [
+            'solution',
+            'booked_by',
+            'manager',
+            'status',
+            'price_at_booking',
+            'created',
+            'updated',
+            'provider_notes',
+            'started_at',
+        ]
