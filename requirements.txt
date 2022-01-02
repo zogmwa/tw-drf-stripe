@@ -1,4 +1,4 @@
-asgiref==3.3.4
+asgiref==3.4.1
 Django==3.2.10
 djangorestframework==3.12.4
 sqlparse==0.4.2

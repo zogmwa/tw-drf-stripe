@@ -1,4 +1,5 @@
-from django_elasticsearch_dsl import Document, fields
+from django_elasticsearch_dsl.documents import Document
+from django_elasticsearch_dsl import fields
 from django_elasticsearch_dsl.registries import registry
 
 from api.models import Tag
