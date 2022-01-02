@@ -12,14 +12,13 @@ class TestStripeWebhooksProductPrice:
     def test_create_product_webhook_should_create_solution(
         self, example_stripe_product_create_event
     ):
-        product_created_handler(example_stripe_product_create_event)
-        product = Product.objects.get(id=example_stripe_product_create_event.data['id'])
-        solution = Solution.objects.get(stripe_product_id=product.pk)
+        response = product_created_handler(example_stripe_product_create_event)
+        product_dict = example_stripe_product_create_event.data["object"]
 
-        solution_slug = _get_slug_from_solution_title(product.name[:200])
-        assert solution.title == product.name
-        assert solution.description == product.description
+        solution = Solution.objects.get(stripe_product__id=product_dict['id'])
+        solution_slug = _get_slug_from_solution_title(solution.title[:200])
         assert solution.slug == solution_slug
+        assert solution.title == solution.stripe_product.name
 
     def test_create_price_webhook_should_sync_price_in_db(
         self, example_stripe_price_create_event
@@ -28,20 +27,18 @@ class TestStripeWebhooksProductPrice:
 
         assert Price.objects.all().count() == 1
 
-        price = Price.objects.get(id=example_stripe_price_create_event.data['id'])
-        assert price is not None
+        price_dict = example_stripe_price_create_event.data['object']
+        # The following should not return a get error (get returns atleast one object or errors out)
+        Price.objects.get(id=price_dict['id'])
 
     def test_create_price_webhook_should_link_this_price_to_solution(
         self, example_stripe_price_create_event
     ):
         price_created_handler(example_stripe_price_create_event)
 
-        djstripe_price = Price.objects.get(
-            id=example_stripe_price_create_event.data['id']
-        )
-        djstripe_product = Product.objects.get(
-            id=example_stripe_price_create_event.data['product']
-        )
+        stripe_price_dict = example_stripe_price_create_event.data['object']
+        price = Price.objects.get(id=stripe_price_dict['id'])
+        product = Product.objects.get(id=stripe_price_dict['product'])
 
-        solution = Solution.objects.get(stripe_product_id=djstripe_product.pk)
-        assert solution.pay_now_price == djstripe_price
+        solution = Solution.objects.get(stripe_product=product)
+        assert solution.pay_now_price == price
