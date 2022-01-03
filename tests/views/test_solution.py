@@ -1,3 +1,11 @@
+import time
+from django.db.models.signals import post_save, pre_save
+from django.core.signals import request_finished
+from api.models.solution import (
+    generate_solution_detail_pages_sitemap_files_pre_save,
+    generate_solution_detail_pages_sitemap_files_post_save,
+)
+
 from api.models import Solution
 from api.models.solution_booking import SolutionBooking
 from api.views.solutions import SolutionViewSet
@@ -33,6 +41,16 @@ class TestFetchingSolution:
     def test_anonymous_user_should_be_able_to_fetch_filtered_solution_with_search_query(
         self, unauthenticated_client, example_solution, mocker
     ):
+        post_save.disconnect(
+            generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
+        )
+        pre_save.disconnect(
+            generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution
+        )
+        request_finished.disconnect(
+            generate_solution_detail_pages_sitemap_files_post_save,
+            dispatch_uid="generate_solution_detail_pages_sitemap_files",
+        )
         added_example_solution = Solution.objects.create(
             slug='test-solution2',
             title='Test Solution2',
@@ -60,6 +78,16 @@ class TestFetchingSolution:
     def test_anonymous_user_should_be_able_to_fetch_ordered_solution_with_search_query(
         self, unauthenticated_client, example_solution, mocker
     ):
+        post_save.disconnect(
+            generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
+        )
+        pre_save.disconnect(
+            generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution
+        )
+        request_finished.disconnect(
+            generate_solution_detail_pages_sitemap_files_post_save,
+            dispatch_uid="generate_solution_detail_pages_sitemap_files",
+        )
         added_example_solution = Solution.objects.create(
             slug='test-solution2',
             title='Test Solution2',
@@ -205,6 +233,16 @@ class TestFetchingSolution:
     def test_user_should_not_be_able_to_fetch_solution_that_its_is_searchable_is_false(
         self, unauthenticated_client, example_solution, mocker
     ):
+        post_save.disconnect(
+            generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
+        )
+        pre_save.disconnect(
+            generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution
+        )
+        request_finished.disconnect(
+            generate_solution_detail_pages_sitemap_files_post_save,
+            dispatch_uid="generate_solution_detail_pages_sitemap_files",
+        )
         Solution.objects.create(
             slug='test-solution2',
             title='Test Solution2',
