@@ -38,6 +38,7 @@ ALLOWED_HOSTS = [
     'taggedweb.com',
     'localhost',
     '127.0.0.1',
+    'staging.taggedweb.com',
 ]
 
 # Difference between ALLOWED_HOSTS and CORS_ALLOWED_ORIGINS:
@@ -49,6 +50,7 @@ CORS_ALLOWED_ORIGINS = [
     # This is temporary, just for making local development easy on port 3000
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://staging.taggedweb.com",
 ]
 
 # Application definition
