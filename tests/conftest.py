@@ -102,7 +102,7 @@ def example_stripe_price_create_event(
             "lookup_key": None,
             "metadata": {},
             "nickname": None,
-            "product": "prod_Kszx5SEOfUDUQZ",
+            "product": product_dict["id"],
             "recurring": None,
             "tax_behavior": "unspecified",
             "tiers_mode": None,
@@ -113,6 +113,39 @@ def example_stripe_price_create_event(
         }
     }
     return Event(data=data, type="price.created")
+
+
+@pytest.fixture
+def example_stripe_price_archive_event(
+    example_stripe_product_create_event: Event, example_stripe_price_create_event: Event
+) -> Event:
+
+    # A stripe price is always associated with a stripe product, so a corresponding product must exist for this stripe
+    # price.
+    product_dict = example_stripe_product_create_event.data['object']
+    Product.sync_from_stripe_data(product_dict)
+    price_archive_event = example_stripe_price_create_event
+    price_archive_event.data['object']['active'] = False
+    return price_archive_event
+
+
+@pytest.fixture
+def example_stripe_price_delete_event(
+    example_stripe_price_create_event: Event,
+) -> Event:
+
+    # in order to delete a price, we need to create it first.
+    price_dict = example_stripe_price_create_event.data['object']
+    Price.sync_from_stripe_data(price_dict)
+    # created response like this from: https://stripe.com/docs/api/coupons/delete
+    data = {
+        "object": {
+            "id": example_stripe_price_create_event.data['object']['id'],
+            "object": "price",
+            "deleted": True,
+        }
+    }
+    return Event(data=data, type="price.deleted")
 
 
 @pytest.fixture
