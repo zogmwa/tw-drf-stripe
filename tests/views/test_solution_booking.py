@@ -70,6 +70,7 @@ class TestDeletingSolutionBooking:
             booked_by=user_and_password[0],
             status=SolutionBooking.Status.PENDING,
         )
+        example_solution_booking.save()
 
         example_solution_booking.delete()
         solution_list_url = '{}{}/'.format(
@@ -98,3 +99,40 @@ class TestChangeStatus:
         contract_instance = SolutionBooking.objects.get(id=example_solution_booking.id)
 
         assert contract_instance.started_at is not None
+
+    def test_increase_capacity_used_field_when_payment_checkout(
+        self,
+        mocker,
+        authenticated_client,
+        user_and_password,
+        example_solution,
+    ):
+        mocker.patch.object(
+            SolutionViewSet,
+            '_get_solutions_db_qs_via_elasticsearch_query',
+            return_value=Solution.objects.all(),
+        )
+
+        example_solution_booking = SolutionBooking.objects.create(
+            solution=example_solution,
+            booked_by=user_and_password[0],
+        )
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = authenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['capacity_used'] == 0
+
+        example_solution_booking.is_payment_completed = True
+        example_solution_booking.save()
+
+        solution_list_url = '{}{}/'.format(
+            SOLUTIONS_BASE_ENDPOINT, example_solution.slug
+        )
+        response = authenticated_client.get(solution_list_url)
+
+        assert response.status_code == 200
+        assert response.data['capacity_used'] == 1

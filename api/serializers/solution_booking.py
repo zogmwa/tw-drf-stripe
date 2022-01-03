@@ -104,6 +104,7 @@ class SolutionBookingSerializer(ModelSerializer):
     class Meta:
         model = SolutionBooking
         fields = [
+            'id',
             'solution',
             'booked_by',
             'manager',
@@ -131,6 +132,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
     class Meta:
         model = SolutionBooking
         fields = [
+            'id',
             'solution',
             'booked_by',
             'manager',

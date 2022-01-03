@@ -56,7 +56,8 @@ class CreateStripeCheckoutSession(APIView):
             ],
             mode='payment',
             success_url=active_site
-            + '/payment-success/?session_id={CHECKOUT_SESSION_ID}',
+            + '/payment-success/?session_id={CHECKOUT_SESSION_ID}&solution='
+            + solution.slug,
             cancel_url=active_site
             + '/payment-cancel/?session_id={CHECKOUT_SESSION_ID}&solution='
             + solution.slug,

@@ -77,10 +77,12 @@ class SolutionSerializer(ModelSerializer):
             'is_searchable',
             'bookings_pending_fulfillment_count',
             'consultation_scheduling_link',
+            'capacity_used',
         ]
         read_only_fields = [
             'pay_now_price_stripe_id',
             'pay_now_price_unit_amount',
+            'capacity_used',
         ]
 
     def _get_booked_users_count(self, instance):
