@@ -1,14 +1,16 @@
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import pre_save
 from djstripe.models import Product as StripeProduct
 from djstripe.models import Price as StripePrice
-
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.core.signals import request_finished
+
 from api.models.organization import Organization
 from api.models.tag import Tag
-
-from django.db.models.signals import post_save
+from api.management.commands import generate_sitemap_solution_detail
+from api.management.commands import generate_sitemap_index
+import sys
 
 
 class Solution(models.Model):
@@ -140,3 +142,47 @@ class Solution(models.Model):
     class Meta:
         verbose_name = 'Solution'
         verbose_name_plural = 'Solutions'
+
+
+def solution_detail_sitemap_generator():
+    solution_detail_cmd = generate_sitemap_solution_detail.Command()
+    sitemap_index_cmd = generate_sitemap_index.Command()
+    solution_detail_cmd.handle(**{})
+    sitemap_index_cmd.handle(**{})
+
+
+@receiver(signal=pre_save, sender=Solution)
+def generate_solution_detail_pages_sitemap_files_pre_save(
+    sender, instance=None, **kwargs
+):
+    try:
+        instance.old_slug = sender.objects.get(pk=instance.pk).slug
+    except sender.DoesNotExist:
+        instance.old_slug = ''
+
+
+@receiver(signal=post_save, sender=Solution)
+def generate_solution_detail_pages_sitemap_files_post_save(
+    sender, instance=None, **kwargs
+):
+
+    if type(sender) != type(Solution):
+        return
+
+    solution_instance = instance
+    try:
+        old_slug = solution_instance.old_slug
+        if old_slug != instance.slug:
+            solution_detail_sitemap_generator()
+    except Solution.DoesNotExist:
+        solution_detail_sitemap_generator()
+
+
+post_save.connect(
+    generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
+)
+pre_save.connect(generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution)
+request_finished.connect(
+    generate_solution_detail_pages_sitemap_files_post_save,
+    dispatch_uid="generate_solution_detail_pages_sitemap_files",
+)
