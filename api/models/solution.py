@@ -140,7 +140,7 @@ class Solution(models.Model):
     # can be displayed as a read only field in admin for convenience.
     @property
     def livemode(self) -> bool:
-        return self.stripe_product.livemode
+        return self.stripe_product.livemode if self.stripe_product else None
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated = models.DateTimeField(null=True, blank=True, auto_now=True)
