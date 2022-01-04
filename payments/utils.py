@@ -17,7 +17,7 @@ def fulfill_order(stripe_session_id: str) -> None:
 
     send_mail(
         subject='Solution Booked',
-        message='Solution Booking ID: {}. Here is the link to the solution that you attempted booking: {}'.format(
+        message='Solution Booking ID: {}. Here is the link to the solution that you booked: {}'.format(
             solution_booking.id,
             _get_solution_url_from_slug(solution_booking.solution.slug),
         ),

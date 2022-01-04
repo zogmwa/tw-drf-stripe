@@ -26,7 +26,7 @@ class TestCheckoutSessionWebhook:
         self.check_mail_content(
             'Solution Booked',
             [admin_user.email],
-            'Solution Booking ID: {}. Here is the link to the solution that you attempted booking: {}'.format(
+            'Solution Booking ID: {}. Here is the link to the solution that you booked: {}'.format(
                 solution_booking.id,
                 _get_solution_url_from_slug(example_solution_booking.solution.slug),
             ),
@@ -46,7 +46,7 @@ class TestCheckoutSessionWebhook:
         self.check_mail_content(
             'Solution Booked',
             [admin_user.email],
-            'Solution Booking ID: {}. Here is the link to the solution that you attempted booking: {}'.format(
+            'Solution Booking ID: {}. Here is the link to the solution that you booked: {}'.format(
                 solution_booking.id,
                 _get_solution_url_from_slug(example_solution_booking.solution.slug),
             ),
