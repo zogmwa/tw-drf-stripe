@@ -14,12 +14,18 @@ def _set_solution_fields_from_product_instance(
     is_created=False,
 ) -> None:
     solution.title = product.name
-    solution.slug = _get_slug_from_solution_title(solution.title)
+    slug_default_from_title = _get_slug_from_solution_title(solution.title)
 
     if is_created:
+        # For updates we don't automatically want to update slugs because it may render the old url obsolete
+        solution.slug = slug_default_from_title
+
         # Newly created solutions should by default be in unpublished state
         # Other solutions should retain their previous state
         solution.is_published = False
+    else:
+        if solution.slug is None:
+            solution.slug = slug_default_from_title
 
     if solution.description is None:
         solution.description = product.description

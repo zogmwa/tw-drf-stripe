@@ -64,12 +64,13 @@ class TestStripeWebhooksProductPriceUpdatedHandlers:
         product_dict["name"] = updated_name
         product_dict["description"] = updated_description
         stripe_product_update_event.data["ojbect"] = product_dict
+        old_solution = Solution.objects.get(stripe_product__id=product_dict['id'])
 
         product_updated_handler(example_stripe_product_create_event)
 
         solution = Solution.objects.get(stripe_product__id=product_dict['id'])
-        solution_slug = _get_slug_from_solution_title(product_dict["name"][:200])
-        assert solution.slug == solution_slug
+        # Solution slug shouldn't change before and after update if it was not None
+        assert solution.slug == old_solution.slug
         assert solution.title == updated_name
         # description should not be changed when product is being updated
         assert solution.description == old_description
