@@ -7,13 +7,16 @@ from django.core.management.base import BaseCommand
 from django.core.files.storage import default_storage
 from gzip import GzipFile
 import gzip
-
+import os
 from django.apps import apps
 from api.utils.convert_str_to_date import get_now_converted_google_date
 
 
 def process() -> None:
     print(get_now_converted_google_date())
+    if os.path.isdir('./static/') is False:
+        os.mkdir(os.path.join('./static/'))
+
     asset = apps.get_model('api', 'Asset')
     sitemap_index_name = 'software_detail'
     max_url_per_sitemap = (
