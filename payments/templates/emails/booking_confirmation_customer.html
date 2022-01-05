@@ -1,10 +1,12 @@
-Hi {{ customer.first_name }},
-
-You have booked the solution {{ solution.title }}. Your booking is confirmed and your Reference Number/ID is: {{ solution_booking.id }}.
-
+<p> Hi {{ customer.first_name }},<br/>
+<br/>
+You have booked the solution {{ solution.title }}. <br/>
+Your booking is confirmed and your Reference Number/ID is: <strong> {{ solution_booking.id }}. </strong> <br/>
+<br/>
 Total amount paid: ${{ solution_booking.price_at_booking }}.
-
-Your point of contact is: {{ point_of_contact.email }}. Do not hestiate to reach out to this email with questions about your booking.
-
-Thank you,
+<br/>
+Your point of contact is: <strong> {{ point_of_contact.email }} </strong>. Do not hestiate to reach out to this email  with questions about your booking.
+<br/>
+Thank you! <br/>
 Team TaggedWeb
+</p>

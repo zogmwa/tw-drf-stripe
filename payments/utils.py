@@ -34,7 +34,9 @@ def fulfill_order(stripe_session_id: str) -> None:
 
     # Send a confirmation email to the customer who booked the Solution
     send_mail(
-        subject='TaggedWeb.com Booking Confirmation. Booking ID: {}',
+        subject='TaggedWeb.com Booking Confirmation. Booking ID: {}'.format(
+            solution_booking.id
+        ),
         html_message=customer_email_msg_html,
         message=customer_email_msg_plain,
         from_email='noreply@taggedweb.com',
