@@ -83,7 +83,7 @@ class Solution(models.Model):
     # The user who will either be providing the support or be the point of contact at the organization providing
     # the support.
     point_of_contact = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
     )
 
     # Follow-On solutions a.k.a. Downstream solutions that are typically performed after Upstream solutions

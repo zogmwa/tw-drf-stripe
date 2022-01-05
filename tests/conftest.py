@@ -402,12 +402,12 @@ def user_and_password():
 
 @pytest.fixture
 def user_and_password_with_first_last_name():
-    first_name = 'user'
-    last_name = 'name'
-    username = 'username'
     password = 'password'
     user = User.objects.create(
-        username=username, first_name=first_name, last_name=last_name
+        username='testuser',
+        first_name='Test',
+        last_name='User',
+        email='test@taggedweb.com',
     )
     user.set_password(password)
     user.save()
