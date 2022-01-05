@@ -106,3 +106,48 @@ class TestChangeStatus:
 
         assert response.status_code == 200
         assert response.data['capacity_used'] == 1
+
+
+class TestFetchSolutionBookings:
+    def test_anonymous_user_could_not_fetch_solution_bookings(
+        self, example_solution, unauthenticated_client, user_and_password
+    ):
+        SolutionBooking.objects.create(
+            solution=example_solution,
+            booked_by=user_and_password[0],
+        )
+
+        fetch_solution_booking_url = 'http://127.0.0.1:8000/users/{}/bookings/'.format(
+            user_and_password[0].username
+        )
+        response = unauthenticated_client.get(fetch_solution_booking_url)
+
+        assert response.status_code == 401
+
+    def test_authenticated_user_should_fetch_solution_bookings(
+        self, example_solution, authenticated_client, user_and_password
+    ):
+        example_solution_booking = SolutionBooking.objects.create(
+            solution=example_solution,
+            booked_by=user_and_password[0],
+        )
+
+        fetch_solution_booking_url = 'http://127.0.0.1:8000/users/{}/bookings/'.format(
+            user_and_password[0].username
+        )
+        response = authenticated_client.get(fetch_solution_booking_url)
+
+        assert response.status_code == 200
+        assert response.data[0]['id'] == example_solution_booking.id
+        assert response.data[0]['solution']['id'] == example_solution.id
+
+        fetch_solution_booking_url = (
+            'http://127.0.0.1:8000/users/{}/bookings/?id={}'.format(
+                user_and_password[0].username, example_solution_booking.id
+            )
+        )
+        response = authenticated_client.get(fetch_solution_booking_url)
+
+        assert response.status_code == 200
+        assert response.data[0]['id'] == example_solution_booking.id
+        assert response.data[0]['solution']['id'] == example_solution.id
