@@ -4,6 +4,7 @@ Allows making sitemap index file that from sitemap files in ./static folder.
 from django.core.management.base import BaseCommand
 from os import listdir
 from os.path import isfile, join
+import os
 import codecs
 
 from django.core.files.storage import default_storage
@@ -12,10 +13,16 @@ from api.utils.convert_str_to_date import get_now_converted_google_date
 
 def process() -> None:
     print(get_now_converted_google_date())
+    try:
+        os.mkdir(os.path.join('./static/'))
+    except OSError:
+        pass
+
     sitemap_files = [
         file for file in listdir('./static/') if isfile(join('./static/', file))
     ]
-    sitemap_files.remove('sitemap.xml')
+    if 'sitemap.xml' in sitemap_files:
+        sitemap_files.remove('sitemap.xml')
 
     sitemap_index_content = """<?xml version="1.0" encoding="UTF-8"?>
     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">"""

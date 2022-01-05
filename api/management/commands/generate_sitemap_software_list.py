@@ -7,13 +7,18 @@ from django.core.management.base import BaseCommand
 from django.core.files.storage import default_storage
 from gzip import GzipFile
 import gzip
-
+import os
 from api.models.tag import Tag
 from api.utils.convert_str_to_date import get_now_converted_google_date
 
 
 def process() -> None:
     print(get_now_converted_google_date())
+    try:
+        os.mkdir(os.path.join('./static/'))
+    except OSError:
+        pass
+
     sitemap_index_name = 'software_list'
     max_url_per_sitemap = (
         500  # maximum url of each sitemap - google recommended it should be 50K.
