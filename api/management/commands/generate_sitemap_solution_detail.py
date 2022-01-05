@@ -14,10 +14,8 @@ from api.utils.convert_str_to_date import get_now_converted_google_date
 
 def process() -> None:
     print(get_now_converted_google_date())
-    try:
+    if os.path.isdir('./static/') is False:
         os.mkdir(os.path.join('./static/'))
-    except OSError:
-        pass
 
     solution = apps.get_model('api', 'Solution')
     sitemap_index_name = 'solution_detail'
