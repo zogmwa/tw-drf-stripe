@@ -1,11 +1,18 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from api.models.user import User
 from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
 from api.models.solution_review import SolutionReview
 from api.models.asset import Asset
 from api.serializers.organization import OrganizationSerializer
+
+
+class UserContactSerializerForSolution(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
 
 
 class AssetSerializerForSolutionBooking(ModelSerializer):
@@ -25,6 +32,7 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
     organization = OrganizationSerializer(read_only=True)
     assets = AssetSerializerForSolutionBooking(read_only=True, many=True)
     upvotes_count = serializers.IntegerField(read_only=True)
+    point_of_contact = UserContactSerializerForSolution(read_only=True)
     avg_rating = serializers.SerializerMethodField(
         method_name="_get_solution_review_avg_rating"
     )
@@ -48,6 +56,7 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'avg_rating',
             'my_solution_review',
             'my_solution_review_id',
+            'point_of_contact',
         ]
         read_only_fields = [
             'pay_now_price_unit_amount',
