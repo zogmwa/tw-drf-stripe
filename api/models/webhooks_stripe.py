@@ -1,21 +1,25 @@
 from django.conf import settings
-from django.http import HttpResponse
 from djstripe import webhooks
 from djstripe.models import Product
 from djstripe.models import Price
 from djstripe.models import Event
-from rest_framework.status import HTTP_200_OK
 
 from api.models.solution import Solution
 from django.utils.text import slugify
 
 
 def _set_solution_fields_from_product_instance(
-    solution: Solution, product: Product
+    solution: Solution,
+    product: Product,
+    is_created=False,
 ) -> None:
     solution.title = product.name
     solution.slug = _get_slug_from_solution_title(solution.title)
-    solution.is_published = False
+
+    if is_created:
+        # Newly created solutions should by default be in unpublished state
+        # Other solutions should retain their previous state
+        solution.is_published = False
 
     if solution.description is None:
         solution.description = product.description
@@ -67,7 +71,7 @@ def product_created_handler(event: Event, **kwargs):
     product = Product.sync_from_stripe_data(event.data['object'])
 
     solution, is_created = Solution.objects.get_or_create(stripe_product=product)
-    _set_solution_fields_from_product_instance(solution, product)
+    _set_solution_fields_from_product_instance(solution, product, is_created)
 
 
 @webhooks.handler('product.updated')
@@ -79,7 +83,7 @@ def product_updated_handler(event: Event, **kwargs):
     product = Product.sync_from_stripe_data(event.data['object'])
 
     solution = Solution.objects.get(stripe_product=product)
-    _set_solution_fields_from_product_instance(solution, product)
+    _set_solution_fields_from_product_instance(solution, product, is_created=False)
 
 
 def _get_slug_from_solution_title(solution_title: str) -> str:
