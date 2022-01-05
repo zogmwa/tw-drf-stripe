@@ -1,5 +1,3 @@
-import uuid
-
 from django.conf import settings
 from django.db import models
 from django.core.mail import send_mail
