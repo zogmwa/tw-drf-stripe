@@ -42,9 +42,7 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
     my_solution_review_id = serializers.SerializerMethodField(
         method_name="_get_my_solution_review_id"
     )
-    booked_count = serializers.SerializerMethodField(
-        method_name="_get_booked_users_count"
-    )
+    booked_count = serializers.SerializerMethodField(method_name="_get_bookings_count")
 
     class Meta:
         model = Solution
@@ -83,7 +81,7 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'type',
         ]
 
-    def _get_booked_users_count(self, instance):
+    def _get_bookings_count(self, instance):
         """
         This is more of a total bookings count than a users count because it counts all the bookings for this solution.
         Maybe renamne this later if appropriate.
