@@ -12,7 +12,7 @@ from api.serializers.organization import OrganizationSerializer
 class UserContactSerializerForSolution(ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'avatar']
+        fields = ['id', 'username', 'first_name', 'last_name', 'avatar', 'email']
 
 
 class AssetSerializerForSolutionBooking(ModelSerializer):
@@ -42,6 +42,9 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
     my_solution_review_id = serializers.SerializerMethodField(
         method_name="_get_my_solution_review_id"
     )
+    booked_count = serializers.SerializerMethodField(
+        method_name="_get_booked_users_count"
+    )
 
     class Meta:
         model = Solution
@@ -49,15 +52,28 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'id',
             'slug',
             'title',
-            'pay_now_price_unit_amount',
+            'type',
+            'description',
+            'point_of_contact',
             'organization',
             'assets',
+            'questions',
+            'scope_of_work',
+            'primary_tag',
+            'eta_days',
+            'follow_up_hourly_rate',
+            'capacity',
+            'has_free_consultation',
             'upvotes_count',
+            'avg_rating',
+            'is_published',
+            'booked_count',
+            'is_searchable',
+            'consultation_scheduling_link',
+            'capacity_used',
             'avg_rating',
             'my_solution_review',
             'my_solution_review_id',
-            'point_of_contact',
-            'type',
         ]
         read_only_fields = [
             'pay_now_price_unit_amount',
@@ -66,6 +82,14 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'avg_rating',
             'type',
         ]
+
+    def _get_booked_users_count(self, instance):
+        """
+        This is more of a total bookings count than a users count because it counts all the bookings for this solution.
+        Maybe renamne this later if appropriate.
+        """
+        solution_instance = instance
+        return solution_instance.bookings.count()
 
     def _get_my_solution_review_id(self, instance):
         """
@@ -124,6 +148,9 @@ class SolutionBookingSerializer(ModelSerializer):
             'updated',
             'provider_notes',
             'started_at',
+            'is_payment_completed',
+            'stripe_session_id',
+            'price_at_booking',
         ]
         read_only_fields = [
             'solution',
@@ -134,6 +161,9 @@ class SolutionBookingSerializer(ModelSerializer):
             'updated',
             'provider_notes',
             'started_at',
+            'is_payment_completed',
+            'stripe_session_id',
+            'price_at_booking',
         ]
 
 
@@ -153,6 +183,9 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'updated',
             'provider_notes',
             'started_at',
+            'is_payment_completed',
+            'stripe_session_id',
+            'price_at_booking',
         ]
         read_only_fields = [
             'solution',
@@ -164,4 +197,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'updated',
             'provider_notes',
             'started_at',
+            'is_payment_completed',
+            'stripe_session_id',
+            'price_at_booking',
         ]
