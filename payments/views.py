@@ -46,6 +46,18 @@ class CreateStripeCheckoutSession(APIView):
         active_site_obj = Site.objects.get(id=settings.SITE_ID)
         active_site = 'https://{}'.format(active_site_obj.domain)
 
+        # Convert cents to dollars
+        # TODO: This may need a change when we move to non USD payments
+        pay_now_price_dollars = pay_now_price.unit_amount / 100
+
+        solution_booking = SolutionBooking.objects.create(
+            booked_by=request.user,
+            solution=solution,
+            status=SolutionBooking.Status.PENDING,
+            is_payment_completed=False,
+            price_at_booking=pay_now_price_dollars,
+        )
+
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[
@@ -56,8 +68,8 @@ class CreateStripeCheckoutSession(APIView):
             ],
             mode='payment',
             success_url=active_site
-            + '/payment-success/?session_id={CHECKOUT_SESSION_ID}&solution='
-            + solution.slug,
+            + '/payment-success/?session_id={CHECKOUT_SESSION_ID}&booking_id='
+            + str(solution_booking.id),
             cancel_url=active_site
             + '/payment-cancel/?session_id={CHECKOUT_SESSION_ID}&solution='
             + solution.slug,
@@ -67,18 +79,8 @@ class CreateStripeCheckoutSession(APIView):
         # This endpoint just returns the checkout url, the frontend should do the redirect
         response_data = {'checkout_page_url': checkout_session.url}
 
-        # Convert cents to dollars
-        # TODO: This may need a change when we move to non USD payments
-        pay_now_price_dollars = pay_now_price.unit_amount / 100
-
-        SolutionBooking.objects.create(
-            booked_by=request.user,
-            solution=solution,
-            status=SolutionBooking.Status.PENDING,
-            is_payment_completed=False,
-            price_at_booking=pay_now_price_dollars,
-            stripe_session_id=checkout_session.id,
-        )
+        solution_booking.stripe_session_id = checkout_session.id
+        solution_booking.save()
 
         return JsonResponse(response_data)
 
