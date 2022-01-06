@@ -57,12 +57,14 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'my_solution_review',
             'my_solution_review_id',
             'point_of_contact',
+            'type',
         ]
         read_only_fields = [
             'pay_now_price_unit_amount',
             'my_solution_review',
             'my_solution_review_id',
             'avg_rating',
+            'type',
         ]
 
     def _get_my_solution_review_id(self, instance):
