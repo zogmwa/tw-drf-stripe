@@ -8,14 +8,15 @@ from django.core.files.storage import default_storage
 from gzip import GzipFile
 import gzip
 import os
+from django.conf import settings
 from api.models.tag import Tag
 from api.utils.convert_str_to_date import get_now_converted_google_date
 
 
 def process() -> None:
     print(get_now_converted_google_date())
-    if os.path.isdir('./static/') is False:
-        os.mkdir(os.path.join('./static/'))
+    if os.path.isdir('{}{}'.format(settings.BASE_DIR, '/temp/')) is False:
+        os.mkdir(os.path.join('{}{}'.format(settings.BASE_DIR, '/temp/')))
 
     sitemap_index_name = 'software_list'
     max_url_per_sitemap = (
@@ -33,8 +34,8 @@ def process() -> None:
     sitemap_end_str = """
 </urlset>
 """
-    current_output_filename = './static/sitemap_{}_{}.xml.gz'.format(
-        sitemap_index_name, sitemap_file_index
+    current_output_filename = '{}{}/sitemap_{}_{}.xml.gz'.format(
+        settings.BASE_DIR, '/temp/', sitemap_index_name, sitemap_file_index
     )  # First file created.
     sitemap_index_url.add(
         'sitemap_{}_{}.xml.gz'.format(sitemap_index_name, sitemap_file_index)
@@ -65,8 +66,8 @@ def process() -> None:
             current_gzip_file.close()
             current_url_count = 0
             sitemap_file_index = sitemap_file_index + 1
-            current_output_filename = './static/sitemap_{}_{}.xml.gz'.format(
-                sitemap_index_name, sitemap_file_index
+            current_output_filename = '{}{}/sitemap_{}_{}.xml.gz'.format(
+                settings.BASE_DIR, '/temp/', sitemap_index_name, sitemap_file_index
             )
             current_gzip_file = GzipFile(current_output_filename, 'w')
             sitemap_index_url.add(
@@ -80,7 +81,7 @@ def process() -> None:
     # Upload sitemap files to S3.
     for url in sitemap_index_url:
         file = default_storage.open(url, 'w')
-        split_file = gzip.open('./static/{}'.format(url), 'rb')
+        split_file = gzip.open('{}{}{}'.format(settings.BASE_DIR, '/temp/', url), 'rb')
         split_content = split_file.read()
         file.write(gzip.compress(split_content))
         file.close()

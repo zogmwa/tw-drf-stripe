@@ -35,8 +35,8 @@ def process() -> None:
     sitemap_end_str = """
 </urlset>
 """
-    current_output_filename = './static/sitemap_{}.xml.gz'.format(
-        sitemap_file_index
+    current_output_filename = '{}{}sitemap_{}.xml.gz'.format(
+        settings.BASE_DIR, '/temp/', sitemap_file_index
     )  # First file created.
     sitemap_index_url.add('sitemap_{}.xml.gz'.format(sitemap_file_index))
     current_gzip_file = GzipFile(current_output_filename, 'w')
@@ -69,8 +69,8 @@ def process() -> None:
             current_gzip_file.close()
             current_url_count = 0
             sitemap_file_index = sitemap_file_index + 1
-            current_output_filename = './static/sitemap_{}.xml.gz'.format(
-                sitemap_file_index
+            current_output_filename = '{}{}/sitemap_{}.xml.gz'.format(
+                settings.BASE_DIR, '/temp/', sitemap_file_index
             )
             current_gzip_file = GzipFile(current_output_filename, 'w')
             sitemap_index_url.add('sitemap_{}.xml.gz'.format(sitemap_file_index))
@@ -91,8 +91,8 @@ def process() -> None:
             current_gzip_file.close()
             current_url_count = 0
             sitemap_file_index = sitemap_file_index + 1
-            current_output_filename = './static/sitemap_{}.xml.gz'.format(
-                sitemap_file_index
+            current_output_filename = '{}{}/sitemap_{}.xml.gz'.format(
+                settings.BASE_DIR, '/temp/', sitemap_file_index
             )
             current_gzip_file = GzipFile(current_output_filename, 'w')
             sitemap_index_url.add('sitemap_{}.xml.gz'.format(sitemap_file_index))
@@ -102,7 +102,9 @@ def process() -> None:
     current_gzip_file.close()
     current_url_count = 0
     sitemap_file_index = sitemap_file_index + 1
-    current_output_filename = './static/sitemap_{}.xml.gz'.format(sitemap_file_index)
+    current_output_filename = '{}{}/sitemap_{}.xml.gz'.format(
+        settings.BASE_DIR, '/temp/', sitemap_file_index
+    )
     current_gzip_file = GzipFile(current_output_filename, 'w')
     sitemap_index_url.add('sitemap_{}.xml.gz'.format(sitemap_file_index))
     current_gzip_file.write(sitemap_config_str.encode())
@@ -135,8 +137,8 @@ def process() -> None:
                     current_gzip_file.close()
                     current_url_count = 0
                     sitemap_file_index = sitemap_file_index + 1
-                    current_output_filename = './static/sitemap_{}.xml.gz'.format(
-                        sitemap_file_index
+                    current_output_filename = '{}{}/sitemap_{}.xml.gz'.format(
+                        settings.BASE_DIR, '/temp/', sitemap_file_index
                     )
                     current_gzip_file = GzipFile(current_output_filename, 'w')
                     sitemap_index_url.add(
@@ -161,12 +163,14 @@ def process() -> None:
             get_now_converted_google_date(),
         )
         file = default_storage.open(url, 'w')
-        split_file = gzip.open('./static/{}'.format(url), 'rb')
+        split_file = gzip.open('{}{}{}'.format(settings.BASE_DIR, '/temp/', url), 'rb')
         split_content = split_file.read()
         file.write(gzip.compress(split_content))
         file.close()
 
-    current_gzip_file = codecs.open('./static/sitemap.xml', 'w', 'utf-8')
+    current_gzip_file = codecs.open(
+        '{}{}sitemap.xml'.format(settings.BASE_DIR, '/temp/'), 'w', 'utf-8'
+    )
 
     sitemap_index_content += """
 </sitemapindex>
