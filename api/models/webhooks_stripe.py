@@ -88,8 +88,11 @@ def product_updated_handler(event: Event, **kwargs):
     """
     product = Product.sync_from_stripe_data(event.data['object'])
 
-    solution = Solution.objects.get(stripe_product=product)
-    _set_solution_fields_from_product_instance(solution, product, is_created=False)
+    # In most cases is_created will be False because the product will already have a corresponding solution, however,
+    # for some cases where there is a drift where product.created event did not trigger the handler or errored/server
+    # was down, we can create the solution during the product update.
+    solution, is_created = Solution.objects.get_or_create(stripe_product=product)
+    _set_solution_fields_from_product_instance(solution, product, is_created=is_created)
 
 
 def _get_slug_from_solution_title(solution_title: str) -> str:
