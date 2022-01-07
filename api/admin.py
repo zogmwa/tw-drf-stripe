@@ -188,6 +188,10 @@ class SolutionAdmin(admin.ModelAdmin):
     ]
     search_fields = ['title']
     list_display = ('title', 'type', 'organization', 'livemode')
+    list_filter = (
+        'type',
+        'stripe_product__livemode',
+    )
     inlines = [
         AssetInlineWithinSolution,
         SolutionTagInline,
