@@ -72,14 +72,10 @@ class CreateStripeCheckoutSession(APIView):
             + request.user.username
             + '/bookings/'
             + str(solution_booking.id)
-            + '/?session_id={CHECKOUT_SESSION_ID}'
-            + '&solution_type='
-            + solution.type,
+            + '/?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=active_site
             + '/payment-cancel/?session_id={CHECKOUT_SESSION_ID}&solution='
-            + solution.slug
-            + '&solution_type='
-            + solution.type,
+            + solution.slug,
             customer_email=request.user.email,
         )
 
