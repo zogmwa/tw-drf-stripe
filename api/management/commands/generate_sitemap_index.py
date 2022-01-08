@@ -29,7 +29,7 @@ def process() -> None:
     sitemap_index_content = """<?xml version="1.0" encoding="UTF-8"?>
     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">"""
     # Upload sitemap files to S3.
-    for url in sitemap_files:
+    for url in sitemap_files[::-1]:
         sitemap_index_content += """
     <sitemap>
         <loc>https://www.taggedweb.com/{}</loc>
