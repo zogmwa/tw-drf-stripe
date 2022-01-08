@@ -1,5 +1,5 @@
 """
-Allows making sitemap index file that from sitemap files in ./static folder.
+Allows making sitemap index file that from sitemap files in ./temp folder.
 """
 from django.core.management.base import BaseCommand
 from os import listdir
