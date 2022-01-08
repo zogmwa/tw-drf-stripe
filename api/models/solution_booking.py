@@ -22,6 +22,11 @@ class SolutionBooking(models.Model):
         IN_REVIEW = 'In Review'
         COMPLETED = 'Completed'
 
+    BOOKING_RATING_RANGE = range(-1, 2)  # -1, 0, 1 (2 excluded)
+    BOOKING_RATING_CHOICES = tuple(
+        zip(BOOKING_RATING_RANGE, map(str, BOOKING_RATING_RANGE))
+    )
+
     solution = models.ForeignKey(
         Solution,
         null=True,
@@ -65,10 +70,16 @@ class SolutionBooking(models.Model):
     # Notes from the solution provider as the solution booking progresses along that will be visible to the customer
     provider_notes = models.TextField(null=True, blank=True)
 
+    # We should have rating at the booking level that the paying customer will add
+    # sad, neutral or happy face (-1, 0, 1 respectively)
+    rating = models.IntegerField(choices=BOOKING_RATING_CHOICES, blank=True, null=True)
+
     class Meta:
         indexes = [
             models.Index(fields=['booked_by'], name='booked_by_index'),
         ]
+        verbose_name = 'Booking'
+        verbose_name_plural = 'Bookings'
 
 
 @receiver(pre_save, sender=SolutionBooking)
