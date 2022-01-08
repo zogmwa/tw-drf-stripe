@@ -119,15 +119,9 @@ sudo certbot --nginx -d api.taggedweb.com
 
 ## Generate Sitemap files
 
-When installed this project then run the below commands:
+When installed this project then run the below command:
 
 ```bash
-# Generate solution detail sitemap file
-python manage.py generate_sitemap_solution_detail
-# Generate software detail sitemap file
-python manage.py generate_sitemap_software_detail
-# Generate software list sitemap file
-python manage.py generate_sitemap_software_list
-# Generate sitemap index file
-python manage.py generate_sitemap_index
+# Generate all (Solution detail, Software detail, Software list, Index) sitemap files:
+python manage.py generate_sitemap_full
 ```
