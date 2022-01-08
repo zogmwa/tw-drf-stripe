@@ -116,3 +116,18 @@ only added here in case the deploy is to be performed on a new instance.
 ```bash
 sudo certbot --nginx -d api.taggedweb.com
 ```
+
+## Generate Sitemap files
+
+When installed this project then run the below commands:
+
+```bash
+# Generate solution detail sitemap file
+python manage.py generate_sitemap_solution_detail
+# Generate software detail sitemap file
+python manage.py generate_sitemap_software_detail
+# Generate software list sitemap file
+python manage.py generate_sitemap_software_list
+# Generate sitemap index file
+python manage.py generate_sitemap_index
+```

@@ -15,8 +15,9 @@ from api.utils.convert_str_to_date import get_now_converted_google_date
 
 def process() -> None:
     print(get_now_converted_google_date())
-    if os.path.isdir('{}{}'.format(settings.BASE_DIR, '/temp/')) is False:
-        os.mkdir(os.path.join('{}{}'.format(settings.BASE_DIR, '/temp/')))
+    sitemap_file_path = '{}{}'.format(settings.BASE_DIR, '/temp/')
+    if os.path.isdir(sitemap_file_path) is False:
+        os.mkdir(os.path.join(sitemap_file_path))
 
     asset = apps.get_model('api', 'Asset')
     sitemap_index_name = 'software_detail'
@@ -35,8 +36,8 @@ def process() -> None:
     sitemap_end_str = """
 </urlset>
 """
-    current_output_filename = '{}{}/sitemap_{}_{}.xml.gz'.format(
-        settings.BASE_DIR, '/temp/', sitemap_index_name, sitemap_file_index
+    current_output_filename = '{}/sitemap_{}_{}.xml.gz'.format(
+        sitemap_file_path, sitemap_index_name, sitemap_file_index
     )  # First file created.
     sitemap_index_url.add(
         'sitemap_{}_{}.xml.gz'.format(sitemap_index_name, sitemap_file_index)
@@ -60,8 +61,8 @@ def process() -> None:
             current_gzip_file.close()
             current_url_count = 0
             sitemap_file_index = sitemap_file_index + 1
-            current_output_filename = '{}{}/sitemap_{}_{}.xml.gz'.format(
-                settings.BASE_DIR, '/temp/', sitemap_index_name, sitemap_file_index
+            current_output_filename = '{}/sitemap_{}_{}.xml.gz'.format(
+                sitemap_file_path, sitemap_index_name, sitemap_file_index
             )
             current_gzip_file = GzipFile(current_output_filename, 'w')
             sitemap_index_url.add(
@@ -75,7 +76,7 @@ def process() -> None:
     # Upload sitemap files to S3.
     for url in sitemap_index_url:
         file = default_storage.open(url, 'w')
-        split_file = gzip.open('{}{}{}'.format(settings.BASE_DIR, '/temp/', url), 'rb')
+        split_file = gzip.open('{}{}'.format(sitemap_file_path, url), 'rb')
         split_content = split_file.read()
         file.write(gzip.compress(split_content))
         file.close()
