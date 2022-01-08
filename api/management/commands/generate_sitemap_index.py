@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from os import listdir
 from os.path import isfile, join
 import os
+from django.conf import settings
 import codecs
 
 from django.core.files.storage import default_storage
@@ -13,11 +14,14 @@ from api.utils.convert_str_to_date import get_now_converted_google_date
 
 def process() -> None:
     print(get_now_converted_google_date())
-    if os.path.isdir('./static/') is False:
-        os.mkdir(os.path.join('./static/'))
+    sitemap_file_path = '{}{}'.format(settings.BASE_DIR, '/temp/')
+    if os.path.isdir(sitemap_file_path) is False:
+        os.mkdir(os.path.join(sitemap_file_path))
 
     sitemap_files = [
-        file for file in listdir('./static/') if isfile(join('./static/', file))
+        file
+        for file in listdir(sitemap_file_path)
+        if isfile(join(sitemap_file_path, file))
     ]
     if 'sitemap.xml' in sitemap_files:
         sitemap_files.remove('sitemap.xml')
@@ -34,7 +38,9 @@ def process() -> None:
             url,
             get_now_converted_google_date(),
         )
-    sitemap_index_file = codecs.open('./static/sitemap.xml', 'w', 'utf-8')
+    sitemap_index_file = codecs.open(
+        '{}{}'.format(sitemap_file_path, 'sitemap.xml'), 'w', 'utf-8'
+    )
     sitemap_index_content += """
     </sitemapindex>
     """
