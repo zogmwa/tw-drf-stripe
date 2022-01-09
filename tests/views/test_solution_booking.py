@@ -151,3 +151,41 @@ class TestFetchSolutionBookings:
         assert response.status_code == 200
         assert response.data[0]['id'] == example_solution_booking.id
         assert response.data[0]['solution']['id'] == example_solution.id
+
+    def test_authenticated_user_could_update_rating(
+        self, example_solution, authenticated_client, user_and_password
+    ):
+        example_solution_booking = SolutionBooking.objects.create(
+            solution=example_solution,
+            booked_by=user_and_password[0],
+        )
+
+        patch_solution_booking_url = '{}{}/'.format(
+            SOLUTIONBOOKINGS_BASE_ENDPOINT, example_solution_booking.id
+        )
+        response = authenticated_client.patch(
+            patch_solution_booking_url, {'rating': 1}, content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        assert response.data['id'] == example_solution_booking.id
+        assert response.data['solution']['id'] == example_solution.id
+        assert response.data['solution']['avg_rating'] == 1
+
+        response = authenticated_client.patch(
+            patch_solution_booking_url, {'rating': -1}, content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        assert response.data['id'] == example_solution_booking.id
+        assert response.data['solution']['id'] == example_solution.id
+        assert response.data['solution']['avg_rating'] == -1
+
+        response = authenticated_client.patch(
+            patch_solution_booking_url, {'rating': 0}, content_type='application/json'
+        )
+
+        assert response.status_code == 200
+        assert response.data['id'] == example_solution_booking.id
+        assert response.data['solution']['id'] == example_solution.id
+        assert response.data['solution']['avg_rating'] == 0

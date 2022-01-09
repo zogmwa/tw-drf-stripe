@@ -36,3 +36,10 @@ class SolutionBookingViewSet(viewsets.ModelViewSet):
                 )
 
                 return solution_booking_queryset
+        elif (
+            self.action == 'retrieve'
+            or self.action == 'partial_update'
+            or self.action == 'destroy'
+        ):
+            solution_booking_id = self.kwargs['pk']
+            return SolutionBooking.objects.filter(id=solution_booking_id)
