@@ -144,34 +144,21 @@ def decrease_bookings_pending_fulfillment_count_field_of_solution(
         )
 
 
-def decrease_status_count_of_solution(solution_booking):
+def update_solution_aggregate_rating(solution_booking: SolutionBooking, delta=1):
     """
     Decreasing solution's status count of solution booking instance
     """
     solution_id = solution_booking.solution_id
     if solution_booking.rating == -1:
-        Solution.objects.filter(id=solution_id).update(sad_count=F('sad_count') - 1)
+        Solution.objects.filter(id=solution_id).update(sad_count=F('sad_count') + delta)
     elif solution_booking.rating == 0:
         Solution.objects.filter(id=solution_id).update(
-            neutral_count=F('neutral_count') - 1
+            neutral_count=F('neutral_count') + delta
         )
     elif solution_booking.rating == 1:
-        Solution.objects.filter(id=solution_id).update(happy_count=F('happy_count') - 1)
-
-
-def increase_status_count_of_solution(solution_booking):
-    """
-    Increasing solution's status count of solution booking instance
-    """
-    solution_id = solution_booking.solution_id
-    if solution_booking.rating == -1:
-        Solution.objects.filter(id=solution_id).update(sad_count=F('sad_count') + 1)
-    elif solution_booking.rating == 0:
         Solution.objects.filter(id=solution_id).update(
-            neutral_count=F('neutral_count') + 1
+            happy_count=F('happy_count') + delta
         )
-    elif solution_booking.rating == 1:
-        Solution.objects.filter(id=solution_id).update(happy_count=F('happy_count') + 1)
 
 
 @receiver(pre_save, sender=SolutionBooking)
@@ -194,12 +181,12 @@ def status_count_update_for_solution_booking(sender, instance=None, **kwargs):
                 then old status type count should be decreased
                 and new status type count should be increased in solution.
                 """
-                decrease_status_count_of_solution(old_solution_booking_instance)
-                increase_status_count_of_solution(solution_booking_instance)
+                update_solution_aggregate_rating(old_solution_booking_instance, -1)
+                update_solution_aggregate_rating(solution_booking_instance, 1)
 
     except sender.DoesNotExist:
         # New solution booking is being added
-        increase_status_count_of_solution(solution_booking_instance)
+        update_solution_aggregate_rating(solution_booking_instance, 1)
 
 
 @receiver(post_delete, sender=SolutionBooking)
@@ -207,7 +194,7 @@ def decrease_status_type_count_of_solution(sender, instance=None, **kwargs):
     if type(sender) != type(SolutionBooking):
         return
     solution_booking_instance = instance
-    decrease_status_count_of_solution(solution_booking_instance)
+    update_solution_aggregate_rating(solution_booking_instance, -1)
 
 
 # https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave
