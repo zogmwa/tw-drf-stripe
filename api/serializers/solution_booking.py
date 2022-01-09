@@ -184,6 +184,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'is_payment_completed',
             'stripe_session_id',
             'price_at_booking',
+            'rating',
         ]
         read_only_fields = [
             'solution',
@@ -199,3 +200,10 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'stripe_session_id',
             'price_at_booking',
         ]
+
+    def update(self, instance, validated_data):
+        solution_booking_instance = instance
+        solution_booking_instance.rating = validated_data['rating']
+        solution_booking_instance.save()
+
+        return solution_booking_instance
