@@ -64,6 +64,12 @@ class SolutionBooking(models.Model):
         choices=Status.choices,
         default=Status.PENDING,
     )
+    referring_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='booking_referring_user',
+    )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
