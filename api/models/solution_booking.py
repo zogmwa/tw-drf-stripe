@@ -67,7 +67,8 @@ class SolutionBooking(models.Model):
     referring_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
-        on_delete=models.CASCADE,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name='booking_referring_user',
     )
     created = models.DateTimeField(auto_now_add=True)
