@@ -59,25 +59,15 @@ class CreateStripeCheckoutSession(APIView):
         if referring_user_id:
             try:
                 referring_user = User.objects.get(id=referring_user_id)
-                # If referral user is same with logged in user, we should avoid this user.
-                if referring_user != request.user:
-                    solution_booking = SolutionBooking.objects.create(
-                        booked_by=request.user,
-                        solution=solution,
-                        status=SolutionBooking.Status.PENDING,
-                        is_payment_completed=False,
-                        price_at_booking=pay_now_price_dollars,
-                        referring_user=referring_user,
-                    )
-                    payment_cancel_url.args['r'] = referring_user_id
-                else:
-                    solution_booking = SolutionBooking.objects.create(
-                        booked_by=request.user,
-                        solution=solution,
-                        status=SolutionBooking.Status.PENDING,
-                        is_payment_completed=False,
-                        price_at_booking=pay_now_price_dollars,
-                    )
+                solution_booking = SolutionBooking.objects.create(
+                    booked_by=request.user,
+                    solution=solution,
+                    status=SolutionBooking.Status.PENDING,
+                    is_payment_completed=False,
+                    price_at_booking=pay_now_price_dollars,
+                    referring_user=referring_user,
+                )
+                payment_cancel_url.args['r'] = referring_user_id
             except User.DoesNotExist:
                 solution_booking = SolutionBooking.objects.create(
                     booked_by=request.user,
