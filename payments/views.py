@@ -7,6 +7,7 @@ from django.conf import settings
 
 from api.models.solution_booking import SolutionBooking
 from api.models.solution import Solution
+from api.models.user import User
 
 
 if settings.STRIPE_LIVE_MODE:
@@ -39,6 +40,7 @@ class CreateStripeCheckoutSession(APIView):
         the frontend to pass the stripe_price_id instead.
         """
         stripe_price_id = kwargs['pay_now_stripe_price_id']
+        referral_user_id = self.request.query_params.get('r')
         solution = Solution.objects.select_related('pay_now_price').get(
             pay_now_price__id=stripe_price_id
         )
@@ -49,14 +51,40 @@ class CreateStripeCheckoutSession(APIView):
         # Convert cents to dollars
         # TODO: This may need a change when we move to non USD payments
         pay_now_price_dollars = pay_now_price.unit_amount / 100
-
-        solution_booking = SolutionBooking.objects.create(
-            booked_by=request.user,
-            solution=solution,
-            status=SolutionBooking.Status.PENDING,
-            is_payment_completed=False,
-            price_at_booking=pay_now_price_dollars,
+        payment_cancel_url = (
+            '/payment-cancel/?session_id={CHECKOUT_SESSION_ID}&solution='
+            + solution.slug
         )
+
+        try:
+            referral_user = User.objects.get(id=referral_user_id)
+            # If referral user is same with logged in user, we should avoid this user.
+            if referral_user != request.user:
+                solution_booking = SolutionBooking.objects.create(
+                    booked_by=request.user,
+                    solution=solution,
+                    status=SolutionBooking.Status.PENDING,
+                    is_payment_completed=False,
+                    price_at_booking=pay_now_price_dollars,
+                    referring_user=referral_user,
+                )
+                payment_cancel_url += '?r=' + referral_user_id
+            else:
+                solution_booking = SolutionBooking.objects.create(
+                    booked_by=request.user,
+                    solution=solution,
+                    status=SolutionBooking.Status.PENDING,
+                    is_payment_completed=False,
+                    price_at_booking=pay_now_price_dollars,
+                )
+        except User.DoesNotExist:
+            solution_booking = SolutionBooking.objects.create(
+                booked_by=request.user,
+                solution=solution,
+                status=SolutionBooking.Status.PENDING,
+                is_payment_completed=False,
+                price_at_booking=pay_now_price_dollars,
+            )
 
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -73,9 +101,7 @@ class CreateStripeCheckoutSession(APIView):
             + '/bookings/'
             + str(solution_booking.id)
             + '/?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=active_site
-            + '/payment-cancel/?session_id={CHECKOUT_SESSION_ID}&solution='
-            + solution.slug,
+            cancel_url=active_site + payment_cancel_url,
             customer_email=request.user.email,
         )
 
