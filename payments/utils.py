@@ -23,6 +23,7 @@ def fulfill_order(stripe_session_id: str) -> None:
         'solution_booking': solution_booking,
         'solution_url': _get_solution_url_from_slug(solution_booking.solution.slug),
     }
+
     customer_email_msg_plain = render_to_string(
         'emails/booking_confirmation_customer.txt',
         email_params,
@@ -32,7 +33,6 @@ def fulfill_order(stripe_session_id: str) -> None:
         email_params,
     )
 
-    # Send a confirmation email to the customer who booked the Solution
     send_mail(
         subject='TaggedWeb.com Booking Confirmation. Booking ID: {}'.format(
             solution_booking.id
@@ -48,9 +48,10 @@ def fulfill_order(stripe_session_id: str) -> None:
         subject='Solution booked on TaggedWeb. Booking ID: {}'.format(
             solution_booking.id
         ),
-        message='Booking ID: {} \n Solution URL: {} \n Customer Email: {}. \n Kindly follow up with the customer to fullfill the service'.format(
+        message='Booking ID: {} \n Solution URL: {} \n Solution Type: {} \n Customer Email: {} \n\n Kindly follow up with the customer to fullfill the service'.format(
             solution_booking.id,
             _get_solution_url_from_slug(solution_booking.solution.slug),
+            solution.type,
             customer.email,
         ),
         from_email='contact@taggedweb.com',

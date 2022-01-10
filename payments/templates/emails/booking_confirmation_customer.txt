@@ -4,7 +4,15 @@ You have booked the solution {{ solution.title }}. Your booking is confirmed and
 
 Total amount paid: ${{ solution_booking.price_at_booking }}.
 
+{% if solution.type == "C" %}
+Please book your slot for consultation from here.
+
+Book Your Slot
+{{solution.consultation_scheduling_link}}
+{% endif %}
+
 Your point of contact is: {{ point_of_contact.email }}. Do not hestiate to reach out to this email with questions about your booking.
+
 
 Thank you,
 Team TaggedWeb

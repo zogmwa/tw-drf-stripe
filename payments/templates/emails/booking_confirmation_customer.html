@@ -1,12 +1,32 @@
-<p> Hi {{ customer.first_name }},<br/>
-<br/>
-You have booked the solution {{ solution.title }}. <br/>
-Your booking is confirmed and your Reference Number/ID is: <strong> {{ solution_booking.id }}. </strong> <br/>
-<br/>
-Total amount paid: ${{ solution_booking.price_at_booking }}.
-<br/>
-Your point of contact is: <strong> {{ point_of_contact.email }} </strong>. Do not hestiate to reach out to this email  with questions about your booking.
-<br/>
-Thank you! <br/>
-Team TaggedWeb
+<body>
+  <p>
+    Hi {{ customer.first_name }},
+    <br />
+    <br />
+    You have booked the solution <strong>{{ solution.title }}</strong>.
+    <br />
+    Your booking is confirmed and your Reference Number/ID is:
+    <strong> {{ solution_booking.id }}. </strong> 
+    <br />
+    <br />
+    Total amount paid: ${{ solution_booking.price_at_booking }}.
+    <br />
+    {% if solution.type == "C" %}
+    Please book your slot for consultation from here.
+     <br />
+    <div>
+      <a href={{solution.consultation_scheduling_link}}>
+        Book Your Slot
+      </a>
+  </div>
+  <br/>
+  {% endif %}
+  Here's the point of contact's scheduling link to book a consultation: <strong> {{ point_of_contact.email }} </strong>. 
+  Do not hestiate to reach out to this email with questions about your booking.
+  <br />
+  <br />
+  Thank you! 
+  <br />
+  Team TaggedWeb
 </p>
+</body>
