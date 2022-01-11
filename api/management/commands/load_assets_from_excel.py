@@ -14,28 +14,29 @@ def _get_slug_name(tag_name: str) -> str:
     """Get slug from the tag name"""
     # This is the list of special tags in which the slugs are special
     SPECIAL_TAGS = {
-        'Machine Learning (ML)': 'machine-learning',
-        'Learning Management System (LMS)': 'lms',
-        'Computer Algebra System (CAS)': 'cas',
-        'Global Positioning System (GPS)': 'gps',
-        'Customer Data Platform (CDP)': 'customer-data-platform',
-        'Computer Aided Design (CAD)': 'cad',
-        'Augmented Reality (AR)': 'ar',
-        'Virtual Reality (VR)': 'virtual-reality',
-        'Virtual Private Network (VPN)': 'vpn',
-        'Enterprise Resource Planning (ERP)': 'erp',
-        'Supply Chain Management (SCM)': 'supply-chain-management',
-        'Search Engine Optimization (SEO)': 'seo',
-        'Customer Relationship Management (CRM)': 'crm',
-        'Corporate Social Responsibility (CSR)': 'corporate-social-responsibility',
-        'Application Performance Monitoring (APM)': 'application-performance-monitoring',
-        'Non Fungible Tokens (NFT)': 'nft',
-        'Environmental Health and Safety': 'ehs',
-        'Environmental, Social and Governance': 'esg',
-        'User Experience Design (UXD)': 'ux-design',
-        'Q&A': 'qna',
-        'Accounts Payable (AP)': 'accounts-payable',
-        'Voice over IP (VoIP)': 'voip',
+        "Machine Learning (ML)": "machine-learning",
+        "Learning Management System (LMS)": "lms",
+        "Computer Algebra System (CAS)": "cas",
+        "Global Positioning System (GPS)": "gps",
+        "Customer Data Platform (CDP)": "customer-data-platform",
+        "Computer Aided Design (CAD)": "cad",
+        "Augmented Reality (AR)": "ar",
+        "Virtual Reality (VR)": "virtual-reality",
+        "Virtual Private Network (VPN)": "vpn",
+        "Enterprise Resource Planning (ERP)": "erp",
+        "Supply Chain Management (SCM)": "supply-chain-management",
+        "Search Engine Optimization (SEO)": "seo",
+        "Corporate Social Responsibility (CSR)": "corporate-social-responsibility",
+        "Application Performance Monitoring (APM)": "application-performance-monitoring",
+        "Non Fungible Tokens (NFT)": "nft",
+        "Environmental Health and Safety": "ehs",
+        "Environmental, Social and Governance": "esg",
+        "User Experience Design (UXD)": "ux-design",
+        "Q&A": "qna",
+        "Accounts Payable (AP)": "accounts-payable",
+        "Voice over IP (VoIP)": "voip",
+        "CRM": "CRM",
+        "User Interface Design (UI)": "ui-design",
     }
 
     # This is just for special tags
@@ -99,10 +100,10 @@ def process(excel_path: str) -> None:
         asset.is_published = True
 
         furled_url = furl(website)
-        asset.logo_url = 'https://logo.clearbit.com/{}'.format(furled_url.netloc)
+        asset.logo_url = "https://logo.clearbit.com/{}".format(furled_url.netloc)
 
         # Only set the tags if the tags column is provided in the input excel, else skip/keep existing tags
-        tags_list_string = row.get('tags')
+        tags_list_string = row.get("tags")
         if tags_list_string:
             tag_names = ast.literal_eval(tags_list_string)
             tags = set()
