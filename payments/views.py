@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from django.conf import settings
 from furl import furl
 
+from api.utils.models import get_or_none
 from api.models.solution_booking import SolutionBooking
 from api.models.solution import Solution
 from api.models.user import User
@@ -55,27 +56,18 @@ class CreateStripeCheckoutSession(APIView):
         payment_cancel_url = active_site / 'payment-cancel'
         payment_cancel_url.args['session_id'] = '{CHECKOUT_SESSION_ID}'
         payment_cancel_url.args['solution'] = solution.slug
+        payment_cancel_url.args['r'] = referring_user_id
 
         if referring_user_id:
-            try:
-                referring_user = User.objects.get(id=referring_user_id)
-                solution_booking = SolutionBooking.objects.create(
-                    booked_by=request.user,
-                    solution=solution,
-                    status=SolutionBooking.Status.PENDING,
-                    is_payment_completed=False,
-                    price_at_booking=pay_now_price_dollars,
-                    referring_user=referring_user,
-                )
-                payment_cancel_url.args['r'] = referring_user_id
-            except User.DoesNotExist:
-                solution_booking = SolutionBooking.objects.create(
-                    booked_by=request.user,
-                    solution=solution,
-                    status=SolutionBooking.Status.PENDING,
-                    is_payment_completed=False,
-                    price_at_booking=pay_now_price_dollars,
-                )
+            referring_user = get_or_none(User, id=referring_user_id)
+            solution_booking = SolutionBooking.objects.create(
+                booked_by=request.user,
+                solution=solution,
+                status=SolutionBooking.Status.PENDING,
+                is_payment_completed=False,
+                price_at_booking=pay_now_price_dollars,
+                referring_user=referring_user,
+            )
         else:
             solution_booking = SolutionBooking.objects.create(
                 booked_by=request.user,
