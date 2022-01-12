@@ -57,24 +57,15 @@ class CreateStripeCheckoutSession(APIView):
         payment_cancel_url.args['solution'] = solution.slug
         payment_cancel_url.args['r'] = referring_user_id
 
-        if referring_user_id:
-            referring_user = get_or_none(User, id=referring_user_id)
-            solution_booking = SolutionBooking.objects.create(
-                booked_by=request.user,
-                solution=solution,
-                status=SolutionBooking.Status.PENDING,
-                is_payment_completed=False,
-                price_at_booking=pay_now_price_dollars,
-                referring_user=referring_user,
-            )
-        else:
-            solution_booking = SolutionBooking.objects.create(
-                booked_by=request.user,
-                solution=solution,
-                status=SolutionBooking.Status.PENDING,
-                is_payment_completed=False,
-                price_at_booking=pay_now_price_dollars,
-            )
+        referring_user = get_or_none(User, id=referring_user_id)
+        solution_booking = SolutionBooking.objects.create(
+            booked_by=request.user,
+            solution=solution,
+            status=SolutionBooking.Status.PENDING,
+            is_payment_completed=False,
+            price_at_booking=pay_now_price_dollars,
+            referring_user=referring_user,
+        )
 
         payment_success_url = active_site
         payment_success_url.path.segments = [
