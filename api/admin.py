@@ -202,11 +202,16 @@ class SolutionAdmin(admin.ModelAdmin):
 
 class SolutionBookingAdmin(admin.ModelAdmin):
     model = SolutionBooking
+
+    def livemode_display(self, obj):
+        return obj.solution.livemode
+
+    livemode_display.short_description = "livemode"
     autocomplete_fields = [
         'booked_by',
         'manager',
     ]
-    list_display = ('booked_by', 'status', 'created')
+    list_display = ('booked_by', 'status', 'created', 'livemode_display')
 
 
 class SolutionQuestionAdmin(admin.ModelAdmin):
