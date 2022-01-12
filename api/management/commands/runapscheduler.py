@@ -9,13 +9,13 @@ from django_apscheduler.jobstores import DjangoJobStore
 from django_apscheduler.models import DjangoJobExecution
 from django_apscheduler import util
 
-from api.management.commands import create_sitemap_url
+from api.management.commands import generate_sitemap_full
 
 logger = logging.getLogger(__name__)
 
 
 def sitemap_generator():
-    cmd = create_sitemap_url.Command()
+    cmd = generate_sitemap_full.Command()
     opts = {}  # kwargs for sitemap command -- set default url for now...
     cmd.handle(**opts)
 
