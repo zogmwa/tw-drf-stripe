@@ -54,7 +54,6 @@ class CreateStripeCheckoutSession(APIView):
         # TODO: This may need a change when we move to non USD payments
         pay_now_price_dollars = pay_now_price.unit_amount / 100
         payment_cancel_url = active_site / 'payment-cancel'
-        payment_cancel_url.args['session_id'] = '{CHECKOUT_SESSION_ID}'
         payment_cancel_url.args['solution'] = solution.slug
         payment_cancel_url.args['r'] = referring_user_id
 
@@ -84,7 +83,6 @@ class CreateStripeCheckoutSession(APIView):
             'bookings',
             solution_booking.id,
         ]
-        payment_success_url.args['session_id'] = '{CHECKOUT_SESSION_ID}'
 
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
