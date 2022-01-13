@@ -12,6 +12,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name='linkedsolution',
-            constraint=models.UniqueConstraint(fields=('solution', 'asset'), name='unique_solution_asset_link'),
+            constraint=models.UniqueConstraint(
+                fields=('solution', 'asset'), name='unique_solution_asset_link'
+            ),
         ),
     ]

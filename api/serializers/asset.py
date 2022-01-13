@@ -76,6 +76,7 @@ class AssetSerializer(ModelSerializer):
             'trial_days',
             'snapshots',
             'users_count',
+            'pricing_url',
         ]
         lookup_field = 'slug'
         extra_kwargs = {'url': {'lookup_field': 'slug'}}

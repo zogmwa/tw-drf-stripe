@@ -17,6 +17,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='solutionbooking',
             name='rating',
-            field=models.IntegerField(blank=True, choices=[(-1, '-1'), (0, '0'), (1, '1')], null=True),
+            field=models.IntegerField(
+                blank=True, choices=[(-1, '-1'), (0, '0'), (1, '1')], null=True
+            ),
         ),
     ]
