@@ -153,7 +153,9 @@ class Solution(models.Model):
         MONTHLY = 'Monthly'
 
     billing_period = models.CharField(
-        max_length=9, choices=Type.choices, default=BillingPeriodType.WEEKLY
+        max_length=9,
+        choices=BillingPeriodType.choices,
+        default=BillingPeriodType.WEEKLY,
     )
 
     # Some solutions will be mapped to test products (STRIPE_LIVE_MODE=False), we want to have a property field that
