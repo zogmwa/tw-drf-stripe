@@ -136,6 +136,26 @@ class Solution(models.Model):
         help_text='Do we want this solution to show up in search results? (Or be like an unlisted link)',
     )
 
+    # Some solutions are metered billing solutions, so if solution is metered billing solution,
+    # this field should be true.
+    is_metered = models.BooleanField(
+        default=False, help_text='This field can be update with updating stripe price'
+    )
+
+    # If solution is metered billing solution, this fields should be filling.
+    team_size = models.IntegerField(blank=True, null=True)
+    estimated_hours = models.IntegerField(blank=True, null=True)
+    blended_hourly_rate = models.IntegerField(blank=True, null=True)
+
+    class BillingPeriodType(models.TextChoices):
+        WEEKLY = 'Weekly '
+        BIWEEKLY = 'Biweekly'
+        MONTHLY = 'Monthly'
+
+    billing_period = models.CharField(
+        max_length=9, choices=Type.choices, default=BillingPeriodType.WEEKLY
+    )
+
     # Some solutions will be mapped to test products (STRIPE_LIVE_MODE=False), we want to have a property field that
     # can be displayed as a read only field in admin for convenience.
     @property
