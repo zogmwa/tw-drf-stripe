@@ -145,7 +145,9 @@ class Solution(models.Model):
     # If solution is metered billing solution, this fields should be filling.
     team_size = models.IntegerField(blank=True, null=True)
     estimated_hours = models.IntegerField(blank=True, null=True)
-    blended_hourly_rate = models.IntegerField(blank=True, null=True)
+    blended_hourly_rate = models.DecimalField(
+        null=True, blank=True, max_digits=7, decimal_places=2
+    )
 
     class BillingPeriodType(models.TextChoices):
         WEEKLY = 'Weekly '
