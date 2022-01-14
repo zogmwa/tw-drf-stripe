@@ -59,7 +59,7 @@ class User(AbstractUser, GuardianUserMixin):
         return social_apps
 
     @property
-    def added_card(self):
+    def default_payment_method(self) -> str:
         return self.stripe_customer.default_payment_method
 
     def __str__(self):
