@@ -78,6 +78,11 @@ class SolutionSerializer(ModelSerializer):
             'bookings_pending_fulfillment_count',
             'consultation_scheduling_link',
             'capacity_used',
+            'is_metered',
+            'team_size',
+            'estimated_hours',
+            'blended_hourly_rate',
+            'billing_period',
         ]
         read_only_fields = [
             'pay_now_price_stripe_id',
