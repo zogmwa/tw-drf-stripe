@@ -26,7 +26,7 @@ from api.models.organization import Organization
 from api.models.solution_question import SolutionQuestion
 from api.models.newsletter_contact import NewsLetterContact
 from api.models.solution_review import SolutionReview
-from api.models.submitted_problem import SubmittedProblem
+from api.models.user_problem import UserProblem
 
 
 class TagInline(admin.TabularInline):
@@ -233,9 +233,10 @@ class SolutionBookmarkAdmin(admin.ModelAdmin):
     search_fields = ['solution__name', 'user']
 
 
-class SubmittedProblemAdmin(admin.ModelAdmin):
-    model = SubmittedProblem
-    list_display = ['email', 'created', 'is_acknowledged']
+class UserProblemAdmin(admin.ModelAdmin):
+    model = UserProblem
+    readonly_fields = ["created", "updated"]
+    list_display = ['email', 'user', 'created', 'is_acknowledged']
 
 
 # Admin site headers
@@ -261,4 +262,4 @@ admin.site.register(SolutionVote, SolutionVoteAdmin)
 admin.site.register(SolutionBookmark, SolutionBookmarkAdmin)
 admin.site.register(NewsLetterContact)
 admin.site.register(SolutionReview, SolutionReviewAdmin)
-admin.site.register(SubmittedProblem)
+admin.site.register(UserProblem, UserProblemAdmin)

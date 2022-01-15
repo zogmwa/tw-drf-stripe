@@ -46,7 +46,7 @@ from api.views.asset_votes import AssetVoteViewSet
 from api.views.asset_claims import AssetClaimViewSet
 from api.views.download_sitemap import download_sitemap
 from dj_rest_auth.views import PasswordResetConfirmView
-from api.views.submitted_problem import SubmittedProblemViewSet
+from api.views.user_problem import UserProblemViewSet
 from api.views.organization import autocomplete_organizations
 from api.views.price_plans import PricePlanViewSet
 from api.views.user import UserViewSet
@@ -88,7 +88,7 @@ router.register(r'solution_bookings', SolutionBookingViewSet)
 router.register(r'solution_bookmarks', SolutionBookmarkViewSet)
 router.register(r'solution_votes', SolutionVoteViewSet)
 router.register(r'newsletter_contact', NewsLetterContactViewSet)
-router.register(r'submitted_problems', SubmittedProblemViewSet)
+router.register(r'user_problems', UserProblemViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
