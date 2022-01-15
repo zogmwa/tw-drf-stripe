@@ -1,6 +1,8 @@
+import stripe
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from djstripe.models import Customer as StripeCustomer
 from rest_framework.response import Response
 from api.models import User
 from api.models.solution_booking import SolutionBooking
@@ -42,3 +44,25 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
         return Response(solution_booking_serializer.data)
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def attach_card(self, request, *args, **kwargs):
+        user = self.request.user
+        username = '{} {}'.format(user.first_name, user.last_name)
+        # Create user's customer
+        stripe_customer = stripe.Customer.create(email=user.email, name=username)
+        stripe_customer = StripeCustomer.sync_from_stripe_data(stripe_customer)
+        user.stripe_customer = stripe_customer
+        user.save()
+        # Attact payment method to customer
+        stripe_payment_method = stripe.PaymentMethod.attach(
+            request.data.get('payment_method'), customer=stripe_customer.id
+        )
+        attached_stripe_customer = stripe.Customer.modify(
+            stripe_customer.id,
+            invoice_settings={
+                'default_payment_method': stripe_payment_method.id,
+            },
+        )
+        StripeCustomer.sync_from_stripe_data(attached_stripe_customer)
+        return Response(attached_stripe_customer)
