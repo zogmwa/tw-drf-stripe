@@ -1,6 +1,8 @@
-from rest_framework import viewsets
+import stripe
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from djstripe.models import Customer as StripeCustomer
 from rest_framework.response import Response
 from api.models import User
 from api.models.solution_booking import SolutionBooking
@@ -42,3 +44,34 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
         return Response(solution_booking_serializer.data)
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def attach_card(self, request, *args, **kwargs):
+        if request.data.get('payment_method'):
+            user = self.request.user
+            if user.first_name is None and user.last_name is None:
+                username = user.username
+            else:
+                username = '{} {}'.format(user.first_name, user.last_name)
+            # Create user's customer
+            stripe_customer = stripe.Customer.create(email=user.email, name=username)
+            djstripe_customer = StripeCustomer.sync_from_stripe_data(stripe_customer)
+            user.stripe_customer = djstripe_customer
+            user.save()
+            # Attact payment method to customer
+            stripe_payment_method = stripe.PaymentMethod.attach(
+                request.data.get('payment_method'), customer=stripe_customer.id
+            )
+            stripe_customer_with_payment_method = stripe.Customer.modify(
+                stripe_customer.id,
+                invoice_settings={
+                    'default_payment_method': stripe_payment_method.id,
+                },
+            )
+            StripeCustomer.sync_from_stripe_data(stripe_customer_with_payment_method)
+            return Response(stripe_customer_with_payment_method)
+        else:
+            return Response(
+                data={"detail": "incorrect payment method"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
