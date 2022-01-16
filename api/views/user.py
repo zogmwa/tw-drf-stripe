@@ -75,3 +75,17 @@ class UserViewSet(viewsets.ModelViewSet):
                 data={"detail": "incorrect payment method"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
+    def has_payment_method(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.is_anonymous:
+            return Response({'has_payment_method': None})
+        else:
+            if user.stripe_customer:
+                if user.stripe_customer.default_payment_method:
+                    return Response({'has_payment_method': True})
+                else:
+                    return Response({'has_payment_method': False})
+            else:
+                return Response({'has_payment_method': None})
