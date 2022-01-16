@@ -77,7 +77,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
-    def get_has_payment_method(self, request, *args, **kwargs):
+    def has_payment_method(self, request, *args, **kwargs):
         user = self.request.user
         if user.is_anonymous:
             return Response({'has_payment_method': None})
