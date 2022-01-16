@@ -226,3 +226,16 @@ class TestUserPermission:
             response.data['bookmarked_solutions'][0]['solution']['title']
             == example_solution.title
         )
+
+
+class TestUserPayment:
+    def test_authenticated_user_could_fetch_has_payment_method(
+        self, authenticated_client
+    ):
+        USERS_CHECK_PAYMENT_URL = '{}{}/'.format(
+            USERS_BASE_ENDPOINT, 'get_has_payment_method'
+        )
+        response = authenticated_client.get(USERS_CHECK_PAYMENT_URL)
+
+        assert response.status_code == 200
+        assert response.data['has_payment_method'] is None
