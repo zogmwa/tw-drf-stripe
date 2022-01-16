@@ -22,6 +22,9 @@ class UserSerializer(ModelSerializer):
         method_name='_get_bookmarked_solutions'
     )
     contracts = serializers.SerializerMethodField(method_name='_get_contracts')
+    has_payment_method = serializers.SerializerMethodField(
+        method_name='_get_has_payment_method'
+    )
 
     def _get_bookmarked_solutions(self, instance):
         request = self.context.get('request')
@@ -47,6 +50,19 @@ class UserSerializer(ModelSerializer):
 
             return solution_booking_serializer.data
 
+    def _get_has_payment_method(self, instance):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return None
+        else:
+            if request.user.stripe_customer:
+                if request.user.stripe_customer.default_payment_method:
+                    return True
+                else:
+                    return False
+            else:
+                return None
+
     class Meta:
         model = User
         fields = [
@@ -63,6 +79,7 @@ class UserSerializer(ModelSerializer):
             'social_accounts',
             'bookmarked_solutions',
             'contracts',
+            'has_payment_method',
         ]
         read_only_fields = ['is_business_user']
         lookup_field = 'username'
