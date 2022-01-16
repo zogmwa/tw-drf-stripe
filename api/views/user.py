@@ -48,7 +48,10 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
     def attach_card(self, request, *args, **kwargs):
         user = self.request.user
-        username = '{} {}'.format(user.first_name, user.last_name)
+        if user.first_name is None and user.last_name is None:
+            username = user.username
+        else:
+            username = '{} {}'.format(user.first_name, user.last_name)
         # Create user's customer
         stripe_customer = stripe.Customer.create(email=user.email, name=username)
         stripe_customer = StripeCustomer.sync_from_stripe_data(stripe_customer)
