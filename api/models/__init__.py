@@ -30,6 +30,7 @@ from .solution_bookmark import SolutionBookmark
 from .newsletter_contact import NewsLetterContact
 from .solution_review import SolutionReview
 from .webhooks_stripe import product_created_handler, price_created_handler
+from .user_problem import UserProblem
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
