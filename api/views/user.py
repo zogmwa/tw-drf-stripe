@@ -66,3 +66,17 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         StripeCustomer.sync_from_stripe_data(attached_stripe_customer)
         return Response(attached_stripe_customer)
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
+    def get_has_payment_method(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.is_anonymous:
+            return Response({'has_payment_method': None})
+        else:
+            if user.stripe_customer:
+                if user.stripe_customer.default_payment_method:
+                    return Response({'has_payment_method': True})
+                else:
+                    return Response({'has_payment_method': False})
+            else:
+                return Response({'has_payment_method': None})
