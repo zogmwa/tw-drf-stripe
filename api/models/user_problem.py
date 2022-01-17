@@ -3,7 +3,7 @@ from django.conf import settings
 
 
 class UserProblem(models.Model):
-    email = models.EmailField(unique=True, max_length=254)
+    email = models.EmailField(max_length=254)
     description = models.TextField()
     searched_term = models.CharField(max_length=255, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
