@@ -1,3 +1,9 @@
+"""
+Example Usage:
+
+    python merge_tags --t1 'Machine Learning' --t2 'Machine Learning (ML)'
+"""
+
 from django.core.management.base import BaseCommand
 
 from api.models import Tag, Asset, LinkedTag
