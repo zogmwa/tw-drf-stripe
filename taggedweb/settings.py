@@ -88,6 +88,9 @@ INSTALLED_APPS = [
     'payments',
     # Scheduled Job
     'django_apscheduler',
+    # django-newsletter (for campaigns management)
+    'sorl.thumbnail',
+    'newsletter',
 ]
 
 SITE_ID = 1
@@ -324,6 +327,8 @@ APSCHEDULER_DATETIME_FORMAT = "%Y-%m-%d %H:%M"
 # that supports multiple background worker processes instead (e.g. Dramatiq, Celery, Django-RQ,
 # etc. See: https://djangopackages.org/grids/g/workers-queues-tasks/ for popular options).
 APSCHEDULER_RUN_NOW_TIMEOUT = 7200  # Seconds
+
+NEWSLETTER_THUMBNAIL = 'sorl-thumbnail'
 
 
 sentry_sdk.init(

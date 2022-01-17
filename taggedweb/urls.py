@@ -167,4 +167,6 @@ urlpatterns = [
         CreateStripeCheckoutSession.as_view(),
         name='create_stripe_checkout_session',
     ),
+    # Newsletter / Campaigns
+    path('newsletter/', include('newsletter.urls')),
 ]
