@@ -5,7 +5,8 @@ Ideally use pyenv with Python 3.8+ do run the steps ahead. You can use SQLite lo
 setup preferably use PostgreSQL. You can override default settings such as db settings in `taggedweb/override_settings.py`.
 
 
-OS X
+OS X: You can preferably install app from [here](https://postgresapp.com/) or use homebrew to install it:
+
 ```zsh
 brew install postgresql
 ```
@@ -14,7 +15,7 @@ brew install postgresql
 
 Pre-reqs, setup pyenv with pyenv virtualenv before on your environment
 
-```bash
+```zsh
 
 # This will create a virtualenv called tweb with Python 3.9.4
 pyenv virtualenv 3.9.4 tweb
@@ -60,7 +61,19 @@ verify your local installation is running correctly.
 
     pytest
 
-# Prod
+## Populating test data in your local db
+
+```bash
+    # This will sync Product and Price data from stripe test to local db creating djstripe.models.Product/Price instances.
+    python manage.py djstripe_sync_models Product Price
+    
+    # This will create api.models.Solution instances (Solutions is the term we use for what we are selling)
+    python create_solutions_from_products
+```
+
+# Production Only (Skip for Local)
+
+The below setup is for production only, skip this for local.
 
 ## Pre-Setup
 
@@ -69,7 +82,8 @@ For the database we use an RDS PostgreSQL instance.
 ### ElasticSearch
 
 First setup an ElasticSearch cluster. This is onetime. We are currently using Elastic.co for our elasticsearch cluster.
-(On Pranjal's personal email right now, ask for details if you want to connect to it locally and play around).
+(`pranjal@taggedweb.com` is the primary account holder, ping him for details if you want to connect to it from local to
+play around. Though normally for local you'd use a local instance of Elasticsearch).
 
 To initialize/rebuild search indexes for existing models:
 
@@ -96,8 +110,8 @@ sudo ln -s /etc/nginx/sites-available/taggedweb.com /etc/nginx/sites-enabled/api
 sudo nginx -s reload
 ```
 
-For the time being gunicorn is being run on a unix `screen` called `tweb-backend`.
-Later on this should be moved to being managed by supervisord.
+The guinicorn process is managed via supervisord in prod, supervisord config that we are using is defined here:
+[supervisor taggedweb configuration](https://github.com/taggedweb/taggedweb-devops/blob/main/supervisor-config/taggedweb.conf)
 
 ```bash
 # screen -r wsgi to resume or screen -S wsgi to start a new screen
@@ -117,9 +131,11 @@ only added here in case the deploy is to be performed on a new instance.
 sudo certbot --nginx -d api.taggedweb.com
 ```
 
-## Generate Sitemap files
+## Generate Sitemap File
 
-When installed this project then run the below command:
+When the code is being set up for the first time on production, run the following command to generate the sitemap files,
+including the index sitemap. The sitemap files are pushed to S3. taggedweb-frontend repo has a page for sitemaps at,
+www.taggedweb.com/sitemap.xml, which is basically a layer over S3. Frontend pulls the file from the S3 bucket and serves it.
 
 ```bash
 # Generate all (Solution detail, Software detail, Software list, Index) sitemap files:
