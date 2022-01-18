@@ -209,6 +209,9 @@ REST_AUTH_SERIALIZERS = {
     'PASSWORD_RESET_SERIALIZER': 'api.serializers.password_reset.PasswordResetSerializer',
 }
 
+REST_AUTH_REGISTER_SERIALIZERS = {
+    'REGISTER_SERIALIZER': 'api.serializers.dj_rest_auth_allauth.CustomRegisterSerializer',
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
