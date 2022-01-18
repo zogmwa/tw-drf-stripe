@@ -113,3 +113,44 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
             else:
                 return Response({'has_payment_method': None})
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def subscribe_payment(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.stripe_customer:
+            if request.data.get('payment_method'):
+
+                referring_user_id = request.data.get('referring_user')
+                solution_slug = request.data.get('slug')
+                solution = get_or_none(Solution, slug=solution_slug)
+                if solution is None:
+                    return Response(
+                        data={"detail": "incorrect solution"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                else:
+                    stripe_subscription = stripe.Subscription.create(
+                        customer=user.stripe_customer.id,
+                        items=[{'price': request.data.get('payment_method')}],
+                        expand=['latest_invoice.payment_intent'],
+                    )
+                    djstripe_subscription = StripeSubscription.sync_from_stripe_data(
+                        stripe_subscription
+                    )
+                    solution_booking = SolutionBooking.objects.create(
+                        booked_by=request.user,
+                        solution=solution,
+                        status=SolutionBooking.Status.PENDING,
+                        is_payment_completed=False,
+                        referring_user=get_or_none(User, id=referring_user_id),
+                    )
+            else:
+                return Response(
+                    data={"detail": "incorrect payment method"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                data={"detail": "incorrect payment customer"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
