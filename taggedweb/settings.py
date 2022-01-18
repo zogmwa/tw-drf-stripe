@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     # django-newsletter (for campaigns management)
     'sorl.thumbnail',
     'newsletter',
+    'django_inlinecss',
 ]
 
 SITE_ID = 1
