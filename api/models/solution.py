@@ -34,6 +34,13 @@ class Solution(models.Model):
     pay_now_price = models.OneToOneField(
         StripePrice, null=True, blank=True, on_delete=models.SET_NULL
     )
+    primary_stripe_price = models.OneToOneField(
+        StripePrice,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='primary_stripe_price',
+    )
 
     @property
     def pay_now_price_stripe_id(self) -> str:
