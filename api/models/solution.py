@@ -39,7 +39,7 @@ class Solution(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='primary_stripe_price',
+        related_name='related_solution',
     )
 
     @property
