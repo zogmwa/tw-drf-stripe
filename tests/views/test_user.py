@@ -233,7 +233,7 @@ class TestUserPayment:
         self, authenticated_client
     ):
         USERS_CHECK_PAYMENT_URL = '{}{}/'.format(
-            USERS_BASE_ENDPOINT, 'has_payment_method'
+            USERS_BASE_ENDPOINT, 'payment_method_list'
         )
         response = authenticated_client.get(USERS_CHECK_PAYMENT_URL)
 
