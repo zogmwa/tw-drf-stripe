@@ -80,7 +80,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
-    def payment_method_list(self, request, *args, **kwargs):
+    def payment_methods(self, request, *args, **kwargs):
         user = self.request.user
         if user.is_anonymous:
             return Response({'has_payment_method': None})
@@ -116,7 +116,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
     def subscribe_payment(self, request, *args, **kwargs):
-        user = self.request.user
+        user = request.user
         if user.stripe_customer:
             if request.data.get('payment_method'):
                 referring_user_id = request.data.get('referring_user')
@@ -130,7 +130,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 else:
                     stripe_subscription = stripe.Subscription.create(
                         customer=user.stripe_customer.id,
-                        items=[{'price': solution.pay_now_price.id}],
+                        items=[{'price': solution.primary_stripe_price.id}],
                         expand=['latest_invoice.payment_intent'],
                     )
                     djstripe_subscription = StripeSubscription.sync_from_stripe_data(
@@ -145,11 +145,15 @@ class UserViewSet(viewsets.ModelViewSet):
                     return Response({'solution_booking_id': solution_booking.id})
             else:
                 return Response(
-                    data={"detail": "incorrect payment method"},
+                    data={"detail": "missing payment method"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             return Response(
-                data={"detail": "incorrect payment customer"},
+                data={
+                    "detail": "The user {} is missing an associated stripe_customer".format(
+                        user.username
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
