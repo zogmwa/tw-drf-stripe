@@ -72,6 +72,7 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'avg_rating',
             'my_solution_review',
             'my_solution_review_id',
+            'is_metered',
         ]
         read_only_fields = [
             'pay_now_price_unit_amount',
@@ -79,6 +80,7 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'my_solution_review_id',
             'avg_rating',
             'type',
+            'is_metered',
         ]
 
     def _get_bookings_count(self, instance):

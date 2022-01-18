@@ -9,6 +9,7 @@ from api.models import Solution
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.core.signals import request_finished
+from djstripe.models import Subscription as StripeSubscription
 
 
 class SolutionBooking(models.Model):
@@ -27,6 +28,9 @@ class SolutionBooking(models.Model):
         zip(BOOKING_RATING_RANGE, map(str, BOOKING_RATING_RANGE))
     )
 
+    stripe_subscription = models.OneToOneField(
+        StripeSubscription, null=True, blank=True, on_delete=models.SET_NULL
+    )
     solution = models.ForeignKey(
         Solution,
         null=True,
