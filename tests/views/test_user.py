@@ -232,9 +232,7 @@ class TestUserPayment:
     def test_authenticated_user_could_fetch_has_payment_method(
         self, authenticated_client
     ):
-        USERS_CHECK_PAYMENT_URL = '{}{}/'.format(
-            USERS_BASE_ENDPOINT, 'has_payment_method'
-        )
+        USERS_CHECK_PAYMENT_URL = '{}{}/'.format(USERS_BASE_ENDPOINT, 'payment_methods')
         response = authenticated_client.get(USERS_CHECK_PAYMENT_URL)
 
         assert response.status_code == 200

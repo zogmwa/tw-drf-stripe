@@ -3,8 +3,11 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from djstripe.models import Customer as StripeCustomer
+from djstripe.models import Subscription as StripeSubscription
+from api.utils.models import get_or_none
 from rest_framework.response import Response
 from api.models import User
+from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
 from api.serializers.user import UserSerializer
 from api.serializers.solution_booking import AuthenticatedSolutionBookingSerializer
@@ -77,15 +80,80 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
-    def has_payment_method(self, request, *args, **kwargs):
+    def payment_methods(self, request, *args, **kwargs):
         user = self.request.user
         if user.is_anonymous:
             return Response({'has_payment_method': None})
         else:
             if user.stripe_customer:
-                if user.stripe_customer.default_payment_method:
-                    return Response({'has_payment_method': True})
-                else:
-                    return Response({'has_payment_method': False})
+                customer_payment_methods = stripe.PaymentMethod.list(
+                    customer=user.stripe_customer.id,
+                    type="card",
+                )
+                payment_methods = customer_payment_methods.get('data')
+                return_payment_methods = []
+                for payment_method in payment_methods:
+                    return_payment_methods.append(
+                        {
+                            "id": payment_method.id,
+                            "brand": payment_method.card.brand,
+                            "last4": payment_method.card.last4,
+                            "exp_month": payment_method.card.exp_month,
+                            "exp_year": payment_method.card.exp_year,
+                            "default_payment_method": user.stripe_customer.default_payment_method.id
+                            == payment_method.id,
+                        }
+                    )
+                return Response(
+                    {
+                        'has_payment_method': user.stripe_customer.default_payment_method
+                        is not None,
+                        'payment_methods': return_payment_methods,
+                    }
+                )
             else:
                 return Response({'has_payment_method': None})
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def subscribe_payment(self, request, *args, **kwargs):
+        user = request.user
+        if user.stripe_customer:
+            if request.data.get('payment_method'):
+                referring_user_id = request.data.get('referring_user')
+                solution_slug = request.data.get('slug')
+                solution = get_or_none(Solution, slug=solution_slug)
+                if solution is None:
+                    return Response(
+                        data={"detail": "incorrect solution"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                else:
+                    stripe_subscription = stripe.Subscription.create(
+                        customer=user.stripe_customer.id,
+                        items=[{'price': solution.primary_stripe_price.id}],
+                        expand=['latest_invoice.payment_intent'],
+                    )
+                    djstripe_subscription = StripeSubscription.sync_from_stripe_data(
+                        stripe_subscription
+                    )
+                    solution_booking = SolutionBooking.objects.create(
+                        booked_by=request.user,
+                        solution=solution,
+                        stripe_subscription=djstripe_subscription,
+                        referring_user=get_or_none(User, id=referring_user_id),
+                    )
+                    return Response({'solution_booking_id': solution_booking.id})
+            else:
+                return Response(
+                    data={"detail": "missing payment method"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                data={
+                    "detail": "The user {} is missing an associated stripe_customer".format(
+                        user.username
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
