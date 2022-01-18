@@ -119,7 +119,6 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.stripe_customer:
             if request.data.get('payment_method'):
-
                 referring_user_id = request.data.get('referring_user')
                 solution_slug = request.data.get('slug')
                 solution = get_or_none(Solution, slug=solution_slug)
@@ -131,7 +130,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 else:
                     stripe_subscription = stripe.Subscription.create(
                         customer=user.stripe_customer.id,
-                        items=[{'price': request.data.get('payment_method')}],
+                        items=[{'price': solution.pay_now_price.id}],
                         expand=['latest_invoice.payment_intent'],
                     )
                     djstripe_subscription = StripeSubscription.sync_from_stripe_data(
@@ -140,10 +139,10 @@ class UserViewSet(viewsets.ModelViewSet):
                     solution_booking = SolutionBooking.objects.create(
                         booked_by=request.user,
                         solution=solution,
-                        status=SolutionBooking.Status.PENDING,
-                        is_payment_completed=False,
+                        stripe_subscription=djstripe_subscription,
                         referring_user=get_or_none(User, id=referring_user_id),
                     )
+                    return Response({'solution_booking_id': solution_booking.id})
             else:
                 return Response(
                     data={"detail": "incorrect payment method"},
