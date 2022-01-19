@@ -28,9 +28,6 @@ class SolutionBooking(models.Model):
         zip(BOOKING_RATING_RANGE, map(str, BOOKING_RATING_RANGE))
     )
 
-    stripe_subscription = models.OneToOneField(
-        StripeSubscription, null=True, blank=True, on_delete=models.SET_NULL
-    )
     solution = models.ForeignKey(
         Solution,
         null=True,
@@ -38,6 +35,8 @@ class SolutionBooking(models.Model):
         on_delete=models.SET_NULL,
         related_name='bookings',
     )
+
+    # This is only applicable for pre-paid solutions for post paid/metered-billing we will use subscriptions
     is_payment_completed = models.BooleanField(default=False)
 
     # Stripe Checkout Session Id associated with this payment. Can be null if it's not a checkout booking.
@@ -46,6 +45,11 @@ class SolutionBooking(models.Model):
     # The price the user paid at the time of the booking in case the offer price of the Solution changes later
     price_at_booking = models.DecimalField(
         null=True, blank=True, max_digits=7, decimal_places=2
+    )
+
+    # A solution booking can be a pre-paid booking or a subscription/ongoing contract.
+    stripe_subscription = models.OneToOneField(
+        StripeSubscription, null=True, blank=True, on_delete=models.SET_NULL
     )
 
     # The timestamp that created when solution booking status from pending to some other status.

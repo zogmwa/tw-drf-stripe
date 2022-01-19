@@ -16,7 +16,7 @@ class TestSolutionProductSync:
         assert Solution.objects.all().count() == 1
         solution = Solution.objects.get(stripe_product=example_stripe_product)
         assert solution.stripe_product == example_stripe_product
-        assert solution.pay_now_price == example_stripe_price
+        assert solution.stripe_primary_price == example_stripe_price
         solution_slug = slugify(
             example_stripe_product.name[:200]
             if len(example_stripe_product.name) > 200
@@ -49,7 +49,7 @@ class TestSolutionProductSync:
         self, example_stripe_product, example_stripe_price
     ):
         solution = Solution.objects.get(stripe_product=example_stripe_product)
-        assert solution.pay_now_price == example_stripe_price
+        assert solution.stripe_primary_price == example_stripe_price
         new_price = Price.objects.create(
             currency='usd',
             id='lksjdf',
@@ -59,7 +59,7 @@ class TestSolutionProductSync:
             active=True,
         )
         solution = Solution.objects.get(stripe_product=example_stripe_product)
-        assert solution.pay_now_price == new_price
+        assert solution.stripe_primary_price == new_price
 
     def test_truncate_title_for_solution_slug(
         self, example_stripe_product, example_stripe_price

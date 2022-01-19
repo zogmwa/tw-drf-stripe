@@ -1,3 +1,7 @@
+"""
+This module contains serializers for the Solution Bookings API, consumed on the solution bookings pages on the frontend.
+"""
+
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
@@ -75,7 +79,9 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'is_metered',
         ]
         read_only_fields = [
+            # TODO: Deprecated
             'pay_now_price_unit_amount',
+            'stripe_primary_price_unit_amount',
             'my_solution_review',
             'my_solution_review_id',
             'avg_rating',

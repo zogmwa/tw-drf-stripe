@@ -144,7 +144,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 else:
                     stripe_subscription = stripe.Subscription.create(
                         customer=user.stripe_customer.id,
-                        items=[{'price': solution.primary_stripe_price.id}],
+                        items=[{'price': solution.stripe_primary_price.id}],
                         expand=['latest_invoice.payment_intent'],
                     )
                     djstripe_subscription = StripeSubscription.sync_from_stripe_data(
