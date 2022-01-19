@@ -52,27 +52,41 @@ class UserViewSet(viewsets.ModelViewSet):
     def attach_card(self, request, *args, **kwargs):
         if request.data.get('payment_method'):
             user = self.request.user
-            if user.first_name is None and user.last_name is None:
-                username = user.username
+            if user.stripe_customer is None:
+                if user.first_name is None and user.last_name is None:
+                    customer_name = user.username
+                else:
+                    customer_name = '{} {}'.format(user.first_name, user.last_name)
+
+                stripe_customer = stripe.Customer.create(
+                    email=user.email, name=customer_name
+                )
+                djstripe_customer = StripeCustomer.sync_from_stripe_data(
+                    stripe_customer
+                )
+                user.stripe_customer = djstripe_customer
+                user.save()
             else:
-                username = '{} {}'.format(user.first_name, user.last_name)
-            # Create user's customer
-            stripe_customer = stripe.Customer.create(email=user.email, name=username)
-            djstripe_customer = StripeCustomer.sync_from_stripe_data(stripe_customer)
-            user.stripe_customer = djstripe_customer
-            user.save()
+                stripe_customer = user.stripe_customer
+
             # Attact payment method to customer
             stripe_payment_method = stripe.PaymentMethod.attach(
                 request.data.get('payment_method'), customer=stripe_customer.id
             )
-            stripe_customer_with_payment_method = stripe.Customer.modify(
-                stripe_customer.id,
-                invoice_settings={
-                    'default_payment_method': stripe_payment_method.id,
-                },
-            )
-            StripeCustomer.sync_from_stripe_data(stripe_customer_with_payment_method)
-            return Response(stripe_customer_with_payment_method)
+
+            if stripe_customer.default_payment_method is None:
+                stripe_customer_with_payment_method = stripe.Customer.modify(
+                    stripe_customer.id,
+                    invoice_settings={
+                        'default_payment_method': stripe_payment_method.id,
+                    },
+                )
+                StripeCustomer.sync_from_stripe_data(
+                    stripe_customer_with_payment_method
+                )
+                return Response({'status': 'payment method attached successfully'})
+            else:
+                return Response({'status': 'payment method attached successfully'})
         else:
             return Response(
                 data={"detail": "incorrect payment method"},
