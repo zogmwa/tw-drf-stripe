@@ -84,9 +84,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 StripeCustomer.sync_from_stripe_data(
                     stripe_customer_with_payment_method
                 )
-                return Response({'status': 'payment method attached successfully'})
+                return Response({'status': 'payment method associated successfully'})
             else:
-                return Response({'status': 'payment method attached successfully'})
+                return Response({'status': 'payment method associated successfully'})
         else:
             return Response(
                 data={"detail": "incorrect payment method"},
