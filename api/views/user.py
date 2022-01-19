@@ -54,12 +54,12 @@ class UserViewSet(viewsets.ModelViewSet):
             user = self.request.user
             if user.stripe_customer is None:
                 if user.first_name is None and user.last_name is None:
-                    username = user.username
+                    customer_name = user.username
                 else:
-                    username = '{} {}'.format(user.first_name, user.last_name)
-                # Create user's customer
+                    customer_name = '{} {}'.format(user.first_name, user.last_name)
+
                 stripe_customer = stripe.Customer.create(
-                    email=user.email, name=username
+                    email=user.email, name=customer_name
                 )
                 djstripe_customer = StripeCustomer.sync_from_stripe_data(
                     stripe_customer
