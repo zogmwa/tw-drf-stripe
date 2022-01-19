@@ -43,16 +43,16 @@ class CreateStripeCheckoutSession(APIView):
         """
         stripe_price_id = kwargs['pay_now_stripe_price_id']
         referring_user_id = self.request.query_params.get('r')
-        solution = Solution.objects.select_related('pay_now_price').get(
-            pay_now_price__id=stripe_price_id
+        solution = Solution.objects.select_related('stripe_primary_price').get(
+            stripe_primary_price__id=stripe_price_id
         )
-        pay_now_price = solution.pay_now_price
+        prepaid_solution_price = solution.stripe_primary_price
         active_site_obj = Site.objects.get(id=settings.SITE_ID)
         active_site = furl('https://{}'.format(active_site_obj.domain))
 
         # Convert cents to dollars
         # TODO: This may need a change when we move to non USD payments
-        pay_now_price_dollars = pay_now_price.unit_amount / 100
+        prepaid_solution_price_dollars = prepaid_solution_price.unit_amount / 100
         payment_cancel_url = active_site / 'payment-cancel'
         payment_cancel_url.args['solution'] = solution.slug
         payment_cancel_url.args['r'] = referring_user_id
@@ -63,7 +63,7 @@ class CreateStripeCheckoutSession(APIView):
             solution=solution,
             status=SolutionBooking.Status.PENDING,
             is_payment_completed=False,
-            price_at_booking=pay_now_price_dollars,
+            price_at_booking=prepaid_solution_price_dollars,
             referring_user=referring_user,
         )
 
@@ -79,7 +79,7 @@ class CreateStripeCheckoutSession(APIView):
             payment_method_types=['card'],
             line_items=[
                 {
-                    'price': pay_now_price.id,
+                    'price': prepaid_solution_price.id,
                     'quantity': 1,
                 },
             ],

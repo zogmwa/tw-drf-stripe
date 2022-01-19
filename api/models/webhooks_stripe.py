@@ -36,7 +36,7 @@ def _set_solution_fields_from_product_instance(
 @webhooks.handler('price.created')
 def price_created_handler(event, **kwargs):
     """
-    When the new price is created, we create the price in db(sync) and  update the pay_now_price of a solution
+    When the new price is created, we create the price in db(sync) and  update the stripe_primary_price of a solution
     which corresponds to the product which is linked with this new price to the price
     """
 
@@ -46,7 +46,7 @@ def price_created_handler(event, **kwargs):
     product = price.product
     solution, _ = Solution.objects.get_or_create(stripe_product=product)
     solution.is_published = False
-    solution.pay_now_price = price
+    solution.stripe_primary_price = price
     solution.save()
 
 
@@ -56,9 +56,11 @@ def price_updated_handler(event, **kwargs):
     price = Price.sync_from_stripe_data(price_data['object'])
     solution = Solution.objects.get(stripe_product=price.product)
 
-    # if the price is archived and is the pay_now_price of solution, we set pay_now_price to None
-    if price.active is False and solution.pay_now_price == price:
-        Solution.objects.filter(stripe_product=price.product).update(pay_now_price=None)
+    # if the price is archived and is the stripe_primary_price of solution, we set stripe_primary_price to None
+    if price.active is False and solution.stripe_primary_price == price:
+        Solution.objects.filter(stripe_product=price.product).update(
+            stripe_primary_price=None,
+        )
 
 
 @webhooks.handler('price.deleted')

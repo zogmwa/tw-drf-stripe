@@ -65,7 +65,7 @@ class SolutionDocument(Document):
             super(SolutionDocument, self)
             .get_queryset()
             .prefetch_related('tags')
-            .select_related('stripe_product', 'pay_now_price')
+            .select_related('stripe_product', 'stripe_primary_price')
         )
 
     def get_instances_from_related(self, related_instance):

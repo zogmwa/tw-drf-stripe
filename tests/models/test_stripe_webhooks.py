@@ -45,7 +45,7 @@ class TestStripeWebhooksProductPriceCreateHandlers:
         product = Product.objects.get(id=stripe_price_dict['product'])
 
         solution = Solution.objects.get(stripe_product=product)
-        assert solution.pay_now_price == price
+        assert solution.stripe_primary_price == price
 
 
 class TestStripeWebhooksProductPriceUpdatedHandlers:
@@ -89,7 +89,7 @@ class TestStripeWebhooksProductPriceUpdatedHandlers:
         price = Price.objects.get(id=price_dict['id'])
         assert price.unit_amount == updated_unit_amount
 
-    def test_when_price_is_archived_pay_now_price_for_solution_should_be_set_to_none(
+    def test_when_price_is_archived_stripe_primary_price_for_solution_should_be_set_to_none(
         self,
         example_stripe_price_create_event,
         example_stripe_price_archive_event,
@@ -101,10 +101,10 @@ class TestStripeWebhooksProductPriceUpdatedHandlers:
         price = Price.objects.get(id=price_dict['id'])
 
         solution = Solution.objects.get(stripe_product=price.product)
-        assert solution.pay_now_price == price
+        assert solution.stripe_primary_price == price
         price_updated_handler(example_stripe_price_archive_event)
         solution = Solution.objects.get(stripe_product=price.product)
-        assert solution.pay_now_price is None
+        assert solution.stripe_primary_price is None
 
 
 class TestStripeWebhooksProductPriceDeletedHandlers:
