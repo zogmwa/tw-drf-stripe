@@ -3,7 +3,8 @@ import string
 from allauth.socialaccount.models import SocialApp, SocialAccount
 from django.test import Client
 from rest_framework import status
-
+from django.test import override_settings
+from stripe import util
 from api.models import User, Organization, Asset, SolutionBookmark
 from tests.common import get_random_string
 from tests.views.test_asset import _create_asset
@@ -181,6 +182,67 @@ class TestUserOrganizationLinking:
         )
 
 
+class TestUserPayment:
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_authenticated_user_could_be_create_customer_and_attach_card(
+        self,
+        authenticated_client,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        mocker,
+    ):
+        mocker.patch(
+            'stripe.Customer.create',
+            return_value=util.convert_to_stripe_object(example_stripe_customer_object),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.attach',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_1
+            ),
+        )
+        mocker.patch(
+            'stripe.Customer.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_customer_has_default_payment_method_object
+            ),
+        )
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'attach_card'),
+            {'payment_method': 'pm_1KFFan2eZvKYlo2C50uGTC8w'},
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['status'] == 'payment method associated successfully'
+
+        mocker.patch(
+            'stripe.PaymentMethod.attach',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_2
+            ),
+        )
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'attach_card'),
+            {'payment_method': 'pm_1KFFan2eZvKYlo2C50uGTC9w'},
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['status'] == 'payment method associated successfully'
+
+    def test_authenticated_user_could_fetch_has_payment_method(
+        self, authenticated_client
+    ):
+        USERS_CHECK_PAYMENT_URL = '{}{}/'.format(USERS_BASE_ENDPOINT, 'payment_methods')
+        response = authenticated_client.get(USERS_CHECK_PAYMENT_URL)
+
+        assert response.status_code == 200
+        assert response.data['has_payment_method'] is None
+
+
 class TestUserPermission:
     def _has_permission(self, client: Client, username, should_have_access):
         response = client.get('{}{}/'.format(USERS_BASE_ENDPOINT, username))
@@ -226,14 +288,3 @@ class TestUserPermission:
             response.data['bookmarked_solutions'][0]['solution']['title']
             == example_solution.title
         )
-
-
-class TestUserPayment:
-    def test_authenticated_user_could_fetch_has_payment_method(
-        self, authenticated_client
-    ):
-        USERS_CHECK_PAYMENT_URL = '{}{}/'.format(USERS_BASE_ENDPOINT, 'payment_methods')
-        response = authenticated_client.get(USERS_CHECK_PAYMENT_URL)
-
-        assert response.status_code == 200
-        assert response.data['has_payment_method'] is None

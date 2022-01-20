@@ -151,6 +151,164 @@ def example_stripe_price_delete_event(
 
 
 @pytest.fixture
+def example_stripe_customer_object():
+    example_stripe_customer = {
+        "id": "cus_123123",
+        "object": "customer",
+        "address": None,
+        "balance": 0,
+        "created": 1642598630,
+        "currency": "usd",
+        "default_source": None,
+        "delinquent": False,
+        "description": "This is test customer",
+        "discount": None,
+        "email": None,
+        "invoice_prefix": "99775FF",
+        "invoice_settings": {
+            "custom_fields": None,
+            "default_payment_method": None,
+            "footer": None,
+        },
+        "livemode": False,
+        "metadata": {},
+        "name": '',
+        "next_invoice_sequence": 1,
+        "phone": None,
+        "preferred_locales": [],
+        "shipping": None,
+        "tax_exempt": "none",
+    }
+
+    return example_stripe_customer
+
+
+@pytest.fixture
+def example_stripe_customer_has_default_payment_method_object():
+    example_stripe_customer_has_default_payment_method = {
+        "id": "cus_Kzn1wGfMcrNJy4",
+        "object": "customer",
+        "address": None,
+        "balance": 0,
+        "created": 1642598630,
+        "currency": "usd",
+        "default_source": None,
+        "delinquent": False,
+        "description": "This is test customer",
+        "discount": None,
+        "email": None,
+        "invoice_prefix": "99775FF",
+        "invoice_settings": {
+            "custom_fields": None,
+            "default_payment_method": "pm_1KFFan2eZvKYlo2C50uGTC8w",
+            "footer": None,
+        },
+        "livemode": False,
+        "metadata": {},
+        "name": '',
+        "next_invoice_sequence": 1,
+        "phone": None,
+        "preferred_locales": [],
+        "shipping": None,
+        "tax_exempt": "none",
+    }
+
+    return example_stripe_customer_has_default_payment_method
+
+
+@pytest.fixture
+def example_stripe_attach_payment_method_customer_object_1():
+    attached_payment_method = {
+        "id": "pm_1KFFan2eZvKYlo2C50uGTC8w",
+        "object": "payment_method",
+        "billing_details": {
+            "address": {
+                "city": None,
+                "country": None,
+                "line1": None,
+                "line2": None,
+                "postal_code": None,
+                "state": None,
+            },
+            "email": None,
+            "name": '',
+            "phone": None,
+        },
+        "card": {
+            "brand": "visa",
+            "checks": {
+                "address_line1_check": None,
+                "address_postal_code_check": None,
+                "cvc_check": "unchecked",
+            },
+            "country": "US",
+            "exp_month": 8,
+            "exp_year": 9999,
+            "fingerprint": "Xt5EWLLDS7FJjR1c",
+            "funding": "credit",
+            "generated_from": None,
+            "last4": "4242",
+            "networks": {"available": ["visa"], "preferred": None},
+            "three_d_secure_usage": {"supported": True},
+            "wallet": None,
+        },
+        "created": 1641550961,
+        "customer": "cus_Kzn1wGfMcrNJy4",
+        "livemode": False,
+        "metadata": {"order_id": "673", "card": "amex"},
+        "type": "card",
+    }
+
+    return attached_payment_method
+
+
+@pytest.fixture
+def example_stripe_attach_payment_method_customer_object_2():
+    attached_payment_method = {
+        "id": "pm_1KFFan2eZvKYlo2C50uGTC9w",
+        "object": "payment_method",
+        "billing_details": {
+            "address": {
+                "city": None,
+                "country": None,
+                "line1": None,
+                "line2": None,
+                "postal_code": None,
+                "state": None,
+            },
+            "email": None,
+            "name": '',
+            "phone": None,
+        },
+        "card": {
+            "brand": "visa",
+            "checks": {
+                "address_line1_check": None,
+                "address_postal_code_check": None,
+                "cvc_check": "unchecked",
+            },
+            "country": "US",
+            "exp_month": 8,
+            "exp_year": 9999,
+            "fingerprint": "Xt5EWLLDS7FJjR1e",
+            "funding": "credit",
+            "generated_from": None,
+            "last4": "4242",
+            "networks": {"available": ["visa"], "preferred": None},
+            "three_d_secure_usage": {"supported": True},
+            "wallet": None,
+        },
+        "created": 1641550961,
+        "customer": "cus_Kzn1wGfMcrNJy4",
+        "livemode": False,
+        "metadata": {"order_id": "673", "card": "amex"},
+        "type": "card",
+    }
+
+    return attached_payment_method
+
+
+@pytest.fixture
 def example_event():
     # TODO: Rename to example_stripe_event
     data = {
