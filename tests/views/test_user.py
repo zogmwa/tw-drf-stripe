@@ -5,7 +5,7 @@ from django.test import Client
 from rest_framework import status
 from django.test import override_settings
 from stripe import util
-from api.models import User, Organization, Asset, SolutionBookmark
+from api.models import User, Organization, Asset, SolutionBookmark, Solution
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import PaymentMethod as StripePaymentMethod
 from djstripe.models import Price as StripePrice
@@ -357,8 +357,9 @@ class TestUserPayment:
             type='Recurring',
             active=True,
         )
-        example_solution.primary_stripe_price = example_price
-        example_solution.save()
+        Solution.objects.filter(slug=example_solution.slug).update(
+            primary_stripe_price=example_price
+        )
 
         self._make_user_customer_with_default_payment_method(
             user_and_password[0],
