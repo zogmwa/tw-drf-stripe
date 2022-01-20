@@ -157,7 +157,7 @@ def example_stripe_price_delete_event(
 @pytest.fixture
 def example_stripe_customer_object():
     example_stripe_customer = {
-        "id": "cus_123123",
+        "id": "cus_Kzn1wGfMcrNJy4",
         "object": "customer",
         "address": None,
         "balance": 0,
