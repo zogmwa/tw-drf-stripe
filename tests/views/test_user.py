@@ -306,12 +306,12 @@ class TestUserPayment:
         assert response.status_code == 200
         assert response.data['has_payment_method'] == True
         assert (
-            response.data['payment_methods'][0]
-            == example_stripe_attach_payment_method_customer_object_1
+            response.data['payment_methods'][0]['id']
+            == example_stripe_attach_payment_method_customer_object_1['id']
         )
         assert (
-            response.data['payment_methods'][1]
-            == example_stripe_attach_payment_method_customer_object_2
+            response.data['payment_methods'][1]['id']
+            == example_stripe_attach_payment_method_customer_object_2['id']
         )
 
     def test_authenticated_user_could_fetch_has_payment_method(
