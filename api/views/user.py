@@ -69,7 +69,25 @@ class UserViewSet(viewsets.ModelViewSet):
             else:
                 stripe_customer = user.stripe_customer
 
-            # Attact payment method to customer
+            # Check customer already has this payment method.
+            attaching_stripe_payment_method = stripe.PaymentMethod.retrieve(
+                request.data.get('payment_method')
+            )
+            customer_payment_methods = stripe.PaymentMethod.list(
+                customer=user.stripe_customer.id,
+                type="card",
+            )
+            payment_methods = customer_payment_methods.get('data')
+            for payment_method in payment_methods:
+                if (
+                    payment_method.card.fingerprint
+                    == attaching_stripe_payment_method.card.fingerprint
+                ):
+                    return Response(
+                        {'status': 'You have already attached this payment.'}
+                    )
+
+            # Attach payment method to customer.
             stripe_payment_method = stripe.PaymentMethod.attach(
                 request.data.get('payment_method'), customer=stripe_customer.id
             )

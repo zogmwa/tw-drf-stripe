@@ -309,7 +309,7 @@ def example_stripe_attach_payment_method_customer_object_2():
 
 
 @pytest.fixture
-def example_subscription_object(
+def example_stripe_subscription_object(
     example_stripe_price_create_event,
     example_stripe_product_create_event,
     example_stripe_customer_has_default_payment_method_object,

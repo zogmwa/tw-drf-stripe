@@ -217,9 +217,25 @@ class TestUserPayment:
         example_stripe_customer_has_default_payment_method_object,
         mocker,
     ):
+        # Attach first payment to user.
         mocker.patch(
             'stripe.Customer.create',
             return_value=util.convert_to_stripe_object(example_stripe_customer_object),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.retrieve',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_1
+            ),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [],
+            },
         )
         mocker.patch(
             'stripe.PaymentMethod.attach',
@@ -246,34 +262,54 @@ class TestUserPayment:
         assert response.status_code == 200
         assert response.data['status'] == 'payment method associated successfully'
 
+        # Attach second payment to user.
         mocker.patch(
             'stripe.PaymentMethod.attach',
             return_value=util.convert_to_stripe_object(
                 example_stripe_attach_payment_method_customer_object_2
             ),
         )
+        mocker.patch(
+            'stripe.PaymentMethod.retrieve',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_2
+            ),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_1
+                    ),
+                ],
+            },
+        )
         response = authenticated_client.post(
             '{}{}/'.format(USERS_BASE_ENDPOINT, 'attach_card'),
-            {'payment_method': 'pm_1KFFan2eZvKYlo2C50uGTC9w'},
+            {
+                'payment_method': example_stripe_attach_payment_method_customer_object_2[
+                    'id'
+                ]
+            },
             content_type='application/json',
         )
 
         assert response.status_code == 200
         assert response.data['status'] == 'payment method associated successfully'
 
-    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
-    def test_authenticated_user_could_be_retrieve_payment_methods_list(
-        self,
-        user_and_password,
-        authenticated_client,
-        example_stripe_customer_object,
-        example_stripe_attach_payment_method_customer_object_1,
-        example_stripe_attach_payment_method_customer_object_2,
-        example_stripe_customer_has_default_payment_method_object,
-        mocker,
-    ):
+        # Attach same payment to user
         mocker.patch(
             'stripe.PaymentMethod.attach',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_2
+            ),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.retrieve',
             return_value=util.convert_to_stripe_object(
                 example_stripe_attach_payment_method_customer_object_2
             ),
@@ -294,6 +330,55 @@ class TestUserPayment:
                 ],
             },
         )
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'attach_card'),
+            {
+                'payment_method': example_stripe_attach_payment_method_customer_object_2[
+                    'id'
+                ]
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['status'] == 'You have already attached this payment.'
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_authenticated_user_could_be_retrieve_payment_methods_list(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        mocker,
+    ):
+        mocker.patch(
+            'stripe.PaymentMethod.retrieve',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_2
+            ),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_1
+                    ),
+                ],
+            },
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.attach',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_2
+            ),
+        )
         self._make_user_customer_with_default_payment_method(
             user_and_password[0],
             example_stripe_attach_payment_method_customer_object_1,
@@ -312,6 +397,22 @@ class TestUserPayment:
 
         response.status_code == 200
 
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_1
+                    ),
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_2
+                    ),
+                ],
+            },
+        )
         response = authenticated_client.get(
             '{}{}/'.format(USERS_BASE_ENDPOINT, 'payment_methods'),
         )
@@ -335,7 +436,7 @@ class TestUserPayment:
         example_solution,
         example_stripe_product_create_event,
         example_stripe_price_create_event,
-        example_subscription_object,
+        example_stripe_subscription_object,
         example_stripe_customer_object,
         example_stripe_attach_payment_method_customer_object_1,
         example_stripe_attach_payment_method_customer_object_2,
@@ -344,7 +445,9 @@ class TestUserPayment:
     ):
         mocker.patch(
             'stripe.Subscription.create',
-            return_value=util.convert_to_stripe_object(example_subscription_object),
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_object
+            ),
         )
         example_price_data = example_stripe_price_create_event.data['object']
         example_product = StripeProduct.objects.get(
