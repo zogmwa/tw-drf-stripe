@@ -5,9 +5,11 @@ from django.test import Client
 from rest_framework import status
 from django.test import override_settings
 from stripe import util
-from api.models import User, Organization, Asset, SolutionBookmark
+from api.models import User, Organization, Asset, SolutionBookmark, Solution
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import PaymentMethod as StripePaymentMethod
+from djstripe.models import Price as StripePrice
+from djstripe.models import Product as StripeProduct
 from tests.common import get_random_string
 from tests.views.test_asset import _create_asset
 
@@ -186,6 +188,26 @@ class TestUserOrganizationLinking:
 
 class TestUserPayment:
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def _make_user_customer_with_default_payment_method(
+        self,
+        user,
+        example_stripe_attach_payment_method_customer_object,
+        example_stripe_customer_object,
+    ):
+        example_stripe_payment_method = StripePaymentMethod.objects.create(
+            id=example_stripe_attach_payment_method_customer_object['id'],
+            billing_details=example_stripe_attach_payment_method_customer_object[
+                'billing_details'
+            ],
+        )
+        example_stripe_customer = StripeCustomer.objects.create(
+            id=example_stripe_customer_object['id'],
+            email=user.email,
+            default_payment_method=example_stripe_payment_method,
+        )
+        User.objects.filter(id=user.id).update(stripe_customer=example_stripe_customer)
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_authenticated_user_could_be_create_customer_and_attach_card(
         self,
         authenticated_client,
@@ -272,19 +294,10 @@ class TestUserPayment:
                 ],
             },
         )
-        example_stripe_payment_method = StripePaymentMethod.objects.create(
-            id=example_stripe_attach_payment_method_customer_object_1['id'],
-            billing_details=example_stripe_attach_payment_method_customer_object_1[
-                'billing_details'
-            ],
-        )
-        example_stripe_customer = StripeCustomer.objects.create(
-            id=example_stripe_customer_object['id'],
-            email=user_and_password[0].email,
-            default_payment_method=example_stripe_payment_method,
-        )
-        User.objects.filter(id=user_and_password[0].id).update(
-            stripe_customer=example_stripe_customer
+        self._make_user_customer_with_default_payment_method(
+            user_and_password[0],
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
         )
 
         response = authenticated_client.post(
@@ -313,6 +326,59 @@ class TestUserPayment:
             response.data['payment_methods'][1]['id']
             == example_stripe_attach_payment_method_customer_object_2['id']
         )
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_authenticated_user_could_be_subscribe_using_payment_method(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_solution,
+        example_stripe_product_create_event,
+        example_stripe_price_create_event,
+        example_subscription_object,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        mocker,
+    ):
+        mocker.patch(
+            'stripe.Subscription.create',
+            return_value=util.convert_to_stripe_object(example_subscription_object),
+        )
+        example_price_data = example_stripe_price_create_event.data['object']
+        example_product = StripeProduct.objects.get(
+            id=example_stripe_product_create_event.data['object']['id']
+        )
+        example_price = StripePrice.objects.create(
+            id=example_price_data['id'],
+            product=example_product,
+            currency=example_price_data['currency'],
+            type='Recurring',
+            active=True,
+        )
+        example_solution.stripe_primary_price = example_price
+        example_solution.save()
+
+        self._make_user_customer_with_default_payment_method(
+            user_and_password[0],
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
+        )
+
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_payment'),
+            {
+                'payment_method': example_stripe_attach_payment_method_customer_object_1[
+                    'id'
+                ],
+                'slug': example_solution.slug,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['solution_booking_id'] is not None
 
     def test_authenticated_user_could_fetch_has_payment_method(
         self, authenticated_client

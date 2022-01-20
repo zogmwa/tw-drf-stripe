@@ -309,6 +309,145 @@ def example_stripe_attach_payment_method_customer_object_2():
 
 
 @pytest.fixture
+def example_subscription_object(
+    example_stripe_price_create_event,
+    example_stripe_product_create_event,
+    example_stripe_customer_has_default_payment_method_object,
+):
+    example_subscription = {
+        "application_fee_percent": None,
+        "automatic_tax": {"enabled": False},
+        "billing_cycle_anchor": 1642693255,
+        "billing_thresholds": None,
+        "cancel_at": None,
+        "cancel_at_period_end": False,
+        "canceled_at": None,
+        "collection_method": "charge_automatically",
+        "created": 1642693255,
+        "current_period_end": 1643298055,
+        "current_period_start": 1642693255,
+        "customer": example_stripe_customer_has_default_payment_method_object['id'],
+        "days_until_due": None,
+        "default_payment_method": None,
+        "default_source": None,
+        "default_tax_rates": [],
+        "discount": None,
+        "ended_at": None,
+        "id": "sub_1KK2kuGAiB8oTF44Puf2fqSG",
+        "items": {
+            "data": [
+                {
+                    "billing_thresholds": None,
+                    "created": 1642693256,
+                    "id": "si_L02qrgsquQSjQe",
+                    "metadata": {},
+                    "object": "subscription_item",
+                    "plan": {
+                        "active": True,
+                        "aggregate_usage": "sum",
+                        "amount": 10000,
+                        "amount_decimal": "10000",
+                        "billing_scheme": "per_unit",
+                        "created": 1642512894,
+                        "currency": "usd",
+                        "id": example_stripe_price_create_event.data['object']['id'],
+                        "interval": "week",
+                        "interval_count": 1,
+                        "livemode": False,
+                        "metadata": {},
+                        "nickname": None,
+                        "object": "plan",
+                        "product": example_stripe_product_create_event.data['object'][
+                            'id'
+                        ],
+                        "tiers_mode": None,
+                        "transform_usage": None,
+                        "trial_period_days": None,
+                        "usage_type": "metered",
+                    },
+                    "price": {
+                        "active": True,
+                        "billing_scheme": "per_unit",
+                        "created": 1642512894,
+                        "currency": "usd",
+                        "id": example_stripe_price_create_event.data['object']['id'],
+                        "livemode": False,
+                        "lookup_key": None,
+                        "metadata": {},
+                        "nickname": None,
+                        "object": "price",
+                        "product": example_stripe_product_create_event.data['object'][
+                            'id'
+                        ],
+                        "recurring": {
+                            "aggregate_usage": "sum",
+                            "interval": "week",
+                            "interval_count": 1,
+                            "trial_period_days": None,
+                            "usage_type": "metered",
+                        },
+                        "tax_behavior": "unspecified",
+                        "tiers_mode": None,
+                        "transform_quantity": None,
+                        "type": "recurring",
+                        "unit_amount": 10000,
+                        "unit_amount_decimal": "10000",
+                    },
+                    "subscription": "sub_1KK2kuGAiB8oTF44Puf2fqSG",
+                    "tax_rates": [],
+                }
+            ],
+            "has_more": False,
+            "object": "list",
+            "total_count": 1,
+            "url": "/v1/subscription_items?subscription=sub_1KK2kuGAiB8oTF44Puf2fqSG",
+        },
+        "livemode": False,
+        "metadata": {},
+        "next_pending_invoice_item_invoice": None,
+        "object": "subscription",
+        "pause_collection": None,
+        "payment_settings": {
+            "payment_method_options": None,
+            "payment_method_types": None,
+        },
+        "pending_invoice_item_interval": None,
+        "pending_setup_intent": None,
+        "pending_update": None,
+        "plan": {
+            "active": True,
+            "aggregate_usage": "sum",
+            "amount": 10000,
+            "amount_decimal": "10000",
+            "billing_scheme": "per_unit",
+            "created": 1642512894,
+            "currency": "usd",
+            "id": example_stripe_price_create_event.data['object']['id'],
+            "interval": "week",
+            "interval_count": 1,
+            "livemode": False,
+            "metadata": {},
+            "nickname": None,
+            "object": "plan",
+            "product": example_stripe_product_create_event.data['object']['id'],
+            "tiers_mode": None,
+            "transform_usage": None,
+            "trial_period_days": None,
+            "usage_type": "metered",
+        },
+        "quantity": 1,
+        "schedule": None,
+        "start_date": 1642693255,
+        "status": "active",
+        "transfer_data": None,
+        "trial_end": None,
+        "trial_start": None,
+    }
+
+    return example_subscription
+
+
+@pytest.fixture
 def example_event():
     # TODO: Rename to example_stripe_event
     data = {
