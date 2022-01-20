@@ -6,6 +6,8 @@ from rest_framework import status
 from django.test import override_settings
 from stripe import util
 from api.models import User, Organization, Asset, SolutionBookmark
+from djstripe.models import Customer as StripeCustomer
+from djstripe.models import PaymentMethod as StripePaymentMethod
 from tests.common import get_random_string
 from tests.views.test_asset import _create_asset
 
@@ -211,7 +213,11 @@ class TestUserPayment:
         )
         response = authenticated_client.post(
             '{}{}/'.format(USERS_BASE_ENDPOINT, 'attach_card'),
-            {'payment_method': 'pm_1KFFan2eZvKYlo2C50uGTC8w'},
+            {
+                'payment_method': example_stripe_attach_payment_method_customer_object_1[
+                    'id'
+                ]
+            },
             content_type='application/json',
         )
 
@@ -232,6 +238,81 @@ class TestUserPayment:
 
         assert response.status_code == 200
         assert response.data['status'] == 'payment method associated successfully'
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_authenticated_user_could_be_retrieve_payment_methods_list(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        mocker,
+    ):
+        mocker.patch(
+            'stripe.PaymentMethod.attach',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_attach_payment_method_customer_object_2
+            ),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_1
+                    ),
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_2
+                    ),
+                ],
+            },
+        )
+        example_stripe_payment_method = StripePaymentMethod.objects.create(
+            id=example_stripe_attach_payment_method_customer_object_1['id'],
+            billing_details=example_stripe_attach_payment_method_customer_object_1[
+                'billing_details'
+            ],
+        )
+        example_stripe_customer = StripeCustomer.objects.create(
+            id=example_stripe_customer_object['id'],
+            email=user_and_password[0].email,
+            default_payment_method=example_stripe_payment_method,
+        )
+        User.objects.filter(id=user_and_password[0].id).update(
+            stripe_customer=example_stripe_customer
+        )
+
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'attach_card'),
+            {
+                'payment_method': example_stripe_attach_payment_method_customer_object_2[
+                    'id'
+                ]
+            },
+            content_type='application/json',
+        )
+
+        response.status_code == 200
+
+        response = authenticated_client.get(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'payment_methods'),
+        )
+
+        assert response.status_code == 200
+        assert response.data['has_payment_method'] == True
+        assert (
+            response.data['payment_methods'][0]['id']
+            == example_stripe_attach_payment_method_customer_object_1['id']
+        )
+        assert (
+            response.data['payment_methods'][1]['id']
+            == example_stripe_attach_payment_method_customer_object_2['id']
+        )
 
     def test_authenticated_user_could_fetch_has_payment_method(
         self, authenticated_client
