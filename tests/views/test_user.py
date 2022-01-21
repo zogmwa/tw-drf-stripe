@@ -357,7 +357,7 @@ class TestUserPayment:
             type='Recurring',
             active=True,
         )
-        example_solution.primary_stripe_price = example_price
+        example_solution.stripe_primary_price = example_price
         example_solution.save()
 
         self._make_user_customer_with_default_payment_method(
