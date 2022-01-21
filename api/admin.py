@@ -185,7 +185,7 @@ class SolutionAdmin(admin.ModelAdmin):
         'point_of_contact',
         'assets',
         'stripe_product',
-        'pay_now_price',
+        'stripe_primary_price',
     ]
     search_fields = ['title']
     list_display = ('title', 'type', 'organization', 'livemode')
@@ -198,7 +198,7 @@ class SolutionAdmin(admin.ModelAdmin):
         SolutionTagInline,
         SolutionQuestionInline,
     ]
-    readonly_fields = ('livemode', 'pay_now_price_unit_amount')
+    readonly_fields = ('livemode', 'stripe_primary_price_unit_amount')
 
 
 class SolutionBookingAdmin(admin.ModelAdmin):

@@ -12,7 +12,6 @@ from api.models.organization import Organization
 from api.models.tag import Tag
 from api.management.commands import generate_sitemap_solution_detail
 from api.management.commands import generate_sitemap_index
-import sys
 
 
 class Solution(models.Model):
@@ -28,29 +27,38 @@ class Solution(models.Model):
         StripeProduct, null=True, blank=True, on_delete=models.SET_NULL
     )
 
-    # The price the user will pay if they decide to pay upfront
-    # This can be nullable because not all solutions will have pay now enabled. Some solutions require metered
-    # billing.
-    pay_now_price = models.OneToOneField(
+    # For pre-paid solutions this is the price the user will pay if they decide to pay upfront
+    # For metered-solutions this is the unit price (e.g. hourly price, etc) they will be billed at
+    # (This can be nullable because when a solution is created this may not be set immediately)
+    stripe_primary_price = models.OneToOneField(
         StripePrice, null=True, blank=True, on_delete=models.SET_NULL
     )
-    primary_stripe_price = models.OneToOneField(
-        StripePrice,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='related_solution',
-    )
 
+    # TODO: Deprecated, but keeping for backwards compatibility until frontend stops using this
     @property
     def pay_now_price_stripe_id(self) -> str:
         # This is needed by the frontend for the "Purchase Now" -> "Stripe Checkout" flow.
-        return self.pay_now_price.id if self.pay_now_price else None
+        return self.stripe_primary_price.id if self.stripe_primary_price else None
 
+    # TODO: Deprecated, but keeping for backwards compatibility until frontend stops using this
     @property
     def pay_now_price_unit_amount(self) -> str:
         # This will be in cents so frontend will have to divide this by 100 to show dollar value for USD
-        return self.pay_now_price.unit_amount if self.pay_now_price else None
+        return (
+            self.stripe_primary_price.unit_amount if self.stripe_primary_price else None
+        )
+
+    @property
+    def stripe_primary_price_stripe_id(self) -> str:
+        # This is needed by the frontend for the "Purchase Now" -> "Stripe Checkout" flow.
+        return self.stripe_primary_price.id if self.stripe_primary_price else None
+
+    @property
+    def stripe_primary_price_unit_amount(self) -> str:
+        # This will be in cents so frontend will have to divide this by 100 to show dollar value for USD
+        return (
+            self.stripe_primary_price.unit_amount if self.stripe_primary_price else None
+        )
 
     @property
     def capacity_used(self) -> int:
@@ -191,40 +199,3 @@ def solution_detail_sitemap_generator():
     sitemap_index_cmd = generate_sitemap_index.Command()
     solution_detail_cmd.handle(**{})
     sitemap_index_cmd.handle(**{})
-
-
-@receiver(signal=pre_save, sender=Solution)
-def generate_solution_detail_pages_sitemap_files_pre_save(
-    sender, instance=None, **kwargs
-):
-    try:
-        instance.old_slug = sender.objects.get(pk=instance.pk).slug
-    except sender.DoesNotExist:
-        instance.old_slug = ''
-
-
-@receiver(signal=post_save, sender=Solution)
-def generate_solution_detail_pages_sitemap_files_post_save(
-    sender, instance=None, **kwargs
-):
-
-    if type(sender) != type(Solution):
-        return
-
-    solution_instance = instance
-    try:
-        old_slug = solution_instance.old_slug
-        if old_slug != instance.slug:
-            solution_detail_sitemap_generator()
-    except Solution.DoesNotExist:
-        solution_detail_sitemap_generator()
-
-
-post_save.connect(
-    generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
-)
-pre_save.connect(generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution)
-request_finished.connect(
-    generate_solution_detail_pages_sitemap_files_post_save,
-    dispatch_uid="generate_solution_detail_pages_sitemap_files",
-)

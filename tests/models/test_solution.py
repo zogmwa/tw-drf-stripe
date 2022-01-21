@@ -1,10 +1,4 @@
 import pytest
-from django.db.models.signals import post_save, pre_save
-from django.core.signals import request_finished
-from api.models.solution import (
-    generate_solution_detail_pages_sitemap_files_pre_save,
-    generate_solution_detail_pages_sitemap_files_post_save,
-)
 
 from api.models import Solution
 from djstripe.models import Product as StripeProduct
@@ -20,16 +14,7 @@ class TestSolutionCreateWithStripeProduct:
             id='prod_KkGmWqkik2VpYo',
         )
         product.save()
-        post_save.disconnect(
-            generate_solution_detail_pages_sitemap_files_post_save, sender=Solution
-        )
-        pre_save.disconnect(
-            generate_solution_detail_pages_sitemap_files_pre_save, sender=Solution
-        )
-        request_finished.disconnect(
-            generate_solution_detail_pages_sitemap_files_post_save,
-            dispatch_uid="generate_solution_detail_pages_sitemap_files",
-        )
+
         solution = Solution.objects.create(
             slug='test-solution',
             title='Test Solution',

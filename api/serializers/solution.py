@@ -56,8 +56,11 @@ class SolutionSerializer(ModelSerializer):
             'stripe_product_id',
             'title',
             'type',
+            # TODO: Next two-lines deprecated (remove soon after frontend is migrated to stripe_primary_price_* fields)
             'pay_now_price_stripe_id',
             'pay_now_price_unit_amount',
+            'stripe_primary_price_stripe_id',
+            'stripe_primary_price_unit_amount',
             'description',
             'point_of_contact',
             'organization',
@@ -87,6 +90,8 @@ class SolutionSerializer(ModelSerializer):
         read_only_fields = [
             'pay_now_price_stripe_id',
             'pay_now_price_unit_amount',
+            'stripe_primary_price_stripe_id',
+            'stripe_primary_price_unit_amount',
             'capacity_used',
         ]
 
