@@ -217,6 +217,41 @@ def example_stripe_customer_has_default_payment_method_object():
 
 
 @pytest.fixture
+def example_stripe_customer_has_not_default_payment_method_object(
+    example_stripe_customer_has_default_payment_method_object,
+):
+    example_stripe_customer_has_not_default_payment_method = {
+        "id": example_stripe_customer_has_default_payment_method_object['id'],
+        "object": "customer",
+        "address": None,
+        "balance": 0,
+        "created": 1642598630,
+        "currency": "usd",
+        "default_source": None,
+        "delinquent": False,
+        "description": "This is test customer",
+        "discount": None,
+        "email": None,
+        "invoice_prefix": "99775FF",
+        "invoice_settings": {
+            "custom_fields": None,
+            "default_payment_method": None,
+            "footer": None,
+        },
+        "livemode": False,
+        "metadata": {},
+        "name": '',
+        "next_invoice_sequence": 1,
+        "phone": None,
+        "preferred_locales": [],
+        "shipping": None,
+        "tax_exempt": "none",
+    }
+
+    return example_stripe_customer_has_not_default_payment_method
+
+
+@pytest.fixture
 def example_stripe_attach_payment_method_customer_object_1():
     attached_payment_method = {
         "id": "pm_1KFFan2eZvKYlo2C50uGTC8w",
@@ -260,6 +295,56 @@ def example_stripe_attach_payment_method_customer_object_1():
     }
 
     return attached_payment_method
+
+
+@pytest.fixture
+def example_stripe_detach_payment_method_customer_object_1(
+    example_stripe_attach_payment_method_customer_object_1,
+):
+    detached_payment_method = {
+        "billing_details": {
+            "address": {
+                "city": None,
+                "country": None,
+                "line1": None,
+                "line2": None,
+                "postal_code": "42424",
+                "state": None,
+            },
+            "email": None,
+            "name": "Test Customer",
+            "phone": None,
+        },
+        "card": {
+            "brand": "visa",
+            "checks": {
+                "address_line1_check": None,
+                "address_postal_code_check": "pass",
+                "cvc_check": "pass",
+            },
+            "country": "US",
+            "exp_month": 4,
+            "exp_year": 2024,
+            "fingerprint": example_stripe_attach_payment_method_customer_object_1[
+                'card'
+            ]['fingerprint'],
+            "funding": "credit",
+            "generated_from": None,
+            "last4": "4242",
+            "networks": {"available": ["visa"], "preferred": None},
+            "three_d_secure_usage": {"supported": True},
+            "wallet": None,
+        },
+        "created": 1642782075,
+        "customer": None,
+        "id": example_stripe_attach_payment_method_customer_object_1['id'],
+        "livemode": False,
+        "metadata": {},
+        "object": "payment_method",
+        "type": "card",
+    }
+
+    return detached_payment_method
 
 
 @pytest.fixture
