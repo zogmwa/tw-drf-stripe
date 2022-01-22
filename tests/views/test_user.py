@@ -483,6 +483,67 @@ class TestUserPayment:
         assert response.status_code == 200
         assert response.data['solution_booking_id'] is not None
 
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_authenticated_user_could_be_detach_payment_method(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_solution,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_not_default_payment_method_object,
+        example_stripe_detach_payment_method_customer_object_1,
+        mocker,
+    ):
+        mocker.patch(
+            'stripe.PaymentMethod.detach',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_detach_payment_method_customer_object_1
+            ),
+        )
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_2
+                    ),
+                ],
+            },
+        )
+        mocker.patch(
+            'stripe.Customer.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_customer_has_not_default_payment_method_object
+            ),
+        )
+        self._make_user_customer_with_default_payment_method(
+            user_and_password[0],
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
+        )
+
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'detach_payment_method'),
+            {
+                'payment_method': example_stripe_attach_payment_method_customer_object_1[
+                    'id'
+                ],
+                'slug': example_solution.slug,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert (
+            response.data['data'][0]['id']
+            == example_stripe_attach_payment_method_customer_object_2['id']
+        )
+
     def test_authenticated_user_could_fetch_has_payment_method(
         self, authenticated_client
     ):
