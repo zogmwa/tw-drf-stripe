@@ -69,9 +69,9 @@ class CreateStripeCheckoutSession(APIView):
 
         payment_success_url = active_site
         payment_success_url.path.segments = [
-            'users',
+            'profile',
             request.user.username,
-            'bookings',
+            'contracts',
             solution_booking.id,
         ]
 
