@@ -142,6 +142,10 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
 
 
 class SolutionBookingSerializer(ModelSerializer):
+    metered_booking_info = serializers.SerializerMethodField(
+        method_name="_get_metered_booking_info"
+    )
+
     class Meta:
         model = SolutionBooking
         fields = [
@@ -157,6 +161,7 @@ class SolutionBookingSerializer(ModelSerializer):
             'is_payment_completed',
             'stripe_session_id',
             'price_at_booking',
+            'metered_booking_info',
         ]
         read_only_fields = [
             'solution',
@@ -170,11 +175,33 @@ class SolutionBookingSerializer(ModelSerializer):
             'is_payment_completed',
             'stripe_session_id',
             'price_at_booking',
+            'metered_booking_info',
         ]
+
+    def _get_metered_booking_info(self, instance):
+        """
+        Return metered solution's booking information
+        """
+        if instance.solution.is_metered:
+            if instance.stripe_subscription is not None:
+                return dict(
+                    metered_status=instance.stripe_subscription.status,
+                    start_date=instance.stripe_subscription.start_date,
+                    billing_cycle_anchor=instance.stripe_subscription.billing_cycle_anchor,
+                    collection_method=instance.stripe_subscription.collection_method,
+                    current_period_end=instance.stripe_subscription.current_period_end,
+                )
+            else:
+                return None
+        else:
+            return None
 
 
 class AuthenticatedSolutionBookingSerializer(ModelSerializer):
     solution = SolutionSerializerForSolutionBooking(read_only=True)
+    metered_booking_info = serializers.SerializerMethodField(
+        method_name="_get_metered_booking_info"
+    )
 
     class Meta:
         model = SolutionBooking
@@ -193,6 +220,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'stripe_session_id',
             'price_at_booking',
             'rating',
+            'metered_booking_info',
         ]
         read_only_fields = [
             'solution',
@@ -207,7 +235,26 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'is_payment_completed',
             'stripe_session_id',
             'price_at_booking',
+            'metered_booking_info',
         ]
+
+    def _get_metered_booking_info(self, instance):
+        """
+        Return metered solution's booking information
+        """
+        if instance.solution.is_metered:
+            if instance.stripe_subscription is not None:
+                return dict(
+                    metered_status=instance.stripe_subscription.status,
+                    start_date=instance.stripe_subscription.start_date,
+                    billing_cycle_anchor=instance.stripe_subscription.billing_cycle_anchor,
+                    collection_method=instance.stripe_subscription.collection_method,
+                    current_period_end=instance.stripe_subscription.current_period_end,
+                )
+            else:
+                return None
+        else:
+            return None
 
     def update(self, instance, validated_data):
         solution_booking_instance = instance
