@@ -251,3 +251,27 @@ class UserViewSet(viewsets.ModelViewSet):
                     )
             else:
                 return Response({'has_payment_method': None})
+
+    @action(detail=True, permission_classes=[IsAuthenticated], methods=['get'])
+    def provider_bookings(self, request, *args, **kwargs):
+        """
+        If the user wants to get solution bookings list:
+        http://127.0.0.1:8000/users/<username>/provider_bookings/
+        http://127.0.0.1:8000/users/<username>/provider_bookings/?id=<solution_booking_id>
+        """
+        contract_id = request.GET.get('id', '')
+        context_serializer = {'request': request}
+        if contract_id:
+            solution_booking_queryset = SolutionBooking.objects.filter(
+                solution__point_of_contact__username=kwargs['username'], id=contract_id
+            )
+        else:
+            solution_booking_queryset = SolutionBooking.objects.filter(
+                solution__point_of_contact__username=kwargs['username']
+            )
+
+        solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+            solution_booking_queryset, context=context_serializer, many=True
+        )
+
+        return Response(solution_booking_serializer.data)
