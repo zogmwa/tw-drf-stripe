@@ -23,7 +23,9 @@ class TestFetchingSolutionBooking:
 
         assert response.status_code == 200
         assert response.data[0]['solution']['id'] == example_solution.id
-        assert response.data[0]['booked_by'] == user_and_password[0].id
+        assert (
+            response.data[0]['booked_by']['username'] == user_and_password[0].username
+        )
 
 
 class TestDeletingSolutionBooking:

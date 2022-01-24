@@ -6,6 +6,7 @@ from rest_framework import status
 from django.test import override_settings
 from stripe import util
 from api.models import User, Organization, Asset, SolutionBookmark, Solution
+from api.models.solution_booking import SolutionBooking
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import PaymentMethod as StripePaymentMethod
 from djstripe.models import Price as StripePrice
@@ -598,4 +599,25 @@ class TestUserPermission:
         assert (
             response.data['bookmarked_solutions'][0]['solution']['title']
             == example_solution.title
+        )
+
+
+class TestProviderBookingsList:
+    def test_authenticated_user_should_fetch_provider_solution_bookings_list(
+        self, authenticated_client, user_and_password, admin_user, example_solution
+    ):
+        SolutionBooking.objects.create(
+            solution=example_solution, booked_by=user_and_password[0]
+        )
+
+        response = authenticated_client.get(
+            '{}{}/{}/'.format(
+                USERS_BASE_ENDPOINT, admin_user.username, 'provider_bookings'
+            )
+        )
+
+        assert response.status_code == 200
+        assert response.data[0]['solution']['title'] == example_solution.title
+        assert (
+            response.data[0]['booked_by']['username'] == user_and_password[0].username
         )
