@@ -145,6 +145,7 @@ class SolutionBookingSerializer(ModelSerializer):
     metered_booking_info = serializers.SerializerMethodField(
         method_name="_get_metered_booking_info"
     )
+    booked_by = UserContactSerializerForSolution(read_only=True)
 
     class Meta:
         model = SolutionBooking
@@ -202,6 +203,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
     metered_booking_info = serializers.SerializerMethodField(
         method_name="_get_metered_booking_info"
     )
+    booked_by = UserContactSerializerForSolution(read_only=True)
 
     class Meta:
         model = SolutionBooking
