@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import Subscription as StripeSubscription
+from djstripe.models import SubscriptionItem as StripeSubscriptionItem
 from api.utils.models import get_or_none
 from rest_framework.response import Response
 from api.models import User
@@ -262,8 +263,43 @@ class UserViewSet(viewsets.ModelViewSet):
         contract_id = request.GET.get('id', '')
         context_serializer = {'request': request}
         if contract_id:
-            solution_booking_queryset = SolutionBooking.objects.filter(
-                solution__point_of_contact__username=kwargs['username'], id=contract_id
+            solution_booking = SolutionBooking.objects.get(id=contract_id)
+            stripe_subscription = solution_booking.stripe_subscription
+
+            stripe_subscription_item = StripeSubscriptionItem.objects.filter(
+                subscription__id=stripe_subscription.id
+            )[0]
+            subscription_usage = stripe.SubscriptionItem.list_usage_record_summaries(
+                stripe_subscription_item.id,
+            )
+
+            tracking_times = subscription_usage.get('data')
+            return_tracking_times = []
+            for tracking_time in tracking_times:
+                if tracking_time.period.start:
+                    return_tracking_times.append(
+                        {
+                            'start': tracking_time.period.start,
+                            'end': tracking_time.period.end,
+                            'total_usage': tracking_time.total_usage,
+                        }
+                    )
+
+            solution_booking_queryset = SolutionBooking.objects.get(
+                solution__point_of_contact__username=kwargs['username'],
+                id=contract_id,
+            )
+
+            solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+                solution_booking_queryset, context=context_serializer
+            )
+            return Response(
+                {
+                    'current_period_start': stripe_subscription.current_period_start,
+                    'current_period_end': stripe_subscription.current_period_end,
+                    'tracking_times': return_tracking_times,
+                    'booking_data': solution_booking_serializer.data,
+                }
             )
         else:
             solution_booking_queryset = SolutionBooking.objects.filter(
