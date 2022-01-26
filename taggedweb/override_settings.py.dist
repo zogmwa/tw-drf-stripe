@@ -11,6 +11,15 @@ DATABASES = {
         'PASSWORD': '',
         'PORT': '5432',
     },
+    'twblog': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'twblog',
+        'HOST': 'localhost',
+        'USER': 'pranjal',
+        # Replace with decrypted secret for prod overrides/and your local postgres password for local overrides.
+        'PASSWORD': '',
+        'PORT': '5432',
+    },
 }
 
 # We won't be using SQLite, please use Postgres even on local, this is just kept here for quick testing purposes
