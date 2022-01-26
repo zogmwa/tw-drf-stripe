@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from api.management.commands import generate_sitemap_solution_detail
 from api.management.commands import generate_sitemap_software_detail
 from api.management.commands import generate_sitemap_software_list
+from api.management.commands import generate_sitemap_blog
 from api.management.commands import generate_sitemap_index
 from api.utils.convert_str_to_date import get_now_converted_google_date
 
@@ -14,10 +15,12 @@ def process() -> None:
     solution_detail_cmd = generate_sitemap_solution_detail.Command()
     software_list_cmd = generate_sitemap_software_list.Command()
     software_detail_cmd = generate_sitemap_software_detail.Command()
+    sitemap_blog_cmd = generate_sitemap_blog.Command()
     sitemap_index_cmd = generate_sitemap_index.Command()
     solution_detail_cmd.handle(**{})
     software_list_cmd.handle(**{})
     software_detail_cmd.handle(**{})
+    sitemap_blog_cmd.handle(**{})
     sitemap_index_cmd.handle(**{})
     print(get_now_converted_google_date())
 
