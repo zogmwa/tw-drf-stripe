@@ -77,6 +77,10 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'my_solution_review',
             'my_solution_review_id',
             'is_metered',
+            'team_size',
+            'estimated_hours',
+            'blended_hourly_rate',
+            'billing_period',
         ]
         read_only_fields = [
             # TODO: Deprecated
