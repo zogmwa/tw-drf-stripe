@@ -2,16 +2,16 @@ from django.conf import settings
 from django.db import models
 from djstripe.models import Product as StripeProduct
 from djstripe.models import Price as StripePrice
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
-from django.core.signals import request_finished
-
+from django.db.models.signals import pre_save
 from django.db.models import Q
 from django.apps import apps
 from api.models.organization import Organization
 from api.models.tag import Tag
 from api.management.commands import generate_sitemap_solution_detail
 from api.management.commands import generate_sitemap_index
+from api.utils.promo_video_conditional_updates_signal import (
+    promo_video_conditional_updates,
+)
 
 
 class Solution(models.Model):
@@ -94,6 +94,8 @@ class Solution(models.Model):
     organization = models.ForeignKey(
         Organization, blank=True, null=True, on_delete=models.SET_NULL
     )
+
+    promo_video = models.URLField(max_length=2048, null=True, blank=True)
 
     # The user who will either be providing the support or be the point of contact at the organization providing
     # the support.
@@ -199,3 +201,6 @@ def solution_detail_sitemap_generator():
     sitemap_index_cmd = generate_sitemap_index.Command()
     solution_detail_cmd.handle(**{})
     sitemap_index_cmd.handle(**{})
+
+
+pre_save.connect(promo_video_conditional_updates, sender=Solution)

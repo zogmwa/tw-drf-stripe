@@ -573,6 +573,7 @@ def example_solution(admin_user):
         title='Test Solution',
         type='I',
         description='bla bla bla',
+        promo_video='https://www.youtube.com/embed/Q0hi9d1W3Ag',
         scope_of_work='bla bla bla',
         point_of_contact=admin_user,
     )

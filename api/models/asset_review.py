@@ -4,9 +4,9 @@ from django.db.models import UniqueConstraint, F
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.core.signals import request_finished
+from api.utils.video_url_conditional_updates_signal import video_url_conditional_updates
 
 from api.models import Asset
-from api.utils.video import get_embed_video_url
 
 
 class AssetReview(models.Model):
@@ -91,23 +91,7 @@ def avg_rating_and_count_update_on_delete(sender, instance=None, **kwargs):
         )
 
 
-@receiver(pre_save, sender=AssetReview)
-def asset_conditional_updates(sender, instance=None, **kwargs):
-    """
-    Performs some checks to compare old asset review state with new asset review state and perform conditional field
-    update logic like updating video_url to an embed video url the first time the video url is being set.
-    Conditional updates help because they reduce average write time when saving many objects.
-    """
-    try:
-        instance_old = sender.objects.get(pk=instance.pk)
-        if instance.video_url and instance_old.video_url is None:
-            # Only update the promo video if old video link was not set and the new is set
-            instance.video_url = get_embed_video_url(instance.video_url)
-    except sender.DoesNotExist:
-        # If it's a new asset/web-service being created for which an old one does not exist then
-        # we still want to update the promo video
-        instance.video_url = get_embed_video_url(instance.video_url)
-
+pre_save.connect(video_url_conditional_updates, sender=AssetReview)
 
 # https://code.djangoproject.com/wiki/Signals#Helppost_saveseemstobeemittedtwiceforeachsave
 request_finished.connect(
