@@ -95,6 +95,7 @@ class Solution(models.Model):
         Organization, blank=True, null=True, on_delete=models.SET_NULL
     )
 
+    og_image_url = models.URLField(max_length=2048, null=True, blank=True)
     promo_video = models.URLField(max_length=2048, null=True, blank=True)
 
     # The user who will either be providing the support or be the point of contact at the organization providing
