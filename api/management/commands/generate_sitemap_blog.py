@@ -96,6 +96,7 @@ def process() -> None:
         file.write(gzip.compress(split_content))
         file.close()
 
+    twblog_cursor.close()
     print(get_now_converted_google_date())
 
 
