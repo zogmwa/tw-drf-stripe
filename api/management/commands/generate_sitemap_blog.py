@@ -29,7 +29,7 @@ def process() -> None:
         os.mkdir(os.path.join(sitemap_file_path))
 
     twblog_cursor = connections['twblog'].cursor()
-    twblog_cursor.execute("SELECT slug FROM posts")
+    twblog_cursor.execute("SELECT slug FROM posts WHERE posts.published_at IS NOT NULL")
     blog_slugs = twblog_cursor.fetchall()
     sitemap_index_name = 'blog'
     max_url_per_sitemap = (
