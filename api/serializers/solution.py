@@ -62,7 +62,7 @@ class SolutionSerializer(ModelSerializer):
             'stripe_primary_price_stripe_id',
             'stripe_primary_price_unit_amount',
             'description',
-            'og_image_url',
+            'cover_image',
             'promo_video',
             'point_of_contact',
             'organization',
