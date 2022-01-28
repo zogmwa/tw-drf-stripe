@@ -136,7 +136,7 @@ class TestFetchSolutionBookings:
         assert response.data[0]['id'] == example_solution_booking.id
         assert response.data[0]['solution']['id'] == example_solution.id
 
-        fetch_solution_booking_url = '{}/?id={}'.format(
+        fetch_solution_booking_url = '{}?id={}'.format(
             FETCH_SOLUTION_BOOKING_URL, example_solution_booking.id
         )
         response = authenticated_client.get(fetch_solution_booking_url)
