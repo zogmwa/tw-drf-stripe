@@ -25,22 +25,23 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = 'username'
 
-    @action(detail=True, permission_classes=[IsAuthenticated], methods=['get'])
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
     def bookings(self, request, *args, **kwargs):
         """
         If the user wants to get solution bookings list:
-        http://127.0.0.1:8000/users/<username>/bookings/
-        http://127.0.0.1:8000/users/<username>/bookings/?id=<solution_booking_id>
+        http://127.0.0.1:8000/users/bookings/
+        http://127.0.0.1:8000/users/bookings/?id=<solution_booking_id>
         """
+        user = self.request.user
         contract_id = request.GET.get('id', '')
         context_serializer = {'request': request}
         if contract_id:
             solution_booking_queryset = SolutionBooking.objects.filter(
-                booked_by__username=kwargs['username'], id=contract_id
+                booked_by__username=user.username, id=contract_id
             )
         else:
             solution_booking_queryset = SolutionBooking.objects.filter(
-                booked_by__username=kwargs['username']
+                booked_by__username=user.username
             )
 
         solution_booking_serializer = AuthenticatedSolutionBookingSerializer(

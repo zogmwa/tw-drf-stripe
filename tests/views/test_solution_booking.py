@@ -5,6 +5,7 @@ from api.views.solutions import SolutionViewSet
 
 SOLUTIONBOOKINGS_BASE_ENDPOINT = 'http://127.0.0.1:8000/solution_bookings/'
 SOLUTIONS_BASE_ENDPOINT = 'http://127.0.0.1:8000/solutions/'
+FETCH_SOLUTION_BOOKING_URL = 'http://127.0.0.1:8000/users/bookings/'
 
 
 class TestFetchingSolutionBooking:
@@ -118,11 +119,7 @@ class TestFetchSolutionBookings:
             solution=example_solution,
             booked_by=user_and_password[0],
         )
-
-        fetch_solution_booking_url = 'http://127.0.0.1:8000/users/{}/bookings/'.format(
-            user_and_password[0].username
-        )
-        response = unauthenticated_client.get(fetch_solution_booking_url)
+        response = unauthenticated_client.get(FETCH_SOLUTION_BOOKING_URL)
 
         assert response.status_code == 401
 
@@ -133,20 +130,14 @@ class TestFetchSolutionBookings:
             solution=example_solution,
             booked_by=user_and_password[0],
         )
-
-        fetch_solution_booking_url = 'http://127.0.0.1:8000/users/{}/bookings/'.format(
-            user_and_password[0].username
-        )
-        response = authenticated_client.get(fetch_solution_booking_url)
+        response = authenticated_client.get(FETCH_SOLUTION_BOOKING_URL)
 
         assert response.status_code == 200
         assert response.data[0]['id'] == example_solution_booking.id
         assert response.data[0]['solution']['id'] == example_solution.id
 
-        fetch_solution_booking_url = (
-            'http://127.0.0.1:8000/users/{}/bookings/?id={}'.format(
-                user_and_password[0].username, example_solution_booking.id
-            )
+        fetch_solution_booking_url = '{}?id={}'.format(
+            FETCH_SOLUTION_BOOKING_URL, example_solution_booking.id
         )
         response = authenticated_client.get(fetch_solution_booking_url)
 
