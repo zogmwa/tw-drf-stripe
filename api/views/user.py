@@ -13,6 +13,10 @@ from api.models.solution_booking import SolutionBooking
 from api.serializers.user import UserSerializer
 from api.serializers.solution_booking import AuthenticatedSolutionBookingSerializer
 from api.permissions.user_permissions import AllowOwnerOrAdminOrStaff
+from api.utils.convert_str_to_date import (
+    convert_string_to_datetime,
+)
+import uuid
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -312,3 +316,63 @@ class UserViewSet(viewsets.ModelViewSet):
         )
 
         return Response(solution_booking_serializer.data)
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def tracking_time_report(self, request, *args, **kwargs):
+        tracking_time_data = request.data.get('tracking_time')
+        contract_id = request.data.get('booking_id', '')
+
+        if contract_id:
+            solution_booking = SolutionBooking.objects.get(id=contract_id)
+            stripe_subscription = solution_booking.stripe_subscription
+
+            stripe_subscription_item = StripeSubscriptionItem.objects.filter(
+                subscription__id=stripe_subscription.id
+            )[0]
+
+            for tracking_time in tracking_time_data:
+                print(
+                    str(
+                        int(
+                            convert_string_to_datetime(
+                                tracking_time['date']
+                            ).timestamp()
+                        )
+                    )
+                )
+                idempotency_key = uuid.uuid4()
+                stripe.SubscriptionItem.create_usage_record(
+                    stripe_subscription_item.id,
+                    quantity=tracking_time['time'],
+                    timestamp=str(
+                        int(
+                            convert_string_to_datetime(
+                                tracking_time['date']
+                            ).timestamp()
+                        )
+                    ),
+                    action='set',
+                    idempotency_key=str(
+                        idempotency_key,
+                    ),
+                )
+
+            subscription_usage = stripe.SubscriptionItem.list_usage_record_summaries(
+                stripe_subscription_item.id,
+            )
+
+            tracking_times = subscription_usage.get('data')
+            return_tracking_times = []
+            for tracking_time in tracking_times:
+                return_tracking_times.append(
+                    {
+                        'start': tracking_time.period.start,
+                        'end': tracking_time.period.end,
+                        'total_usage': tracking_time.total_usage,
+                    }
+                )
+
+            return Response({'return_tracking_time': return_tracking_times})
+
+        else:
+            return Response({})
