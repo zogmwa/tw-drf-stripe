@@ -10,9 +10,13 @@ from rest_framework.response import Response
 from api.models import User
 from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
+from api.models.time_tracked_day import TimeTrackedDay
 from api.serializers.user import UserSerializer
+from api.serializers.time_tracked_day import TimeTrackedDaySerializer
 from api.serializers.solution_booking import AuthenticatedSolutionBookingSerializer
 from api.permissions.user_permissions import AllowOwnerOrAdminOrStaff
+from django.db.models import Sum
+
 from api.utils.convert_str_to_date import (
     convert_string_to_datetime,
 )
@@ -268,111 +272,43 @@ class UserViewSet(viewsets.ModelViewSet):
         contract_id = request.GET.get('id', '')
         context_serializer = {'request': request}
         if contract_id:
-            solution_booking = SolutionBooking.objects.get(id=contract_id)
-            stripe_subscription = solution_booking.stripe_subscription
-
-            stripe_subscription_item = StripeSubscriptionItem.objects.filter(
-                subscription__id=stripe_subscription.id
-            )[0]
-            subscription_usage = stripe.SubscriptionItem.list_usage_record_summaries(
-                stripe_subscription_item.id,
-            )
-
-            tracking_times = subscription_usage.get('data')
-            return_tracking_times = []
-            for tracking_time in tracking_times:
-                if tracking_time.period.start:
-                    return_tracking_times.append(
+            try:
+                solution_booking = SolutionBooking.objects.get(id=contract_id)
+                booking_trackings_queryset = TimeTrackedDay.objects.filter(
+                    solution_booking=solution_booking
+                )
+                booking_trackings_serializer = TimeTrackedDaySerializer(
+                    booking_trackings_queryset, many=True
+                )
+                solution_booking_queryset = SolutionBooking.objects.get(
+                    solution__point_of_contact__username=kwargs['username'],
+                    id=contract_id,
+                )
+                solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+                    solution_booking_queryset, context=context_serializer
+                )
+                stripe_subscription = solution_booking.stripe_subscription
+                if stripe_subscription is not None:
+                    return Response(
                         {
-                            'start': tracking_time.period.start,
-                            'end': tracking_time.period.end,
-                            'total_usage': tracking_time.total_usage,
+                            'current_period_start': stripe_subscription.current_period_start,
+                            'current_period_end': stripe_subscription.current_period_end,
+                            'tracking_times': booking_trackings_serializer.data,
+                            'booking_data': solution_booking_serializer.data,
                         }
                     )
+                else:
+                    return Response({'booking_data': solution_booking_serializer.data})
 
-            solution_booking_queryset = SolutionBooking.objects.get(
-                solution__point_of_contact__username=kwargs['username'],
-                id=contract_id,
-            )
-
-            solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
-                solution_booking_queryset, context=context_serializer
-            )
-            return Response(
-                {
-                    'current_period_start': stripe_subscription.current_period_start,
-                    'current_period_end': stripe_subscription.current_period_end,
-                    'tracking_times': return_tracking_times,
-                    'booking_data': solution_booking_serializer.data,
-                }
-            )
+            except SolutionBooking.DoesNotExist:
+                return Response(status=400)
         else:
             solution_booking_queryset = SolutionBooking.objects.filter(
                 solution__point_of_contact__username=kwargs['username']
             )
 
-        solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
-            solution_booking_queryset, context=context_serializer, many=True
-        )
-
-        return Response(solution_booking_serializer.data)
-
-    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
-    def tracking_time_report(self, request, *args, **kwargs):
-        tracking_time_data = request.data.get('tracking_time')
-        contract_id = request.data.get('booking_id', '')
-
-        if contract_id:
-            solution_booking = SolutionBooking.objects.get(id=contract_id)
-            stripe_subscription = solution_booking.stripe_subscription
-
-            stripe_subscription_item = StripeSubscriptionItem.objects.filter(
-                subscription__id=stripe_subscription.id
-            )[0]
-
-            for tracking_time in tracking_time_data:
-                print(
-                    str(
-                        int(
-                            convert_string_to_datetime(
-                                tracking_time['date']
-                            ).timestamp()
-                        )
-                    )
-                )
-                idempotency_key = uuid.uuid4()
-                stripe.SubscriptionItem.create_usage_record(
-                    stripe_subscription_item.id,
-                    quantity=tracking_time['time'],
-                    timestamp=str(
-                        int(
-                            convert_string_to_datetime(
-                                tracking_time['date']
-                            ).timestamp()
-                        )
-                    ),
-                    action='set',
-                    idempotency_key=str(
-                        idempotency_key,
-                    ),
-                )
-
-            subscription_usage = stripe.SubscriptionItem.list_usage_record_summaries(
-                stripe_subscription_item.id,
+            solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+                solution_booking_queryset, context=context_serializer, many=True
             )
 
-            tracking_times = subscription_usage.get('data')
-            return_tracking_times = []
-            for tracking_time in tracking_times:
-                return_tracking_times.append(
-                    {
-                        'start': tracking_time.period.start,
-                        'end': tracking_time.period.end,
-                        'total_usage': tracking_time.total_usage,
-                    }
-                )
-
-            return Response({'return_tracking_time': return_tracking_times})
-
-        else:
-            return Response({})
+            return Response(solution_booking_serializer.data)
