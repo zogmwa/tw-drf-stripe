@@ -312,3 +312,46 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
             return Response(solution_booking_serializer.data)
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def tracking_time_report(self, request, *args, **kwargs):
+        user = self.request.user
+        tracking_time_data = request.data.get('tracking_time')
+        contract_id = request.data.get('booking_id', '')
+        if contract_id:
+            try:
+                solution_booking = SolutionBooking.objects.get(id=contract_id)
+                stripe_product = solution_booking.solution.stripe_product
+                stripe_subscription = solution_booking.stripe_subscription
+
+                if stripe_product is None:
+                    return Response(status=400)
+
+                for tracking_time in tracking_time_data:
+                    old_time_tracked_day = TimeTrackedDay.objects.get(
+                        solution_booking=solution_booking,
+                        date=tracking_time.date,
+                    )
+                    if old_time_tracked_day is None:
+                        TimeTrackedDay.objects.create(
+                            solution_booking=solution_booking,
+                            date=tracking_time.date,
+                            time=tracking_time.time,
+                            user=user,
+                        )
+                    else:
+                        TimeTrackedDay.objects.filter(
+                            id=old_time_tracked_day.id
+                        ).update(time=tracking_time.time, user=user)
+
+                    total_tracked_time = TimeTrackedDay.objects.filter(
+                        solution_booking=solution_booking,
+                        date__lte=stripe_subscription.current_period_start,
+                        date_gte=stripe_subscription.current_period_end,
+                    ).aggregate(Sum('tracked_hours'))
+
+                    # Usage report to the stripe
+            except SolutionBooking.DoesNotExist:
+                return Response(status=400)
+        else:
+            return Response(status=400)
