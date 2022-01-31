@@ -1,3 +1,4 @@
+import os
 from django.conf import settings
 from django.db import models
 from djstripe.models import Product as StripeProduct
@@ -12,6 +13,15 @@ from api.management.commands import generate_sitemap_index
 from api.utils.promo_video_conditional_updates_signal import (
     promo_video_conditional_updates,
 )
+
+
+def _upload_to_for_cover_images(instance, filename):
+    path = "solution/cover_images/"
+    filename_with_extension = "{}.{}".format(
+        str(instance.slug), instance.cover_image.file.image.format.lower()
+    )
+
+    return os.path.join(path, filename_with_extension)
 
 
 class Solution(models.Model):
@@ -95,6 +105,9 @@ class Solution(models.Model):
         Organization, blank=True, null=True, on_delete=models.SET_NULL
     )
 
+    cover_image = models.ImageField(
+        null=True, blank=True, upload_to=_upload_to_for_cover_images
+    )
     promo_video = models.URLField(max_length=2048, null=True, blank=True)
 
     # The user who will either be providing the support or be the point of contact at the organization providing
