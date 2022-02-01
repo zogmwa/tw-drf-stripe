@@ -5,7 +5,9 @@ from api.models.solution_booking import SolutionBooking
 
 
 class TimeTrackedDay(models.Model):
-    """ """
+    """
+    This model is for storing the tracked times instances.
+    """
 
     solution_booking = models.ForeignKey(
         SolutionBooking, null=True, on_delete=models.CASCADE

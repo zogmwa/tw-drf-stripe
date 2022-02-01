@@ -3,7 +3,10 @@ from datetime import datetime as datetime_datetime
 
 
 def convert_string_to_datetime(string):
-    return datetime_datetime.strptime(string, "%Y-%m-%dT%H:%M:%S.%fZ")
+    try:
+        return datetime_datetime.strptime(string, "%Y-%m-%dT%H:%M:%SZ")
+    except Exception:
+        return datetime_datetime.strptime(string, "%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def convert_string_to_date(string):
