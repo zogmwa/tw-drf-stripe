@@ -14,7 +14,7 @@ class TimeTrackedDay(models.Model):
     )
 
     # Who is submitting these hours (It could be on behalf of the provider)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
     date = models.DateTimeField(null=True)
     tracked_hours = models.DecimalField(null=True, max_digits=2, decimal_places=1)
