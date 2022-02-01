@@ -9,5 +9,5 @@ class TimeTrackedDaySerializer(ModelSerializer):
         fields = [
             'solution_booking',
             'date',
-            'tracking_amount',
+            'tracked_hours',
         ]
