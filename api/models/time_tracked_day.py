@@ -15,7 +15,7 @@ class TimeTrackedDay(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
 
     date = models.DateTimeField(null=True)
-    tracked_hours = models.DecimalField(null=True, max_digits=2, decimal_places=2)
+    tracked_hours = models.DecimalField(null=True, max_digits=2, decimal_places=1)
 
     class Meta:
         constraints = [
