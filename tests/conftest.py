@@ -409,8 +409,8 @@ def example_stripe_subscription_object(
         "canceled_at": None,
         "collection_method": "charge_automatically",
         "created": 1642693255,
-        "current_period_end": 1643298055,
-        "current_period_start": 1642693255,
+        "current_period_end": 9999999999,
+        "current_period_start": 1643298055,
         "customer": example_stripe_customer_has_default_payment_method_object['id'],
         "days_until_due": None,
         "default_payment_method": None,
@@ -429,7 +429,7 @@ def example_stripe_subscription_object(
                     "object": "subscription_item",
                     "plan": {
                         "active": True,
-                        "aggregate_usage": "sum",
+                        "aggregate_usage": "last_during_period",
                         "amount": 10000,
                         "amount_decimal": "10000",
                         "billing_scheme": "per_unit",
@@ -530,6 +530,20 @@ def example_stripe_subscription_object(
     }
 
     return example_subscription
+
+
+@pytest.fixture
+def example_stripe_usage_object():
+    example_stripe_usage_object = {
+        "id": "mbur_1KO6LTGAiB8oTF44M7V1QpQx",
+        "livemode": False,
+        "object": "usage_record",
+        "quantity": 3,
+        "subscription_item": "si_L30ndfFJV9NMiy",
+        "timestamp": 1643660313,
+    }
+
+    return example_stripe_usage_object
 
 
 @pytest.fixture

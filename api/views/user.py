@@ -1,6 +1,10 @@
 import stripe
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+import uuid
+from django.db.models import Sum
+import math
+import datetime
 from rest_framework.permissions import IsAuthenticated
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import Subscription as StripeSubscription
@@ -10,9 +14,14 @@ from rest_framework.response import Response
 from api.models import User
 from api.models.solution import Solution
 from api.models.solution_booking import SolutionBooking
+from api.models.time_tracked_day import TimeTrackedDay
 from api.serializers.user import UserSerializer
+from api.serializers.time_tracked_day import TimeTrackedDaySerializer
 from api.serializers.solution_booking import AuthenticatedSolutionBookingSerializer
 from api.permissions.user_permissions import AllowOwnerOrAdminOrStaff
+from api.utils.convert_str_to_date import (
+    convert_string_to_datetime,
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -264,51 +273,119 @@ class UserViewSet(viewsets.ModelViewSet):
         contract_id = request.GET.get('id', '')
         context_serializer = {'request': request}
         if contract_id:
-            solution_booking = SolutionBooking.objects.get(id=contract_id)
-            stripe_subscription = solution_booking.stripe_subscription
-
-            stripe_subscription_item = StripeSubscriptionItem.objects.filter(
-                subscription__id=stripe_subscription.id
-            )[0]
-            subscription_usage = stripe.SubscriptionItem.list_usage_record_summaries(
-                stripe_subscription_item.id,
-            )
-
-            tracking_times = subscription_usage.get('data')
-            return_tracking_times = []
-            for tracking_time in tracking_times:
-                if tracking_time.period.start:
-                    return_tracking_times.append(
+            try:
+                solution_booking = SolutionBooking.objects.get(id=contract_id)
+                booking_trackings_queryset = TimeTrackedDay.objects.filter(
+                    solution_booking=solution_booking
+                )
+                booking_trackings_serializer = TimeTrackedDaySerializer(
+                    booking_trackings_queryset, many=True
+                )
+                solution_booking_queryset = SolutionBooking.objects.get(
+                    solution__point_of_contact__username=kwargs['username'],
+                    id=contract_id,
+                )
+                solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+                    solution_booking_queryset, context=context_serializer
+                )
+                stripe_subscription = solution_booking.stripe_subscription
+                if stripe_subscription is not None:
+                    return Response(
                         {
-                            'start': tracking_time.period.start,
-                            'end': tracking_time.period.end,
-                            'total_usage': tracking_time.total_usage,
+                            'current_period_start': stripe_subscription.current_period_start,
+                            'current_period_end': stripe_subscription.current_period_end,
+                            'tracking_times': booking_trackings_serializer.data,
+                            'booking_data': solution_booking_serializer.data,
                         }
                     )
+                else:
+                    return Response({'booking_data': solution_booking_serializer.data})
 
-            solution_booking_queryset = SolutionBooking.objects.get(
-                solution__point_of_contact__username=kwargs['username'],
-                id=contract_id,
-            )
-
-            solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
-                solution_booking_queryset, context=context_serializer
-            )
-            return Response(
-                {
-                    'current_period_start': stripe_subscription.current_period_start,
-                    'current_period_end': stripe_subscription.current_period_end,
-                    'tracking_times': return_tracking_times,
-                    'booking_data': solution_booking_serializer.data,
-                }
-            )
+            except SolutionBooking.DoesNotExist:
+                return Response(status=400)
         else:
             solution_booking_queryset = SolutionBooking.objects.filter(
                 solution__point_of_contact__username=kwargs['username']
             )
 
-        solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
-            solution_booking_queryset, context=context_serializer, many=True
-        )
+            solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+                solution_booking_queryset, context=context_serializer, many=True
+            )
 
-        return Response(solution_booking_serializer.data)
+            return Response(solution_booking_serializer.data)
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def tracking_time_report(self, request, *args, **kwargs):
+        user = self.request.user
+        tracking_time_data = request.data.get('tracking_time')
+        contract_id = request.data.get('booking_id', '')
+        if contract_id:
+            try:
+                solution_booking = SolutionBooking.objects.get(id=contract_id)
+                stripe_product = solution_booking.solution.stripe_product
+                stripe_subscription = solution_booking.stripe_subscription
+                stripe_subscription_item = StripeSubscriptionItem.objects.filter(
+                    subscription__id=stripe_subscription.id
+                )[0]
+
+                if stripe_product is None:
+                    # If product doesn't exist.
+                    return Response(status=400)
+                # Reset the tracked times of current period
+                old_time_tracked_data = TimeTrackedDay.objects.filter(
+                    solution_booking=solution_booking,
+                    date__gte=stripe_subscription.current_period_start,
+                    date__lte=stripe_subscription.current_period_end,
+                )
+                old_time_tracked_data.delete()
+
+                # Insert new tracked times instances
+                for tracking_time in tracking_time_data:
+                    tracked_time = (
+                        math.ceil(float(tracking_time['tracked_hours']) * 10) / 10
+                    )
+                    date = convert_string_to_datetime(tracking_time['date'])
+                    TimeTrackedDay.objects.create(
+                        solution_booking=solution_booking,
+                        date=date,
+                        tracked_hours=tracked_time,
+                        user=user,
+                    )
+
+                # Report to the Stripe
+                total_tracked_time = TimeTrackedDay.objects.filter(
+                    solution_booking=solution_booking,
+                    date__gte=stripe_subscription.current_period_start,
+                    date__lte=stripe_subscription.current_period_end,
+                ).aggregate(Sum('tracked_hours'))
+                idempotency_key = uuid.uuid4()
+                stripe.SubscriptionItem.create_usage_record(
+                    stripe_subscription_item.id,
+                    quantity=int(total_tracked_time['tracked_hours__sum']),
+                    timestamp=int(
+                        datetime.datetime.now(datetime.timezone.utc).timestamp()
+                    ),
+                    action='set',
+                    idempotency_key=str(
+                        idempotency_key,
+                    ),
+                )
+
+                booking_trackings_queryset = TimeTrackedDay.objects.filter(
+                    solution_booking=solution_booking
+                )
+                booking_trackings_serializer = TimeTrackedDaySerializer(
+                    booking_trackings_queryset, many=True
+                )
+
+                return Response(
+                    {
+                        'tracking_times': booking_trackings_serializer.data,
+                    }
+                )
+
+            except SolutionBooking.DoesNotExist:
+                # If solution booking doesn't exist.
+                return Response(status=400)
+        else:
+            return Response(status=400)
