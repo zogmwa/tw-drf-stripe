@@ -679,6 +679,7 @@ class TestProviderBookingsList:
         example_stripe_customer_has_default_payment_method_object,
         mocker,
     ):
+        # Subscribe the solution.
         test_user_payment = TestUserPayment()
         solution_booking_response = test_user_payment._customer_subscribe_payment(
             mocker,
@@ -692,6 +693,7 @@ class TestProviderBookingsList:
             example_stripe_customer_object,
         )
 
+        # Create mocker for patching create usage record API.
         mocker.patch(
             'stripe.SubscriptionItem.create_usage_record',
             return_value=util.convert_to_stripe_object(example_stripe_usage_object),
