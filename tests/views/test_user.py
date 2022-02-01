@@ -192,21 +192,66 @@ class TestUserPayment:
     def _make_user_customer_with_default_payment_method(
         self,
         user,
-        example_stripe_attach_payment_method_customer_object,
-        example_stripe_customer_object,
+        stripe_customer_payment_object,
+        stripe_customer_object,
     ):
         example_stripe_payment_method = StripePaymentMethod.objects.create(
-            id=example_stripe_attach_payment_method_customer_object['id'],
-            billing_details=example_stripe_attach_payment_method_customer_object[
-                'billing_details'
-            ],
+            id=stripe_customer_payment_object['id'],
+            billing_details=stripe_customer_payment_object['billing_details'],
         )
         example_stripe_customer = StripeCustomer.objects.create(
-            id=example_stripe_customer_object['id'],
+            id=stripe_customer_object['id'],
             email=user.email,
             default_payment_method=example_stripe_payment_method,
         )
         User.objects.filter(id=user.id).update(stripe_customer=example_stripe_customer)
+
+    def _customer_subscribe_payment(
+        self,
+        mock,
+        stipe_subscription_object,
+        price_create_event,
+        product_create_event,
+        solution_object,
+        user,
+        customer_attached_mayment,
+        auth_client,
+        stripe_customer,
+    ):
+        mock.patch(
+            'stripe.Subscription.create',
+            return_value=util.convert_to_stripe_object(stipe_subscription_object),
+        )
+        example_price_data = price_create_event.data['object']
+        example_product = StripeProduct.objects.get(
+            id=product_create_event.data['object']['id']
+        )
+        example_price = StripePrice.objects.create(
+            id=example_price_data['id'],
+            product=example_product,
+            currency=example_price_data['currency'],
+            type='Recurring',
+            active=True,
+        )
+        solution_object.stripe_primary_price = example_price
+        solution_object.save()
+
+        self._make_user_customer_with_default_payment_method(
+            user[0],
+            customer_attached_mayment,
+            stripe_customer,
+        )
+
+        response = auth_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_payment'),
+            {
+                'payment_method': customer_attached_mayment['id'],
+                'slug': solution_object.slug,
+            },
+            content_type='application/json',
+        )
+
+        return response
 
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_authenticated_user_could_be_create_customer_and_attach_card(
@@ -444,41 +489,16 @@ class TestUserPayment:
         example_stripe_customer_has_default_payment_method_object,
         mocker,
     ):
-        mocker.patch(
-            'stripe.Subscription.create',
-            return_value=util.convert_to_stripe_object(
-                example_stripe_subscription_object
-            ),
-        )
-        example_price_data = example_stripe_price_create_event.data['object']
-        example_product = StripeProduct.objects.get(
-            id=example_stripe_product_create_event.data['object']['id']
-        )
-        example_price = StripePrice.objects.create(
-            id=example_price_data['id'],
-            product=example_product,
-            currency=example_price_data['currency'],
-            type='Recurring',
-            active=True,
-        )
-        example_solution.stripe_primary_price = example_price
-        example_solution.save()
-
-        self._make_user_customer_with_default_payment_method(
-            user_and_password[0],
+        response = self._customer_subscribe_payment(
+            mocker,
+            example_stripe_subscription_object,
+            example_stripe_price_create_event,
+            example_stripe_product_create_event,
+            example_solution,
+            user_and_password,
             example_stripe_attach_payment_method_customer_object_1,
+            authenticated_client,
             example_stripe_customer_object,
-        )
-
-        response = authenticated_client.post(
-            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_payment'),
-            {
-                'payment_method': example_stripe_attach_payment_method_customer_object_1[
-                    'id'
-                ],
-                'slug': example_solution.slug,
-            },
-            content_type='application/json',
         )
 
         assert response.status_code == 200
@@ -603,6 +623,26 @@ class TestUserPermission:
 
 
 class TestProviderBookingsList:
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def _make_user_customer_with_default_payment_method(
+        self,
+        user,
+        example_stripe_attach_payment_method_customer_object,
+        example_stripe_customer_object,
+    ):
+        example_stripe_payment_method = StripePaymentMethod.objects.create(
+            id=example_stripe_attach_payment_method_customer_object['id'],
+            billing_details=example_stripe_attach_payment_method_customer_object[
+                'billing_details'
+            ],
+        )
+        example_stripe_customer = StripeCustomer.objects.create(
+            id=example_stripe_customer_object['id'],
+            email=user.email,
+            default_payment_method=example_stripe_payment_method,
+        )
+        User.objects.filter(id=user.id).update(stripe_customer=example_stripe_customer)
+
     def test_authenticated_user_should_fetch_provider_solution_bookings_list(
         self, authenticated_client, user_and_password, admin_user, example_solution
     ):
@@ -621,3 +661,69 @@ class TestProviderBookingsList:
         assert (
             response.data[0]['booked_by']['username'] == user_and_password[0].username
         )
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_authenticated_user_should_tracked_time(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_solution,
+        example_solution_booking,
+        example_stripe_usage_object,
+        example_stripe_product_create_event,
+        example_stripe_price_create_event,
+        example_stripe_subscription_object,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        mocker,
+    ):
+        test_user_payment = TestUserPayment()
+        solution_booking_response = test_user_payment._customer_subscribe_payment(
+            mocker,
+            example_stripe_subscription_object,
+            example_stripe_price_create_event,
+            example_stripe_product_create_event,
+            example_solution,
+            user_and_password,
+            example_stripe_attach_payment_method_customer_object_1,
+            authenticated_client,
+            example_stripe_customer_object,
+        )
+
+        mocker.patch(
+            'stripe.SubscriptionItem.create_usage_record',
+            return_value=util.convert_to_stripe_object(example_stripe_usage_object),
+        )
+
+        example_product = StripeProduct.objects.get(
+            id=example_stripe_product_create_event.data['object']['id']
+        )
+        example_solution.stripe_product = example_product
+        example_solution.save()
+
+        provider_time_track_url = '{}{}/'.format(
+            USERS_BASE_ENDPOINT, 'tracking_time_report'
+        )
+        response = authenticated_client.post(
+            provider_time_track_url,
+            {
+                'tracking_time': [
+                    {
+                        "date": "2022-01-28T23:59:59Z",
+                        "tracked_hours": "2.0",
+                    },
+                    {
+                        "date": "2022-01-29T23:59:59Z",
+                        "tracked_hours": "1.0",
+                    },
+                ],
+                'booking_id': solution_booking_response.data['solution_booking_id'],
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['tracking_times'][0]['tracked_hours'] == '2.0'
+        assert response.data['tracking_times'][1]['tracked_hours'] == '1.0'
