@@ -11,8 +11,11 @@ from djstripe.models import Customer as StripeCustomer
 from djstripe.models import PaymentMethod as StripePaymentMethod
 from djstripe.models import Price as StripePrice
 from djstripe.models import Product as StripeProduct
+from djstripe.models import Invoice as StirpeInvoice
 from tests.common import get_random_string
 from tests.views.test_asset import _create_asset
+from api.models.webhooks_stripe import invoice_webhook_handler
+
 
 USERS_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
 
@@ -729,3 +732,47 @@ class TestProviderBookingsList:
         assert response.status_code == 200
         assert response.data['tracking_times'][0]['tracked_hours'] == '2.0'
         assert response.data['tracking_times'][1]['tracked_hours'] == '1.0'
+
+
+class TestInvoiceHandler:
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_invoice_webhook_should_be_sync_invoice_model(
+        self,
+        example_solution,
+        example_solution_booking,
+        example_stripe_usage_object,
+        example_stripe_product_create_event,
+        example_stripe_price_create_event,
+        example_stripe_subscription_object,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        example_stripe_invoice_event,
+        example_stripe_invoice_object,
+        user_and_password,
+        authenticated_client,
+        mocker,
+    ):
+        # Subscribe the solution.
+        test_user_payment = TestUserPayment()
+        test_user_payment._customer_subscribe_payment(
+            mocker,
+            example_stripe_subscription_object,
+            example_stripe_price_create_event,
+            example_stripe_product_create_event,
+            example_solution,
+            user_and_password,
+            example_stripe_attach_payment_method_customer_object_1,
+            authenticated_client,
+            example_stripe_customer_object,
+        )
+
+        mocker.patch(
+            'stripe.Invoice.retrieve',
+            return_value=util.convert_to_stripe_object(example_stripe_invoice_object),
+        )
+
+        invoice_webhook_handler(example_stripe_invoice_event)
+
+        assert StirpeInvoice.objects.count() == 1
