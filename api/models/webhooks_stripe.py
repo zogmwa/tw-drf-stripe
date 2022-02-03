@@ -1,8 +1,10 @@
+import stripe
 from django.conf import settings
 from djstripe import webhooks
 from djstripe.models import Product
 from djstripe.models import Price
 from djstripe.models import Event
+from djstripe.models import Invoice
 
 from api.models.solution import Solution
 from django.utils.text import slugify
@@ -95,6 +97,19 @@ def product_updated_handler(event: Event, **kwargs):
     # was down, we can create the solution during the product update.
     solution, is_created = Solution.objects.get_or_create(stripe_product=product)
     _set_solution_fields_from_product_instance(solution, product, is_created=is_created)
+
+
+@webhooks.handler('invoice')
+def invoice_webhook_handler(event: Event, **kwargs):
+    """
+    When the invoice is updated, we should sync the subscription data from stripe.
+    """
+    # first retrieve the Stripe Data Object (this is not a python dict or a JSON object.)
+    invoice_data = stripe.Invoice.retrieve(event.data["object"]["id"])
+
+    # sync_from_stripe_data to save it to the database,
+    # and recursively update any referenced objects
+    Invoice.sync_from_stripe_data(invoice_data)
 
 
 def _get_slug_from_solution_title(solution_title: str) -> str:
