@@ -533,7 +533,11 @@ def example_stripe_subscription_object(
 
 
 @pytest.fixture
-def example_stripe_invoice_event() -> Event:
+def example_stripe_invoice_event(
+    example_stripe_price_create_event,
+    example_stripe_product_create_event,
+    example_stripe_customer_has_default_payment_method_object,
+) -> Event:
     data = {
         "object": {
             "id": "in_1KOuwWGAiB8oTF44osF2bkWn",
@@ -555,7 +559,7 @@ def example_stripe_invoice_event() -> Event:
             "created": 1643854864,
             "currency": "usd",
             "custom_fields": None,
-            "customer": "cus_L556Z0dXglWiDn",
+            "customer": example_stripe_customer_has_default_payment_method_object['id'],
             "customer_address": None,
             "customer_email": None,
             "customer_name": None,
@@ -593,7 +597,9 @@ def example_stripe_invoice_event() -> Event:
                         "period": {"end": 1643854863, "start": 1643854863},
                         "plan": None,
                         "price": {
-                            "id": "price_1KOuwVGAiB8oTF44OC9CPL97",
+                            "id": example_stripe_price_create_event.data['object'][
+                                'id'
+                            ],
                             "object": "price",
                             "active": False,
                             "billing_scheme": "per_unit",
@@ -603,7 +609,9 @@ def example_stripe_invoice_event() -> Event:
                             "lookup_key": None,
                             "metadata": {},
                             "nickname": None,
-                            "product": "prod_L556D1gwX2fR55",
+                            "product": example_stripe_product_create_event.data[
+                                'object'
+                            ]['id'],
                             "recurring": None,
                             "tax_behavior": "unspecified",
                             "tiers_mode": None,
@@ -665,10 +673,14 @@ def example_stripe_invoice_event() -> Event:
 
 
 @pytest.fixture
-def example_stripe_invoice_object():
+def example_stripe_invoice_object(
+    example_stripe_price_create_event,
+    example_stripe_product_create_event,
+    example_stripe_customer_has_default_payment_method_object,
+):
     example_invoice = {
         "account_country": "US",
-        "account_name": "Zogmwa Tech",
+        "account_name": "Taggedweb",
         "account_tax_ids": None,
         "amount_due": 2000,
         "amount_paid": 0,
@@ -684,7 +696,7 @@ def example_stripe_invoice_object():
         "created": 1643854864,
         "currency": "usd",
         "custom_fields": None,
-        "customer": "cus_L556Z0dXglWiDn",
+        "customer": example_stripe_customer_has_default_payment_method_object['id'],
         "customer_address": None,
         "customer_email": None,
         "customer_name": None,
@@ -726,13 +738,15 @@ def example_stripe_invoice_object():
                         "billing_scheme": "per_unit",
                         "created": 1643854863,
                         "currency": "usd",
-                        "id": "price_1KOuwVGAiB8oTF44OC9CPL97",
+                        "id": example_stripe_price_create_event.data['object']['id'],
                         "livemode": False,
                         "lookup_key": None,
                         "metadata": {},
                         "nickname": None,
                         "object": "price",
-                        "product": "prod_L556D1gwX2fR55",
+                        "product": example_stripe_product_create_event.data['object'][
+                            'id'
+                        ],
                         "recurring": None,
                         "tax_behavior": "unspecified",
                         "tiers_mode": None,
