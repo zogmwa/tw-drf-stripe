@@ -5,6 +5,7 @@ from djstripe.models import Product
 from djstripe.models import Price
 from djstripe.models import Event
 from djstripe.models import Invoice
+from djstripe.models import Subscription
 
 from api.models.solution import Solution
 from django.utils.text import slugify
@@ -97,6 +98,15 @@ def product_updated_handler(event: Event, **kwargs):
     # was down, we can create the solution during the product update.
     solution, is_created = Solution.objects.get_or_create(stripe_product=product)
     _set_solution_fields_from_product_instance(solution, product, is_created=is_created)
+
+
+@webhooks.handler('customer.subscription.updated')
+def subscription_updated_handler(event: Event, **kwargs):
+    """
+    When the subscription is updated, we should sync the subscription data from stripe.
+    """
+    subscription_data = event.data
+    Subscription.sync_from_stripe_data(subscription_data['object'])
 
 
 @webhooks.handler('invoice')

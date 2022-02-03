@@ -14,7 +14,11 @@ from djstripe.models import Product as StripeProduct
 from djstripe.models import Invoice as StirpeInvoice
 from tests.common import get_random_string
 from tests.views.test_asset import _create_asset
-from api.models.webhooks_stripe import invoice_webhook_handler
+from api.models.webhooks_stripe import (
+    subscription_updated_handler,
+    invoice_webhook_handler,
+)
+from djstripe.models import Subscription, Event
 
 
 USERS_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
@@ -776,3 +780,46 @@ class TestInvoiceHandler:
         invoice_webhook_handler(example_stripe_invoice_event)
 
         assert StirpeInvoice.objects.count() == 1
+
+
+class TestStripeSubscriptionHandler:
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_subscription_updated_webhook_should_be_sync_subscription_model(
+        self,
+        example_solution,
+        example_stripe_product_create_event,
+        example_stripe_price_create_event,
+        example_stripe_subscription_object,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        user_and_password,
+        authenticated_client,
+        mocker,
+    ):
+        # Create a new subscribe
+        test_user_payment = TestUserPayment()
+        test_user_payment._customer_subscribe_payment(
+            mocker,
+            example_stripe_subscription_object,
+            example_stripe_price_create_event,
+            example_stripe_product_create_event,
+            example_solution,
+            user_and_password,
+            example_stripe_attach_payment_method_customer_object_1,
+            authenticated_client,
+            example_stripe_customer_object,
+        )
+
+        # Update subscribe using webhook
+        example_stripe_subscription_event = Event(
+            data={
+                'object': util.convert_to_stripe_object(
+                    example_stripe_subscription_object
+                )
+            }
+        )
+        subscription_updated_handler(example_stripe_subscription_event)
+
+        assert Subscription.objects.count() == 1
