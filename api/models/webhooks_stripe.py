@@ -101,9 +101,6 @@ def product_updated_handler(event: Event, **kwargs):
 
 @webhooks.handler('invoice')
 def invoice_webhook_handler(event: Event, **kwargs):
-    """
-    When the invoice is updated, we should sync the subscription data from stripe.
-    """
     # first retrieve the Stripe Data Object (this is not a python dict or a JSON object.)
     invoice_data = stripe.Invoice.retrieve(event.data["object"]["id"])
 
