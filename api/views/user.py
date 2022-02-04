@@ -49,7 +49,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
                 if stripe_product is None:
                     # If product doesn't exist.
-                    return Response(status=400)
+                    return Response(
+                        {'error': 'Product is not exist.'},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
                 # Reset the tracked times of current period
                 old_time_tracked_data = TimeTrackedDay.objects.filter(
                     solution_booking=solution_booking,
@@ -105,13 +108,22 @@ class UserViewSet(viewsets.ModelViewSet):
                         'tracking_times': booking_trackings_serializer.data,
                     }
                 else:
-                    return {'error': 'Check your data again.'}
+                    return Response(
+                        {'error': 'Check your data again.'},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
 
             except SolutionBooking.DoesNotExist:
                 # If solution booking doesn't exist.
-                return {'error': 'Contract is not exist.'}
+                return Response(
+                    {'error': 'Contract is not exist.'},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
         else:
-            return {'error': 'Product is not exist.'}
+            return Response(
+                {'error': 'Contract is not exist.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
     def bookings(self, request, *args, **kwargs):
