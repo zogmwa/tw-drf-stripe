@@ -1,8 +1,10 @@
+import stripe
 from django.conf import settings
 from djstripe import webhooks
 from djstripe.models import Product
 from djstripe.models import Price
 from djstripe.models import Event
+from djstripe.models import Invoice
 from djstripe.models import Subscription
 
 from api.models.solution import Solution
@@ -105,6 +107,16 @@ def subscription_updated_handler(event: Event, **kwargs):
     """
     subscription_data = event.data
     Subscription.sync_from_stripe_data(subscription_data['object'])
+
+
+@webhooks.handler('invoice')
+def invoice_webhook_handler(event: Event, **kwargs):
+    # first retrieve the Stripe Data Object (this is not a python dict or a JSON object.)
+    invoice_data = stripe.Invoice.retrieve(event.data["object"]["id"])
+
+    # sync_from_stripe_data to save it to the database,
+    # and recursively update any referenced objects
+    Invoice.sync_from_stripe_data(invoice_data)
 
 
 def _get_slug_from_solution_title(solution_title: str) -> str:
