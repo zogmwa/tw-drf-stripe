@@ -37,7 +37,32 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
 
     @staticmethod
-    def _save_tracked_times(contract_id, tracking_time_data, user):
+    def _save_tracked_time_instance(
+        tracking_time_data, stripe_subscription, solution_booking, user
+    ):
+        utc = pytz.UTC
+        updated_count = 0
+        for tracking_time in tracking_time_data:
+            tracked_time = math.ceil(float(tracking_time['tracked_hours']) * 10) / 10
+            date = convert_string_to_datetime(tracking_time['date'])
+            if (utc.localize(date) >= stripe_subscription.current_period_start) and (
+                utc.localize(date) < stripe_subscription.current_period_end
+            ):
+                TimeTrackedDay.objects.filter(
+                    solution_booking=solution_booking,
+                    date=date,
+                ).delete()
+                TimeTrackedDay.objects.create(
+                    solution_booking=solution_booking,
+                    date=date,
+                    tracked_hours=tracked_time,
+                    user=user,
+                )
+                updated_count = updated_count + 1
+
+        return updated_count
+
+    def _save_tracked_times(self, contract_id, tracking_time_data, user):
         if contract_id:
             try:
                 solution_booking = SolutionBooking.objects.get(id=contract_id)
@@ -49,41 +74,22 @@ class UserViewSet(viewsets.ModelViewSet):
 
                 if stripe_product is None:
                     # If product doesn't exist.
-                    return Response(
-                        {'error': 'Product is not exist.'},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-                # Reset the tracked times of current period
-                old_time_tracked_data = TimeTrackedDay.objects.filter(
-                    solution_booking=solution_booking,
-                    date__gte=stripe_subscription.current_period_start,
-                    date__lte=stripe_subscription.current_period_end,
-                )
-                old_time_tracked_data.delete()
-                utc = pytz.UTC
-                # Insert new tracked times instances
-                for tracking_time in tracking_time_data:
-                    tracked_time = (
-                        math.ceil(float(tracking_time['tracked_hours']) * 10) / 10
-                    )
-                    date = convert_string_to_datetime(tracking_time['date'])
-                    if (
-                        utc.localize(date) >= stripe_subscription.current_period_start
-                    ) and (utc.localize(date) < stripe_subscription.current_period_end):
-                        TimeTrackedDay.objects.create(
-                            solution_booking=solution_booking,
-                            date=date,
-                            tracked_hours=tracked_time,
-                            user=user,
-                        )
+                    return {'error': 'Product is not exist.'}
 
-                # Report to the Stripe
+                # Insert new tracked times instances
+                updated_count = self._save_tracked_time_instance(
+                    tracking_time_data, stripe_subscription, solution_booking, user
+                )
+
                 total_tracked_time = TimeTrackedDay.objects.filter(
                     solution_booking=solution_booking,
                     date__gte=stripe_subscription.current_period_start,
                     date__lte=stripe_subscription.current_period_end,
                 ).aggregate(Sum('tracked_hours'))
-                if total_tracked_time['tracked_hours__sum'] is not None:
+                if (total_tracked_time['tracked_hours__sum'] is not None) and (
+                    updated_count != 0
+                ):
+                    # Report to the Stripe
                     idempotency_key = uuid.uuid4()
                     stripe.SubscriptionItem.create_usage_record(
                         stripe_subscription_item.id,
@@ -98,7 +104,9 @@ class UserViewSet(viewsets.ModelViewSet):
                     )
 
                     booking_trackings_queryset = TimeTrackedDay.objects.filter(
-                        solution_booking=solution_booking
+                        solution_booking=solution_booking,
+                        date__gte=stripe_subscription.current_period_start,
+                        date__lte=stripe_subscription.current_period_end,
                     )
                     booking_trackings_serializer = TimeTrackedDaySerializer(
                         booking_trackings_queryset, many=True
@@ -108,22 +116,13 @@ class UserViewSet(viewsets.ModelViewSet):
                         'tracking_times': booking_trackings_serializer.data,
                     }
                 else:
-                    return Response(
-                        {'error': 'Check your data again.'},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
+                    return {'error': 'Check your data again.'}
 
             except SolutionBooking.DoesNotExist:
                 # If solution booking doesn't exist.
-                return Response(
-                    {'error': 'Contract is not exist.'},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+                return {'error': 'Contract is not exist.'}
         else:
-            return Response(
-                {'error': 'Contract is not exist.'},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return {'error': 'Contract is not exist.'}
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
     def bookings(self, request, *args, **kwargs):
