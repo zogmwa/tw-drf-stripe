@@ -3,14 +3,13 @@ from rest_framework import viewsets, permissions
 
 from api.models.solution_booking import SolutionBooking
 from api.serializers.solution_booking import (
-    SolutionBookingSerializer,
     AuthenticatedSolutionBookingSerializer,
 )
 
 
 class SolutionBookingViewSet(viewsets.ModelViewSet):
     queryset = SolutionBooking.objects.all()
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'created': ['gte', 'lte'],
@@ -19,23 +18,15 @@ class SolutionBookingViewSet(viewsets.ModelViewSet):
     }
 
     def get_serializer_class(self):
-        if self.request.user.is_anonymous:
-            return SolutionBookingSerializer
-        else:
-            return AuthenticatedSolutionBookingSerializer
+        return AuthenticatedSolutionBookingSerializer
 
     def get_queryset(self):
         if self.action == 'list':
-            if self.request.user.is_anonymous:
-                solution_booking_queryset = SolutionBooking.objects.all()
+            solution_booking_queryset = SolutionBooking.objects.filter(
+                booked_by=self.request.user
+            )
 
-                return solution_booking_queryset
-            else:
-                solution_booking_queryset = SolutionBooking.objects.filter(
-                    booked_by=self.request.user
-                )
-
-                return solution_booking_queryset
+            return solution_booking_queryset
         elif (
             self.action == 'retrieve'
             or self.action == 'partial_update'
