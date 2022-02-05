@@ -249,7 +249,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
         if instance.solution.is_metered:
             if instance.stripe_subscription is not None:
                 return dict(
-                    metered_status=instance.stripe_subscription.status,
+                    payment_status=instance.stripe_subscription.status,
                     start_date=instance.stripe_subscription.start_date,
                     billing_cycle_anchor=instance.stripe_subscription.billing_cycle_anchor,
                     collection_method=instance.stripe_subscription.collection_method,
