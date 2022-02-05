@@ -194,6 +194,53 @@ class TestUserOrganizationLinking:
         )
 
 
+class TestUserPermission:
+    def _has_permission(self, client: Client, username, should_have_access):
+        response = client.get('{}{}/'.format(USERS_BASE_ENDPOINT, username))
+        if should_have_access:
+            assert response.status_code == status.HTTP_200_OK
+        else:
+            assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_normal_users_can_not_see_list_of_users_and_can_retrieve_only_their_profile(
+        self, authenticated_client, admin_client, user_and_password
+    ):
+        response = authenticated_client.get(USERS_BASE_ENDPOINT)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        self._has_permission(authenticated_client, user_and_password[0].username, True)
+        self._has_permission(authenticated_client, 'admin', False)
+
+    def test_admin_user_can_access_anything_in_users_endpoint(
+        self, authenticated_client, admin_client, user_and_password
+    ):
+        response = admin_client.get(USERS_BASE_ENDPOINT)
+        assert response.status_code == status.HTTP_200_OK
+        # There'll be 3 users, 1 anonymous user created by default, 1 admin created by admin_client and
+        # 1 normal user which we created by importing fixture authenticated_client
+        assert response.data.__len__() == 3
+
+        self._has_permission(admin_client, user_and_password[0].username, True)
+        self._has_permission(admin_client, 'admin', True)
+
+    def test_fetch_bookmarked_solutions_of_user(
+        self, authenticated_client, user_and_password, example_solution
+    ):
+        SolutionBookmark.objects.create(
+            solution=example_solution, user=user_and_password[0]
+        )
+        user_profile_url = '{}{}/'.format(
+            USERS_BASE_ENDPOINT, user_and_password[0].username
+        )
+        response = authenticated_client.get(user_profile_url)
+
+        assert response.status_code == 200
+        assert (
+            response.data['bookmarked_solutions'][0]['solution']['title']
+            == example_solution.title
+        )
+
+
 class TestUserPayment:
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def _make_user_customer_with_default_payment_method(
@@ -212,53 +259,6 @@ class TestUserPayment:
             default_payment_method=example_stripe_payment_method,
         )
         User.objects.filter(id=user.id).update(stripe_customer=example_stripe_customer)
-
-    def _customer_subscribe_payment(
-        self,
-        mock,
-        stipe_subscription_object,
-        price_create_event,
-        product_create_event,
-        solution_object,
-        user,
-        customer_attached_mayment,
-        auth_client,
-        stripe_customer,
-    ):
-        mock.patch(
-            'stripe.Subscription.create',
-            return_value=util.convert_to_stripe_object(stipe_subscription_object),
-        )
-        example_price_data = price_create_event.data['object']
-        example_product = StripeProduct.objects.get(
-            id=product_create_event.data['object']['id']
-        )
-        example_price = StripePrice.objects.create(
-            id=example_price_data['id'],
-            product=example_product,
-            currency=example_price_data['currency'],
-            type='Recurring',
-            active=True,
-        )
-        solution_object.stripe_primary_price = example_price
-        solution_object.save()
-
-        self._make_user_customer_with_default_payment_method(
-            user[0],
-            customer_attached_mayment,
-            stripe_customer,
-        )
-
-        response = auth_client.post(
-            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_payment'),
-            {
-                'payment_method': customer_attached_mayment['id'],
-                'slug': solution_object.slug,
-            },
-            content_type='application/json',
-        )
-
-        return response
 
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_authenticated_user_could_be_create_customer_and_attach_card(
@@ -471,7 +471,7 @@ class TestUserPayment:
         )
 
         assert response.status_code == 200
-        assert response.data['has_payment_method'] == True
+        assert response.data['has_payment_method'] is True
         assert (
             response.data['payment_methods'][0]['id']
             == example_stripe_attach_payment_method_customer_object_1['id']
@@ -480,36 +480,6 @@ class TestUserPayment:
             response.data['payment_methods'][1]['id']
             == example_stripe_attach_payment_method_customer_object_2['id']
         )
-
-    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
-    def test_authenticated_user_could_be_subscribe_using_payment_method(
-        self,
-        user_and_password,
-        authenticated_client,
-        example_solution,
-        example_stripe_product_create_event,
-        example_stripe_price_create_event,
-        example_stripe_subscription_object,
-        example_stripe_customer_object,
-        example_stripe_attach_payment_method_customer_object_1,
-        example_stripe_attach_payment_method_customer_object_2,
-        example_stripe_customer_has_default_payment_method_object,
-        mocker,
-    ):
-        response = self._customer_subscribe_payment(
-            mocker,
-            example_stripe_subscription_object,
-            example_stripe_price_create_event,
-            example_stripe_product_create_event,
-            example_solution,
-            user_and_password,
-            example_stripe_attach_payment_method_customer_object_1,
-            authenticated_client,
-            example_stripe_customer_object,
-        )
-
-        assert response.status_code == 200
-        assert response.data['solution_booking_id'] is not None
 
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_authenticated_user_could_be_detach_payment_method(
@@ -581,74 +551,94 @@ class TestUserPayment:
         assert response.status_code == 200
         assert response.data['has_payment_method'] is None
 
-
-class TestUserPermission:
-    def _has_permission(self, client: Client, username, should_have_access):
-        response = client.get('{}{}/'.format(USERS_BASE_ENDPOINT, username))
-        if should_have_access:
-            assert response.status_code == status.HTTP_200_OK
-        else:
-            assert response.status_code == status.HTTP_403_FORBIDDEN
-
-    def test_normal_users_can_not_see_list_of_users_and_can_retrieve_only_their_profile(
-        self, authenticated_client, admin_client, user_and_password
+    def test_authenticated_user_could_be_subscribe_solution(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_solution,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_object,
     ):
-        response = authenticated_client.get(USERS_BASE_ENDPOINT)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
-        self._has_permission(authenticated_client, user_and_password[0].username, True)
-        self._has_permission(authenticated_client, 'admin', False)
-
-    def test_admin_user_can_access_anything_in_users_endpoint(
-        self, authenticated_client, admin_client, user_and_password
-    ):
-        response = admin_client.get(USERS_BASE_ENDPOINT)
-        assert response.status_code == status.HTTP_200_OK
-        # There'll be 3 users, 1 anonymous user created by default, 1 admin created by admin_client and
-        # 1 normal user which we created by importing fixture authenticated_client
-        assert response.data.__len__() == 3
-
-        self._has_permission(admin_client, user_and_password[0].username, True)
-        self._has_permission(admin_client, 'admin', True)
-
-    def test_fetch_bookmarked_solutions_of_user(
-        self, authenticated_client, user_and_password, example_solution
-    ):
-        SolutionBookmark.objects.create(
-            solution=example_solution, user=user_and_password[0]
+        self._make_user_customer_with_default_payment_method(
+            user_and_password[0],
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
         )
-        user_profile_url = '{}{}/'.format(
-            USERS_BASE_ENDPOINT, user_and_password[0].username
+
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_solution'),
+            {
+                'payment_method': example_stripe_attach_payment_method_customer_object_1[
+                    'id'
+                ],
+                'slug': example_solution.slug,
+            },
+            content_type='application/json',
         )
-        response = authenticated_client.get(user_profile_url)
 
         assert response.status_code == 200
-        assert (
-            response.data['bookmarked_solutions'][0]['solution']['title']
-            == example_solution.title
-        )
+        assert response.data['solution_booking_id'] is not None
 
 
 class TestProviderBookingsList:
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
-    def _make_user_customer_with_default_payment_method(
+    def _provider_start_providing_solution(
         self,
-        user,
-        example_stripe_attach_payment_method_customer_object,
-        example_stripe_customer_object,
+        example_user,
+        authenticated_user,
+        payment_method_attached_customer,
+        stripe_customer,
+        stripe_subscription,
+        stripe_price_create_event,
+        stripe_product_create_event,
+        solution,
+        mock,
     ):
-        example_stripe_payment_method = StripePaymentMethod.objects.create(
-            id=example_stripe_attach_payment_method_customer_object['id'],
-            billing_details=example_stripe_attach_payment_method_customer_object[
-                'billing_details'
-            ],
+        mock.patch(
+            'stripe.Subscription.create',
+            return_value=util.convert_to_stripe_object(stripe_subscription),
         )
-        example_stripe_customer = StripeCustomer.objects.create(
-            id=example_stripe_customer_object['id'],
-            email=user.email,
-            default_payment_method=example_stripe_payment_method,
+        example_price_data = stripe_price_create_event.data['object']
+        example_product = StripeProduct.objects.get(
+            id=stripe_product_create_event.data['object']['id']
         )
-        User.objects.filter(id=user.id).update(stripe_customer=example_stripe_customer)
+        example_price = StripePrice.objects.create(
+            id=example_price_data['id'],
+            product=example_product,
+            currency=example_price_data['currency'],
+            type='Recurring',
+            active=True,
+        )
+        solution.stripe_primary_price = example_price
+        solution.point_of_contact = example_user[0]
+        solution.save()
+
+        test_user_payment = TestUserPayment()
+        test_user_payment._make_user_customer_with_default_payment_method(
+            example_user[0],
+            payment_method_attached_customer,
+            stripe_customer,
+        )
+
+        # A user subscribe the solution.
+        subscribe_response = authenticated_user.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_solution'),
+            {
+                'payment_method': stripe_customer['id'],
+                'slug': solution.slug,
+            },
+            content_type='application/json',
+        )
+        # A provider clicks the `Provide Solution` button
+        response = authenticated_user.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'start_contract'),
+            {
+                'booking_id': subscribe_response.data['solution_booking_id'],
+                'username': example_user[0].username,
+            },
+            content_type='application/json',
+        )
+        return response
 
     def test_authenticated_user_should_fetch_provider_solution_bookings_list(
         self, authenticated_client, user_and_password, admin_user, example_solution
@@ -669,6 +659,35 @@ class TestProviderBookingsList:
             response.data[0]['booked_by']['username'] == user_and_password[0].username
         )
 
+    def test_authenticated_user_could_start_contract(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_object,
+        example_stripe_subscription_object,
+        example_stripe_price_create_event,
+        example_stripe_product_create_event,
+        example_solution,
+        mocker,
+    ):
+        response = self._provider_start_providing_solution(
+            user_and_password,
+            authenticated_client,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
+            example_stripe_subscription_object,
+            example_stripe_price_create_event,
+            example_stripe_product_create_event,
+            example_solution,
+            mocker,
+        )
+        assert response.status_code == 200
+        assert (
+            response.data['booking_data']['status']
+            == SolutionBooking.Status.IN_PROGRESS
+        )
+
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_authenticated_user_should_tracked_time(
         self,
@@ -686,18 +705,17 @@ class TestProviderBookingsList:
         example_stripe_customer_has_default_payment_method_object,
         mocker,
     ):
-        # Subscribe the solution.
-        test_user_payment = TestUserPayment()
-        solution_booking_response = test_user_payment._customer_subscribe_payment(
-            mocker,
+        # Provide the solution.
+        provide_solution_response = self._provider_start_providing_solution(
+            user_and_password,
+            authenticated_client,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
             example_stripe_subscription_object,
             example_stripe_price_create_event,
             example_stripe_product_create_event,
             example_solution,
-            user_and_password,
-            example_stripe_attach_payment_method_customer_object_1,
-            authenticated_client,
-            example_stripe_customer_object,
+            mocker,
         )
 
         # Create mocker for patching create usage record API.
@@ -728,7 +746,7 @@ class TestProviderBookingsList:
                         "tracked_hours": "1.0",
                     },
                 ],
-                'booking_id': solution_booking_response.data['solution_booking_id'],
+                'booking_id': provide_solution_response.data['booking_data']['id'],
             },
             content_type='application/json',
         )
