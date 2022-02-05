@@ -580,7 +580,7 @@ class TestUserPayment:
         assert response.data['solution_booking_id'] is not None
 
 
-class TestProviderBookingsList:
+class TestProviderBookings:
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def _provider_start_providing_solution(
         self,
@@ -777,17 +777,17 @@ class TestInvoiceHandler:
         mocker,
     ):
         # Subscribe the solution.
-        test_user_payment = TestUserPayment()
-        test_user_payment._customer_subscribe_payment(
-            mocker,
+        test_provider_bookings = TestProviderBookings()
+        test_provider_bookings._provider_start_providing_solution(
+            user_and_password,
+            authenticated_client,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
             example_stripe_subscription_object,
             example_stripe_price_create_event,
             example_stripe_product_create_event,
             example_solution,
-            user_and_password,
-            example_stripe_attach_payment_method_customer_object_1,
-            authenticated_client,
-            example_stripe_customer_object,
+            mocker,
         )
 
         mocker.patch(
@@ -817,17 +817,17 @@ class TestStripeSubscriptionHandler:
         mocker,
     ):
         # Create a new subscribe
-        test_user_payment = TestUserPayment()
-        test_user_payment._customer_subscribe_payment(
-            mocker,
+        test_provider_bookings = TestProviderBookings()
+        test_provider_bookings._provider_start_providing_solution(
+            user_and_password,
+            authenticated_client,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_object,
             example_stripe_subscription_object,
             example_stripe_price_create_event,
             example_stripe_product_create_event,
             example_solution,
-            user_and_password,
-            example_stripe_attach_payment_method_customer_object_1,
-            authenticated_client,
-            example_stripe_customer_object,
+            mocker,
         )
 
         # Update subscribe using webhook
