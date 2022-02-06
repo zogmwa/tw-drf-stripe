@@ -841,3 +841,163 @@ class TestStripeSubscriptionHandler:
         subscription_updated_handler(example_stripe_subscription_event)
 
         assert Subscription.objects.count() == 1
+
+
+class TestPauseOrResumeSubscription:
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_customer_should_pause_or_resume_subscription(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_solution,
+        example_solution_booking,
+        example_stripe_usage_object,
+        example_stripe_product_create_event,
+        example_stripe_price_create_event,
+        example_stripe_subscription_object,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        example_stripe_subscription_pause_object,
+        example_stripe_subscription_resume_object,
+        mocker,
+    ):
+        # Create a new subscribe
+        test_provider_bookings = TestProviderBookings()
+        provide_solution_response = (
+            test_provider_bookings._provider_start_providing_solution(
+                user_and_password,
+                authenticated_client,
+                example_stripe_attach_payment_method_customer_object_1,
+                example_stripe_customer_object,
+                example_stripe_subscription_object,
+                example_stripe_price_create_event,
+                example_stripe_product_create_event,
+                example_solution,
+                mocker,
+            )
+        )
+
+        mocker.patch(
+            'stripe.Subscription.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_pause_object
+            ),
+        )
+
+        # Pause the subscription
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'pause_or_resume_contract'),
+            {
+                'booking_id': provide_solution_response.data['booking_data']['id'],
+                'username': '',
+                'pause_status': 'CUSTOMER_PAUSED',
+                'page_type': 'customer',
+            },
+            content_type='application/json',
+        )
+
+        response.status_code == 200
+        response.data[0]['status'] == SolutionBooking.Status.PAUSED
+
+        mocker.patch(
+            'stripe.Subscription.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_resume_object
+            ),
+        )
+
+        # Pause the subscription
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'pause_or_resume_contract'),
+            {
+                'booking_id': provide_solution_response.data['booking_data']['id'],
+                'username': '',
+                'pause_status': None,
+                'page_type': 'customer',
+            },
+            content_type='application/json',
+        )
+
+        response.status_code == 200
+        response.data[0]['status'] == SolutionBooking.Status.IN_PROGRESS
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_provider_should_pause_or_resume_subscription(
+        self,
+        user_and_password,
+        authenticated_client,
+        example_solution,
+        example_solution_booking,
+        example_stripe_usage_object,
+        example_stripe_product_create_event,
+        example_stripe_price_create_event,
+        example_stripe_subscription_object,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_attach_payment_method_customer_object_2,
+        example_stripe_customer_has_default_payment_method_object,
+        example_stripe_subscription_pause_object,
+        example_stripe_subscription_resume_object,
+        mocker,
+    ):
+        # Create a new subscribe
+        test_provider_bookings = TestProviderBookings()
+        provide_solution_response = (
+            test_provider_bookings._provider_start_providing_solution(
+                user_and_password,
+                authenticated_client,
+                example_stripe_attach_payment_method_customer_object_1,
+                example_stripe_customer_object,
+                example_stripe_subscription_object,
+                example_stripe_price_create_event,
+                example_stripe_product_create_event,
+                example_solution,
+                mocker,
+            )
+        )
+
+        mocker.patch(
+            'stripe.Subscription.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_pause_object
+            ),
+        )
+
+        # Pause the subscription
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'pause_or_resume_contract'),
+            {
+                'booking_id': provide_solution_response.data['booking_data']['id'],
+                'username': user_and_password[0].username,
+                'pause_status': 'PROVIDER_PAUSED',
+                'page_type': 'provider',
+            },
+            content_type='application/json',
+        )
+
+        response.status_code == 200
+        response.data['booking_data']['status'] == SolutionBooking.Status.PAUSED
+
+        mocker.patch(
+            'stripe.Subscription.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_resume_object
+            ),
+        )
+
+        # Pause the subscription
+        response = authenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'pause_or_resume_contract'),
+            {
+                'booking_id': provide_solution_response.data['booking_data']['id'],
+                'username': user_and_password[0].username,
+                'pause_status': None,
+                'page_type': 'provider',
+            },
+            content_type='application/json',
+        )
+
+        response.status_code == 200
+        response.data['booking_data']['status'] == SolutionBooking.Status.IN_PROGRESS
