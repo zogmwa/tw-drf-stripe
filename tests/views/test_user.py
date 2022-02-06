@@ -908,7 +908,7 @@ class TestPauseOrResumeSubscription:
             ),
         )
 
-        # Pause the subscription
+        # Resume the subscription
         response = authenticated_client.post(
             '{}{}/'.format(USERS_BASE_ENDPOINT, 'pause_or_resume_contract'),
             {
@@ -987,7 +987,7 @@ class TestPauseOrResumeSubscription:
             ),
         )
 
-        # Pause the subscription
+        # Resume the subscription
         response = authenticated_client.post(
             '{}{}/'.format(USERS_BASE_ENDPOINT, 'pause_or_resume_contract'),
             {
