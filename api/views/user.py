@@ -37,6 +37,37 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
 
     @staticmethod
+    def _get_provider_booking_detail_data(contract_id, username, context_serializer):
+        try:
+            solution_booking = SolutionBooking.objects.get(id=contract_id)
+            booking_trackings_queryset = TimeTrackedDay.objects.filter(
+                solution_booking=solution_booking
+            )
+            booking_trackings_serializer = TimeTrackedDaySerializer(
+                booking_trackings_queryset, many=True
+            )
+            solution_booking_queryset = SolutionBooking.objects.get(
+                solution__point_of_contact__username=username,
+                id=contract_id,
+            )
+            solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
+                solution_booking_queryset, context=context_serializer
+            )
+            stripe_subscription = solution_booking.stripe_subscription
+            if stripe_subscription is not None:
+                return {
+                    'current_period_start': stripe_subscription.current_period_start,
+                    'current_period_end': stripe_subscription.current_period_end,
+                    'tracking_times': booking_trackings_serializer.data,
+                    'booking_data': solution_booking_serializer.data,
+                }
+            else:
+                return {'booking_data': solution_booking_serializer.data}
+
+        except SolutionBooking.DoesNotExist:
+            return {'error': 'Contract does not exist'}
+
+    @staticmethod
     def _save_tracked_time_instance(
         tracking_time_data, stripe_subscription, solution_booking, user
     ):
@@ -248,7 +279,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response({'has_payment_method': None})
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
-    def subscribe_payment(self, request, *args, **kwargs):
+    def subscribe_solution(self, request, *args, **kwargs):
         user = request.user
         if user.stripe_customer:
             if request.data.get('payment_method'):
@@ -261,18 +292,9 @@ class UserViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_400_BAD_REQUEST,
                     )
                 else:
-                    stripe_subscription = stripe.Subscription.create(
-                        customer=user.stripe_customer.id,
-                        items=[{'price': solution.stripe_primary_price.id}],
-                        expand=['latest_invoice.payment_intent'],
-                    )
-                    djstripe_subscription = StripeSubscription.sync_from_stripe_data(
-                        stripe_subscription
-                    )
                     solution_booking = SolutionBooking.objects.create(
                         booked_by=request.user,
                         solution=solution,
-                        stripe_subscription=djstripe_subscription,
                         referring_user=get_or_none(User, id=referring_user_id),
                     )
                     return Response({'solution_booking_id': solution_booking.id})
@@ -437,3 +459,32 @@ class UserViewSet(viewsets.ModelViewSet):
         return_data = self._save_tracked_times(contract_id, tracked_data, user)
 
         return Response(return_data)
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def start_contract(self, request, *args, **kwargs):
+        context_serializer = {'request': request}
+        contract_id = request.data.get('booking_id', '')
+        username = request.data.get('username', '')
+        if contract_id:
+            solution_booking = SolutionBooking.objects.get(id=contract_id)
+            customer = solution_booking.booked_by
+            solution = solution_booking.solution
+            stripe_subscription = stripe.Subscription.create(
+                customer=customer.stripe_customer.id,
+                items=[{'price': solution.stripe_primary_price.id}],
+                expand=['latest_invoice.payment_intent'],
+            )
+            djstripe_subscription = StripeSubscription.sync_from_stripe_data(
+                stripe_subscription
+            )
+            solution_booking.stripe_subscription = djstripe_subscription
+            solution_booking.status = SolutionBooking.Status.IN_PROGRESS
+            solution_booking.save()
+
+            contract_data = self._get_provider_booking_detail_data(
+                contract_id, username, context_serializer
+            )
+
+            return Response(contract_data)
+        else:
+            return Response({'error': 'Contract does not exist.'})
