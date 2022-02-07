@@ -22,6 +22,7 @@ class SolutionBooking(models.Model):
         IN_PROGRESS = 'In Progress'
         IN_REVIEW = 'In Review'
         COMPLETED = 'Completed'
+        PAUSED = 'Paused'
 
     BOOKING_RATING_RANGE = range(-1, 2)  # -1, 0, 1 (2 excluded)
     BOOKING_RATING_CHOICES = tuple(
@@ -54,6 +55,15 @@ class SolutionBooking(models.Model):
 
     # The timestamp that created when solution booking status from pending to some other status.
     started_at = models.DateTimeField(null=True, blank=True)
+
+    # pause_status that shows who paused the booking.
+    STATUS_CHOICES = [
+        ('PROVIDER_PAUSED', 'PROVIDER_PAUSED'),
+        ('CUSTOMER_PAUSED', 'CUSTOMER_PAUSED'),
+    ]
+    pause_status = models.CharField(
+        max_length=15, choices=STATUS_CHOICES, default=None, null=True
+    )
 
     booked_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

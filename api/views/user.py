@@ -488,3 +488,51 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(contract_data)
         else:
             return Response({'error': 'Contract does not exist.'})
+
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
+    def pause_or_resume_contract(self, request, *args, **kwargs):
+        user = self.request.user
+        contract_id = request.data.get('booking_id', '')
+        username = request.data.get('username', '')
+        context_serializer = {'request': request}
+        pause_status = request.data.get('pause_status', None)
+        page_type = request.data.get('page_type')
+        if contract_id:
+            try:
+                solution_booking = SolutionBooking.objects.get(id=contract_id)
+                solution_booking.pause_status = pause_status
+                if pause_status is None:
+                    solution_booking.status = SolutionBooking.Status.IN_PROGRESS
+                    pause_collection = ''
+                else:
+                    solution_booking.status = SolutionBooking.Status.PAUSED
+                    pause_collection = {'behavior': 'void'}
+
+                stripe_subscription = stripe.Subscription.modify(
+                    solution_booking.stripe_subscription.id,
+                    pause_collection=pause_collection,
+                )
+                StripeSubscription.sync_from_stripe_data(stripe_subscription)
+                solution_booking.save()
+                if page_type == 'provider':
+                    contract_data = self._get_provider_booking_detail_data(
+                        contract_id, username, context_serializer
+                    )
+                    return Response(contract_data)
+                elif page_type == 'customer':
+                    solution_booking_queryset = SolutionBooking.objects.filter(
+                        booked_by__username=user.username, id=contract_id
+                    )
+                    solution_booking_serializer = (
+                        AuthenticatedSolutionBookingSerializer(
+                            solution_booking_queryset,
+                            context=context_serializer,
+                            many=True,
+                        )
+                    )
+                    return Response(solution_booking_serializer.data)
+
+            except Exception:
+                return Response({'error': 'Contract does not exist.'})
+        else:
+            return Response({'error': 'Please check your data again.'})

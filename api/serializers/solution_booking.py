@@ -225,6 +225,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'stripe_session_id',
             'price_at_booking',
             'rating',
+            'pause_status',
             'metered_booking_info',
         ]
         read_only_fields = [
@@ -240,6 +241,7 @@ class AuthenticatedSolutionBookingSerializer(ModelSerializer):
             'stripe_session_id',
             'price_at_booking',
             'metered_booking_info',
+            'pause_status',
         ]
 
     def _get_metered_booking_info(self, instance):
