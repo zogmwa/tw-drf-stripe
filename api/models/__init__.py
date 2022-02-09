@@ -7,7 +7,7 @@ from .asset import Asset
 from .solution import Solution
 from .tag import Tag
 from .user import User
-from .price_plan import PricePlan
+from .asset_price_plan import AssetPricePlan
 from .asset_attribute import Attribute
 from .linked_attribute import LinkedAttribute
 from .asset_question import AssetQuestion

@@ -4,7 +4,7 @@ from rest_framework.serializers import ModelSerializer
 from api.models import (
     Asset,
     AssetVote,
-    PricePlan,
+    AssetPricePlan,
     Attribute,
     LinkedAttribute,
     Organization,
@@ -129,12 +129,12 @@ class AuthenticatedAssetSerializer(AssetSerializer):
     def _update_price_plans_and_associate_with_asset(
         price_plans_dicts: dict, asset: Asset
     ) -> None:
-        rows_to_delete = PricePlan.objects.filter(asset=asset)
+        rows_to_delete = AssetPricePlan.objects.filter(asset=asset)
         rows_to_delete.all().delete()
 
         for price_plans_dict in price_plans_dicts:
             price_plans_dict['asset'] = asset
-            PricePlan.objects.get_or_create(**price_plans_dict)
+            AssetPricePlan.objects.get_or_create(**price_plans_dict)
 
     @staticmethod
     def _update_attributes_and_associate_with_asset(

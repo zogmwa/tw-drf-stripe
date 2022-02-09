@@ -5,7 +5,7 @@ import pandas as pd
 from django.core.management import BaseCommand
 from django.db import IntegrityError
 
-from api.models import Asset, PricePlan
+from api.models import Asset, AssetPricePlan
 
 
 def process(excel_path: str) -> None:
@@ -24,14 +24,14 @@ def process(excel_path: str) -> None:
         if asset_slug in asset_pricings.keys():
             asset_plans = asset_pricings[asset_slug]
             for plan_name in asset_plans.keys():
-                price_plan, is_created = PricePlan.objects.get_or_create(
+                price_plan, is_created = AssetPricePlan.objects.get_or_create(
                     asset=asset, name=plan_name
                 )  # Instead of an asset, we take the id of the asset model
-                plan_price_field_name = PricePlan.price.field.attname
-                plan_per_field_name = PricePlan.per.field.attname
-                plan_features_field_name = PricePlan.features.field.attname
-                plan_currency_field_name = PricePlan.currency.field.attname
-                plan_summary_field_name = PricePlan.summary.field.attname
+                plan_price_field_name = AssetPricePlan.price.field.attname
+                plan_per_field_name = AssetPricePlan.per.field.attname
+                plan_features_field_name = AssetPricePlan.features.field.attname
+                plan_currency_field_name = AssetPricePlan.currency.field.attname
+                plan_summary_field_name = AssetPricePlan.summary.field.attname
                 price_plan.price = asset_plans[plan_name][plan_price_field_name].strip()
                 price_plan.per = asset_plans[plan_name][plan_per_field_name].strip()
 

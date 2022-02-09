@@ -1,9 +1,11 @@
 from django.db import models
+from djstripe.models import Product as StripeProduct
+from djstripe.models import Price as StripePrice
 
 from api.models import Asset
 
 
-class PricePlan(models.Model):
+class AssetPricePlan(models.Model):
     """
     A price plan associated with an asset. An asset can have one or more price plans. If the price is 0,
     then the plan is free, if price is not set then the plan is a CUSTOM plan.
@@ -29,6 +31,14 @@ class PricePlan(models.Model):
     features = models.TextField(null=True, blank=True)
 
     most_popular = models.BooleanField(default=False)
+
+    # For metered-subscriptions this is the unit price (e.g. per API request price) the user will be billed at.
+    stripe_price = models.OneToOneField(
+        StripePrice, null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    # Todo: Add a wrapper property field so that if the stripe_price is set then it takes precedence over the
+    #  name/summary fields, that is because we don't want to have to worry about drift in stripe_price.name and name.
 
     class Meta:
         verbose_name = 'Price Plan'

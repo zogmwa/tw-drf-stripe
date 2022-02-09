@@ -1,11 +1,11 @@
 from rest_framework.serializers import ModelSerializer
 
-from api.models import PricePlan
+from api.models import AssetPricePlan
 
 
 class PricePlanSerializer(ModelSerializer):
     class Meta:
-        model = PricePlan
+        model = AssetPricePlan
         fields = [
             'id',
             'asset',
