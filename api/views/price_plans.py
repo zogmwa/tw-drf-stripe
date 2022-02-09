@@ -1,11 +1,11 @@
 from rest_framework import viewsets, permissions
 
-from api.models import PricePlan
+from api.models import AssetPricePlan
 from api.serializers.price_plan import PricePlanSerializer
 
 
 class PricePlanViewSet(viewsets.ModelViewSet):
-    queryset = PricePlan.objects.all()
+    queryset = AssetPricePlan.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = PricePlanSerializer
 
@@ -18,7 +18,7 @@ class PricePlanViewSet(viewsets.ModelViewSet):
                 return []
 
             asset_slug = asset_slug.strip()
-            filtered_price_plans = PricePlan.objects.filter(asset__slug=asset_slug)
+            filtered_price_plans = AssetPricePlan.objects.filter(asset__slug=asset_slug)
             return filtered_price_plans
         else:
             super(PricePlanViewSet, self).get_queryset()

@@ -16,7 +16,7 @@ from api.models import (
     AssetAttributeVote,
     AssetQuestionVote,
     AssetSnapshot,
-    PricePlan,
+    AssetPricePlan,
     Solution,
     SolutionQuestion,
 )
@@ -1416,7 +1416,7 @@ def example_snapshot(example_asset):
 
 @pytest.fixture()
 def example_price_plan(example_asset):
-    return PricePlan.objects.create(
+    return AssetPricePlan.objects.create(
         asset=example_asset,
         name="standard",
         summary="standard",

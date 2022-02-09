@@ -5,7 +5,7 @@ from urllib.error import HTTPError
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import pre_save
-from django.dispatch import receiver
+from djstripe.models import Product as StripeProduct
 from furl import furl
 from opengraph import OpenGraph
 from opengraphio import OpenGraphIO
@@ -122,6 +122,11 @@ class Asset(models.Model):
         through='OrganizationUsingAsset',
         related_name='assets_used',
         blank=True,
+    )
+
+    # What stripe product is this asset associated with? (For assets that have price plans billed through TaggedWeb)
+    stripe_product = models.OneToOneField(
+        StripeProduct, null=True, blank=True, on_delete=models.SET_NULL
     )
 
     @property

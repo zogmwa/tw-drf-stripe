@@ -9,7 +9,7 @@ from api.models import (
     Asset,
     User,
     AssetQuestion,
-    PricePlan,
+    AssetPricePlan,
     AssetVote,
     Attribute,
     AssetQuestionVote,
@@ -69,7 +69,7 @@ class AssetSnapshotInline(admin.TabularInline):
 
 
 class PricePlanInline(admin.TabularInline):
-    model = PricePlan
+    model = AssetPricePlan
     # For other fields the detailed PricePlanAdmin will be used
     # Restricting number of inline fields to make the admin display compact
     fields = ['name', 'price', 'per']
@@ -100,7 +100,7 @@ class AssetQuestionAdmin(admin.ModelAdmin):
 
 
 class PricePlanAdmin(admin.ModelAdmin):
-    model = PricePlan
+    model = AssetPricePlan
     autocomplete_fields = ['asset']
     search_fields = ['asset__name', 'name']
 
@@ -248,7 +248,7 @@ admin.site.register(Tag, TagAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(AssetQuestion, AssetQuestionAdmin)
-admin.site.register(PricePlan, PricePlanAdmin)
+admin.site.register(AssetPricePlan, PricePlanAdmin)
 admin.site.register(AssetReview, AssetReviewAdmin)
 admin.site.register(AssetVote, AssetVoteAdmin)
 admin.site.register(Attribute, AttributeAdmin)
