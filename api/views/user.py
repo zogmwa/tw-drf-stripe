@@ -17,7 +17,7 @@ from api.models import User
 from api.models.solution import Solution
 from api.models.time_tracked_day import TimeTrackedDay
 from api.models.solution_booking import SolutionBooking
-from api.models.partner_customer import PartnerCustomer
+from api.models.third_party_customer import ThirdPartyCustomer
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import Subscription as StripeSubscription
 from djstripe.models import SubscriptionItem as StripeSubscriptionItem
@@ -33,6 +33,7 @@ class UserViewSet(viewsets.ModelViewSet):
     This viewset automatically provides `list` and `retrieve` actions.
     """
 
+    permission_classes = [AllowOwnerOrAdminOrStaff]
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
@@ -313,7 +314,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if user.is_anonymous:
             customer_id = request.query_params.get('customer_id', '')
             if customer_id:
-                customer = PartnerCustomer.objects.get(customer_id=customer_id)
+                customer = ThirdPartyCustomer.objects.get(customer_uid=customer_id)
                 stripe_customer = customer.stripe_customer
                 if stripe_customer is None:
                     return Response({'has_payment_method': None})
@@ -392,7 +393,7 @@ class UserViewSet(viewsets.ModelViewSet):
             try:
                 customer_id = request.data.get('partner_customer_id', '')
                 if customer_id:
-                    customer = PartnerCustomer.objects.get(customer_id=customer_id)
+                    customer = ThirdPartyCustomer.objects.get(customer_uid=customer_id)
                     stripe_customer = customer.stripe_customer
                     return_data = self._detach_payment_method_from_stripe_customer(
                         request.data.get('payment_method'), stripe_customer
@@ -581,8 +582,8 @@ class UserViewSet(viewsets.ModelViewSet):
             if user.is_anonymous:
                 customer_id = request.data.get('customer_id')
 
-                customer, is_created = PartnerCustomer.objects.get_or_create(
-                    customer_id=customer_id,
+                customer, is_created = ThirdPartyCustomer.objects.get_or_create(
+                    customer_uid=customer_id,
                 )
 
                 if customer.stripe_customer is None:
