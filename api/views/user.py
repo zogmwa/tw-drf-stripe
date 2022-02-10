@@ -149,6 +149,54 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return updated_count
 
+    @staticmethod
+    def _detach_payment_method_from_stripe_customer(payment_method, stripe_customer):
+        # Detach payment method to customer.
+        stripe.PaymentMethod.detach(payment_method)
+        customer_payment_methods = stripe.PaymentMethod.list(
+            customer=stripe_customer.id,
+            type="card",
+        )
+        payment_methods = customer_payment_methods.get('data')
+        if len(payment_methods) == 0:
+            stripe_customer_with_payment_method = stripe.Customer.modify(
+                stripe_customer.id,
+                invoice_settings={},
+            )
+            StripeCustomer.sync_from_stripe_data(stripe_customer_with_payment_method)
+            stripe_customer.default_payment_method = None
+            stripe_customer.save()
+            return {'data': [], 'has_payment_method': True}
+        else:
+            if stripe_customer.default_payment_method.id == payment_method:
+                stripe_customer_with_payment_method = stripe.Customer.modify(
+                    stripe_customer.id,
+                    invoice_settings={
+                        'default_payment_method': payment_methods[0].id,
+                    },
+                )
+                StripeCustomer.sync_from_stripe_data(
+                    stripe_customer_with_payment_method
+                )
+            return_payment_methods = []
+            for payment_method in payment_methods:
+                return_payment_methods.append(
+                    {
+                        "id": payment_method.id,
+                        "brand": payment_method.card.brand,
+                        "last4": payment_method.card.last4,
+                        "exp_month": payment_method.card.exp_month,
+                        "exp_year": payment_method.card.exp_year,
+                        "default_payment_method": stripe_customer.default_payment_method.id
+                        == payment_method.id,
+                    }
+                )
+
+            return {
+                'data': return_payment_methods,
+                'has_payment_method': True,
+            }
+
     def _save_tracked_times(self, contract_id, tracking_time_data, user):
         if contract_id:
             try:
@@ -329,6 +377,32 @@ class UserViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
+    def detach_payment_method(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.is_anonymous:
+            try:
+                customer_id = request.data.get('partner_customer_id', '')
+                if customer_id:
+                    customer = PartnerCustomer.objects.get(customer_id=customer_id)
+                    stripe_customer = customer.stripe_customer
+                    return_data = self._detach_payment_method_from_stripe_customer(
+                        request.data.get('payment_method'), stripe_customer
+                    )
+
+                    return Response(return_data)
+            except Exception:
+                return Response({'has_payment_method': None})
+        else:
+            if user.stripe_customer:
+                return_data = self._detach_payment_method_from_stripe_customer(
+                    request.data.get('payment_method'), user.stripe_customer
+                )
+
+                return Response(return_data)
+            else:
+                return Response({'has_payment_method': None})
 
     @action(detail=True, permission_classes=[IsAuthenticated], methods=['get'])
     def provider_bookings(self, request, *args, **kwargs):
