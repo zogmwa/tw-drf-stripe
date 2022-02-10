@@ -19,6 +19,7 @@ from api.models import (
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
 from api.models.asset_attribute_vote import AssetAttributeVote
+from api.models.consultation_request import ConsultationRequest
 from api.models.solution import Solution
 from api.models.solution_vote import SolutionVote
 from api.models.solution_booking import SolutionBooking
@@ -240,6 +241,18 @@ class UserProblemAdmin(admin.ModelAdmin):
     list_display = ['email', 'user', 'created', 'is_acknowledged']
 
 
+class ConsultationRequestAdmin(admin.ModelAdmin):
+    model = ConsultationRequest
+    search_fields = ["created", "customer_email"]
+    readonly_fields = ["created", "updated"]
+    list_display = [
+        'customer_email',
+        'customer_first_name',
+        'customer_last_name',
+        'created',
+    ]
+
+
 class ThirdPartyCustomerAdmin(admin.ModelAdmin):
     model = ThirdPartyCustomer
     search_fields = [
@@ -272,3 +285,4 @@ admin.site.register(SolutionBookmark, SolutionBookmarkAdmin)
 admin.site.register(NewsLetterContact)
 admin.site.register(SolutionReview, SolutionReviewAdmin)
 admin.site.register(UserProblem, UserProblemAdmin)
+admin.site.register(ConsultationRequest, ConsultationRequestAdmin)
