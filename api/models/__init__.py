@@ -32,6 +32,10 @@ from .solution_review import SolutionReview
 from .webhooks_stripe import product_created_handler, price_created_handler
 from .user_problem import UserProblem
 
+# Third-Party SaaS Subscriptions
+from .third_party_customer import ThirdPartyCustomer
+from .asset_price_plan_subscription import AssetPricePlanSubscription
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):

@@ -23,9 +23,10 @@ class TestFetchingSolutionBooking:
         response = authenticated_client.get(SOLUTIONBOOKINGS_BASE_ENDPOINT)
 
         assert response.status_code == 200
-        assert response.data[0]['solution']['id'] == example_solution.id
+        assert response.data['results'][0]['solution']['id'] == example_solution.id
         assert (
-            response.data[0]['booked_by']['username'] == user_and_password[0].username
+            response.data['results'][0]['booked_by']['username']
+            == user_and_password[0].username
         )
 
 
@@ -133,8 +134,8 @@ class TestFetchSolutionBookings:
         response = authenticated_client.get(FETCH_SOLUTION_BOOKING_URL)
 
         assert response.status_code == 200
-        assert response.data[0]['id'] == example_solution_booking.id
-        assert response.data[0]['solution']['id'] == example_solution.id
+        assert response.data['results'][0]['id'] == example_solution_booking.id
+        assert response.data['results'][0]['solution']['id'] == example_solution.id
 
         fetch_solution_booking_url = '{}?id={}'.format(
             FETCH_SOLUTION_BOOKING_URL, example_solution_booking.id
@@ -142,8 +143,8 @@ class TestFetchSolutionBookings:
         response = authenticated_client.get(fetch_solution_booking_url)
 
         assert response.status_code == 200
-        assert response.data[0]['id'] == example_solution_booking.id
-        assert response.data[0]['solution']['id'] == example_solution.id
+        assert response.data['results'][0]['id'] == example_solution_booking.id
+        assert response.data['results'][0]['solution']['id'] == example_solution.id
 
     def test_authenticated_user_could_update_rating(
         self, example_solution, authenticated_client, user_and_password

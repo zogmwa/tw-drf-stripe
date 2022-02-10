@@ -25,6 +25,7 @@ from api.serializers.user import UserSerializer
 from api.serializers.time_tracked_day import TimeTrackedDaySerializer
 from api.serializers.solution_booking import AuthenticatedSolutionBookingSerializer
 from api.permissions.user_permissions import AllowOwnerOrAdminOrStaff
+from api.views.solution_bookings import SolutionBookingViewSetPagination
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -259,7 +260,12 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return {'error': 'Contract is not exist.'}
 
-    @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated],
+        methods=['get'],
+        pagination_class=SolutionBookingViewSetPagination,
+    )
     def bookings(self, request, *args, **kwargs):
         """
         If the user wants to get solution bookings list:
@@ -278,11 +284,12 @@ class UserViewSet(viewsets.ModelViewSet):
                 booked_by__username=user.username
             )
 
+        solution_booking_queryset = self.paginate_queryset(solution_booking_queryset)
+
         solution_booking_serializer = AuthenticatedSolutionBookingSerializer(
             solution_booking_queryset, context=context_serializer, many=True
         )
-
-        return Response(solution_booking_serializer.data)
+        return self.get_paginated_response(solution_booking_serializer.data)
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
     def attach_card(self, request, *args, **kwargs):
