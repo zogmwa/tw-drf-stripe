@@ -252,6 +252,49 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @action(detail=False, permission_classes=[AllowAny], methods=['get'])
+    def payment_methods(self, request, *args, **kwargs):
+        user = self.request.user
+        if user.is_anonymous:
+            customer_id = request.query_params.get('customer_id', '')
+            if customer_id:
+                customer = PartnerCustomer.objects.get(customer_id=customer_id)
+                stripe_customer = customer.stripe_customer
+                if stripe_customer is None:
+                    return Response({'has_payment_method': None})
+            else:
+                return Response({'has_payment_method': None})
+        else:
+            stripe_customer = user.stripe_customer
+            if stripe_customer is None:
+                return Response({'has_payment_method': None})
+
+        customer_payment_methods = stripe.PaymentMethod.list(
+            customer=stripe_customer.id,
+            type="card",
+        )
+        payment_methods = customer_payment_methods.get('data')
+        return_payment_methods = []
+        for payment_method in payment_methods:
+            return_payment_methods.append(
+                {
+                    "id": payment_method.id,
+                    "brand": payment_method.card.brand,
+                    "last4": payment_method.card.last4,
+                    "exp_month": payment_method.card.exp_month,
+                    "exp_year": payment_method.card.exp_year,
+                    "default_payment_method": stripe_customer.default_payment_method.id
+                    == payment_method.id,
+                }
+            )
+        return Response(
+            {
+                'has_payment_method': stripe_customer.default_payment_method
+                is not None,
+                'payment_methods': return_payment_methods,
+            }
+        )
+
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
     def subscribe_solution(self, request, *args, **kwargs):
         user = request.user
