@@ -14,6 +14,7 @@ from api.models import (
     Attribute,
     AssetQuestionVote,
     AssetClaim,
+    ThirdPartyCustomer,
 )
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
@@ -237,6 +238,14 @@ class UserProblemAdmin(admin.ModelAdmin):
     model = UserProblem
     readonly_fields = ["created", "updated"]
     list_display = ['email', 'user', 'created', 'is_acknowledged']
+
+
+class ThirdPartyCustomerAdmin(admin.ModelAdmin):
+    model = ThirdPartyCustomer
+    search_fields = [
+        'customer_uid',
+        'organization__name',
+    ]
 
 
 # Admin site headers

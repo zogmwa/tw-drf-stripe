@@ -19,6 +19,7 @@ from api.models import (
     AssetPricePlan,
     Solution,
     SolutionQuestion,
+    Organization,
 )
 from django.db.models.signals import post_save, pre_save
 from django.core.signals import request_finished
@@ -1324,7 +1325,8 @@ def example_featured_tag():
 def user_and_password():
     username = 'username'
     password = 'password'
-    user = User.objects.create(username=username)
+    organization = Organization.objects.create(name='TestOrganization')
+    user = User.objects.create(username=username, organization=organization)
     user.set_password(password)
     user.save()
     return user, password

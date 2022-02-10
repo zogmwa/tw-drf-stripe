@@ -19,10 +19,12 @@ from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from api.serializers.third_pary_customer import ThirdPartyCustomerSerializer
 from api.views.newsletter_contact import NewsLetterContactViewSet
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
 from api.views.solution_reviews import SolutionReviewViewSet
+from api.views.third_party_customers import ThirdPartyCustomerViewSet
 from payments.views import CreateStripeCheckoutSession
 from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
@@ -89,6 +91,7 @@ router.register(r'solution_bookmarks', SolutionBookmarkViewSet)
 router.register(r'solution_votes', SolutionVoteViewSet)
 router.register(r'newsletter_contact', NewsLetterContactViewSet)
 router.register(r'user_problems', UserProblemViewSet)
+router.register(r'third_party_customers', ThirdPartyCustomerViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
