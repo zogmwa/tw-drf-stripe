@@ -38,6 +38,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     ordering_fields = [
         'happy_count',
         'upvotes_count',
+        'stripe_primary_price__unit_amount',
     ]
     lookup_field = 'slug'
     serializer_class = SolutionSerializer
