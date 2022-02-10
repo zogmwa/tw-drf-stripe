@@ -8,7 +8,7 @@ from django.db.models import Sum
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.utils.models import get_or_none
 from api.utils.convert_str_to_date import (
     convert_string_to_datetime,
@@ -17,6 +17,7 @@ from api.models import User
 from api.models.solution import Solution
 from api.models.time_tracked_day import TimeTrackedDay
 from api.models.solution_booking import SolutionBooking
+from api.models.partner_customer import PartnerCustomer
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import Subscription as StripeSubscription
 from djstripe.models import SubscriptionItem as StripeSubscriptionItem
@@ -31,10 +32,65 @@ class UserViewSet(viewsets.ModelViewSet):
     This viewset automatically provides `list` and `retrieve` actions.
     """
 
-    permission_classes = [AllowOwnerOrAdminOrStaff]
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+
+    @staticmethod
+    def _attach_payment_method_to_stripe_customer(payment_method, stripe_customer):
+        # Check customer already has this payment method.
+        attaching_stripe_payment_method = stripe.PaymentMethod.retrieve(payment_method)
+        customer_payment_methods = stripe.PaymentMethod.list(
+            customer=stripe_customer.id,
+            type="card",
+        )
+        stripe_payment_methods = customer_payment_methods.get('data')
+        for stripe_payment_method in stripe_payment_methods:
+            if (
+                stripe_payment_method.card.fingerprint
+                == attaching_stripe_payment_method.card.fingerprint
+            ):
+                return {'status': 'You have already attached this payment.'}
+
+        # Attach payment method to customer.
+        stripe_payment_method = stripe.PaymentMethod.attach(
+            payment_method, customer=stripe_customer.id
+        )
+
+        if stripe_customer.default_payment_method is None:
+            stripe_customer_with_payment_method = stripe.Customer.modify(
+                stripe_customer.id,
+                invoice_settings={
+                    'default_payment_method': stripe_payment_method.id,
+                },
+            )
+            StripeCustomer.sync_from_stripe_data(stripe_customer_with_payment_method)
+            return {'status': 'payment method associated successfully'}
+        else:
+            return {'status': 'payment method associated successfully'}
+
+    @staticmethod
+    def _attach_payment_method_to_loggin_user(user, payment_method):
+        if user.stripe_customer is None:
+            if user.first_name is None and user.last_name is None:
+                customer_name = user.username
+            else:
+                customer_name = '{} {}'.format(user.first_name, user.last_name)
+
+            stripe_customer = stripe.Customer.create(
+                email=user.email, name=customer_name
+            )
+            djstripe_customer = StripeCustomer.sync_from_stripe_data(stripe_customer)
+            user.stripe_customer = djstripe_customer
+            user.save()
+        else:
+            stripe_customer = user.stripe_customer
+
+        return_data = UserViewSet._attach_payment_method_to_stripe_customer(
+            payment_method, stripe_customer
+        )
+
+        return return_data
 
     @staticmethod
     def _get_provider_booking_detail_data(contract_id, username, context_serializer):
@@ -184,99 +240,17 @@ class UserViewSet(viewsets.ModelViewSet):
     def attach_card(self, request, *args, **kwargs):
         if request.data.get('payment_method'):
             user = self.request.user
-            if user.stripe_customer is None:
-                if user.first_name is None and user.last_name is None:
-                    customer_name = user.username
-                else:
-                    customer_name = '{} {}'.format(user.first_name, user.last_name)
-
-                stripe_customer = stripe.Customer.create(
-                    email=user.email, name=customer_name
-                )
-                djstripe_customer = StripeCustomer.sync_from_stripe_data(
-                    stripe_customer
-                )
-                user.stripe_customer = djstripe_customer
-                user.save()
-            else:
-                stripe_customer = user.stripe_customer
-
-            # Check customer already has this payment method.
-            attaching_stripe_payment_method = stripe.PaymentMethod.retrieve(
-                request.data.get('payment_method')
-            )
-            customer_payment_methods = stripe.PaymentMethod.list(
-                customer=user.stripe_customer.id,
-                type="card",
-            )
-            payment_methods = customer_payment_methods.get('data')
-            for payment_method in payment_methods:
-                if (
-                    payment_method.card.fingerprint
-                    == attaching_stripe_payment_method.card.fingerprint
-                ):
-                    return Response(
-                        {'status': 'You have already attached this payment.'}
-                    )
-
-            # Attach payment method to customer.
-            stripe_payment_method = stripe.PaymentMethod.attach(
-                request.data.get('payment_method'), customer=stripe_customer.id
+            payment_method = request.data.get('payment_method')
+            return_data = self._attach_payment_method_to_loggin_user(
+                user, payment_method
             )
 
-            if stripe_customer.default_payment_method is None:
-                stripe_customer_with_payment_method = stripe.Customer.modify(
-                    stripe_customer.id,
-                    invoice_settings={
-                        'default_payment_method': stripe_payment_method.id,
-                    },
-                )
-                StripeCustomer.sync_from_stripe_data(
-                    stripe_customer_with_payment_method
-                )
-                return Response({'status': 'payment method associated successfully'})
-            else:
-                return Response({'status': 'payment method associated successfully'})
+            return Response(return_data)
         else:
             return Response(
                 data={"detail": "incorrect payment method"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-    @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
-    def payment_methods(self, request, *args, **kwargs):
-        user = self.request.user
-        if user.is_anonymous:
-            return Response({'has_payment_method': None})
-        else:
-            if user.stripe_customer:
-                customer_payment_methods = stripe.PaymentMethod.list(
-                    customer=user.stripe_customer.id,
-                    type="card",
-                )
-                payment_methods = customer_payment_methods.get('data')
-                return_payment_methods = []
-                for payment_method in payment_methods:
-                    return_payment_methods.append(
-                        {
-                            "id": payment_method.id,
-                            "brand": payment_method.card.brand,
-                            "last4": payment_method.card.last4,
-                            "exp_month": payment_method.card.exp_month,
-                            "exp_year": payment_method.card.exp_year,
-                            "default_payment_method": user.stripe_customer.default_payment_method.id
-                            == payment_method.id,
-                        }
-                    )
-                return Response(
-                    {
-                        'has_payment_method': user.stripe_customer.default_payment_method
-                        is not None,
-                        'payment_methods': return_payment_methods,
-                    }
-                )
-            else:
-                return Response({'has_payment_method': None})
 
     @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
     def subscribe_solution(self, request, *args, **kwargs):
@@ -312,68 +286,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
-    def detach_payment_method(self, request, *args, **kwargs):
-        user = self.request.user
-        if user.is_anonymous:
-            return Response({'has_payment_method': None})
-        else:
-            if user.stripe_customer:
-                # Detach payment method to customer.
-                stripe.PaymentMethod.detach(request.data.get('payment_method'))
-                customer_payment_methods = stripe.PaymentMethod.list(
-                    customer=user.stripe_customer.id,
-                    type="card",
-                )
-                payment_methods = customer_payment_methods.get('data')
-                if len(payment_methods) == 0:
-                    stripe_customer_with_payment_method = stripe.Customer.modify(
-                        user.stripe_customer.id,
-                        invoice_settings={},
-                    )
-                    StripeCustomer.sync_from_stripe_data(
-                        stripe_customer_with_payment_method
-                    )
-                    user.stripe_customer.default_payment_method = None
-                    user.stripe_customer.save()
-                    return Response({'data': [], 'has_payment_method': True})
-                else:
-                    if (
-                        user.stripe_customer.default_payment_method.id
-                        == request.data.get('payment_method')
-                    ):
-                        stripe_customer_with_payment_method = stripe.Customer.modify(
-                            user.stripe_customer.id,
-                            invoice_settings={
-                                'default_payment_method': payment_methods[0].id,
-                            },
-                        )
-                        StripeCustomer.sync_from_stripe_data(
-                            stripe_customer_with_payment_method
-                        )
-                    return_payment_methods = []
-                    for payment_method in payment_methods:
-                        return_payment_methods.append(
-                            {
-                                "id": payment_method.id,
-                                "brand": payment_method.card.brand,
-                                "last4": payment_method.card.last4,
-                                "exp_month": payment_method.card.exp_month,
-                                "exp_year": payment_method.card.exp_year,
-                                "default_payment_method": user.stripe_customer.default_payment_method.id
-                                == payment_method.id,
-                            }
-                        )
-
-                    return Response(
-                        {
-                            'data': return_payment_methods,
-                            'has_payment_method': True,
-                        }
-                    )
-            else:
-                return Response({'has_payment_method': None})
 
     @action(detail=True, permission_classes=[IsAuthenticated], methods=['get'])
     def provider_bookings(self, request, *args, **kwargs):
@@ -536,3 +448,45 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response({'error': 'Contract does not exist.'})
         else:
             return Response({'error': 'Please check your data again.'})
+
+    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
+    def attach_card_for_partners(self, request, *args, **kwargs):
+        if request.data.get('payment_method'):
+            user = self.request.user
+            payment_method = request.data.get('payment_method')
+            if user.is_anonymous:
+                customer_id = request.data.get('customer_id')
+
+                customer, is_created = PartnerCustomer.objects.get_or_create(
+                    customer_id=customer_id,
+                )
+
+                if customer.stripe_customer is None:
+                    stripe_customer = stripe.Customer.create(
+                        email=payment_method['billing_details']['email'],
+                        name=payment_method['billing_details']['name'],
+                    )
+                    djstripe_customer = StripeCustomer.sync_from_stripe_data(
+                        stripe_customer
+                    )
+                    customer.stripe_customer = djstripe_customer
+                    customer.save()
+                else:
+                    stripe_customer = customer.stripe_customer
+
+                return_data = self._attach_payment_method_to_stripe_customer(
+                    payment_method['id'], stripe_customer
+                )
+
+                return Response(return_data)
+            else:
+                return_data = self._attach_payment_method_to_loggin_user(
+                    user, payment_method
+                )
+
+                return Response(return_data)
+        else:
+            return Response(
+                data={"detail": "incorrect payment method"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
