@@ -46,8 +46,11 @@ class ThirdPartyCustomerSerializer(ModelSerializer):
         self, customer_email
     ):
         if customer_email:
-            stripe_customer_object = stripe.Customer.create(email=customer_email)
+            stripe_customer_object = self._stripe_customer_create(customer_email)
             djstripe_customer = StripeCustomer.sync_from_stripe_data(
                 stripe_customer_object
             )
             self.stripe_customer = djstripe_customer
+
+    def _stripe_customer_create(self, customer_email):
+        return stripe.Customer.create(email=customer_email)
