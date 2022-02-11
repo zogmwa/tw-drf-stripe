@@ -29,6 +29,7 @@ class ThirdPartyCustomerSerializer(ModelSerializer):
             customer_email
         )
         third_party_customer = super().create(validated_data)
+        third_party_customer.customer_email = customer_email
 
         return third_party_customer
 

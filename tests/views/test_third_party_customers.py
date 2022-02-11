@@ -1,13 +1,16 @@
 import pytest
+from django.test import override_settings
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_201_CREATED
 
 from api.models import ThirdPartyCustomer
+from stripe import util
 from api.serializers.third_pary_customer import ThirdPartyCustomerSerializer
 
 THIRD_PARTY_CUSTOMER_ENDPOINT = 'http://127.0.0.1:8000/third_party_customers/'
 
 
 class TestThirdPartyCustomer:
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_create_with_logged_in_user(
         self,
         authenticated_client,
@@ -16,12 +19,11 @@ class TestThirdPartyCustomer:
         example_stripe_customer_object,
     ):
         test_email = 'test@example.com'
-        example_stripe_customer_object['email'] = 'test@example.com'
+        example_stripe_customer_object['email'] = test_email
 
-        mocker.patch.object(
-            ThirdPartyCustomerSerializer,
-            '_stripe_customer_create',
-            return_value=example_stripe_customer_object,
+        mocker.patch(
+            'stripe.Customer.create',
+            return_value=util.convert_to_stripe_object(example_stripe_customer_object),
         )
         fake_third_party_customer_uid = 'sadsaedasdsa'
         # Vote on asset attribute
@@ -29,7 +31,6 @@ class TestThirdPartyCustomer:
             THIRD_PARTY_CUSTOMER_ENDPOINT,
             {
                 'customer_uid': fake_third_party_customer_uid,
-                # TODO: Uncomment this when the logic to mock stripe.Customer.create is added to the tests
                 'customer_email': test_email,
             },
         )
