@@ -186,7 +186,7 @@
                   Please book your slot consultation with the provider <a href={{solution.consultation_scheduling_link}}>here</a>.
                   Your Solution Provider (Point of Contact) should follow up with you or should be present during the slot you pick from the above invite link. For any questions/special requests you can reach out to them at: {{ point_of_contact.email }}
                 {% else %}
-                    Your {{ point_of_contact.first_name|default_if_none:"Your Point of Contact"}} will reach out to you for a followup. Their email is: {{ point_of_contact.email }}
+                    Your point of contact {{ point_of_contact.first_name|default_if_none:""}} will reach out to you for a followup. Their email is: {{ point_of_contact.email }}
                 {% endif %}
               </p>
             </td>
