@@ -687,6 +687,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 'organization': {
                     'name': customer.organization.name,
                     'logo_url': customer.organization.logo_url,
+                    'website': customer.organization.website,
                 },
                 'price_plan': {
                     'name': asset_price_plan.name,
