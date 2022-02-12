@@ -312,10 +312,12 @@ class UserViewSet(viewsets.ModelViewSet):
     def payment_methods(self, request, *args, **kwargs):
         user = self.request.user
         if user.is_anonymous:
-            customer_id = request.query_params.get('customer_id', '')
-            if customer_id:
-                customer = ThirdPartyCustomer.objects.get(customer_uid=customer_id)
-                stripe_customer = customer.stripe_customer
+            customer_uid = request.query_params.get('customer_uid', '')
+            if customer_uid:
+                third_party_customer = ThirdPartyCustomer.objects.get(
+                    customer_uid=customer_uid
+                )
+                stripe_customer = third_party_customer.stripe_customer
                 if stripe_customer is None:
                     return Response({'has_payment_method': None})
             else:
@@ -391,10 +393,12 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_anonymous:
             try:
-                customer_id = request.data.get('partner_customer_id', '')
-                if customer_id:
-                    customer = ThirdPartyCustomer.objects.get(customer_uid=customer_id)
-                    stripe_customer = customer.stripe_customer
+                customer_uid = request.data.get('partner_customer_uid', '')
+                if customer_uid:
+                    third_party_customer = ThirdPartyCustomer.objects.get(
+                        customer_uid=customer_uid
+                    )
+                    stripe_customer = third_party_customer.stripe_customer
                     return_data = self._detach_payment_method_from_stripe_customer(
                         request.data.get('payment_method'), stripe_customer
                     )
@@ -577,27 +581,23 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, permission_classes=[AllowAny], methods=['post'])
     def attach_card_for_partners(self, request, *args, **kwargs):
         if request.data.get('payment_method'):
-            user = self.request.user
             payment_method = request.data.get('payment_method')
-            if user.is_anonymous:
-                customer_id = request.data.get('customer_id')
+            customer_uid = request.data.get('customer_uid')
 
-                customer, is_created = ThirdPartyCustomer.objects.get_or_create(
-                    customer_uid=customer_id,
+            third_party_customer = get_or_none(
+                ThirdPartyCustomer, customer_uid=customer_uid
+            )
+
+            if third_party_customer is not None:
+                stripe_customer = stripe.Customer.modify(
+                    third_party_customer.stripe_customer.id,
+                    name=payment_method['billing_details']['name'],
                 )
-
-                if customer.stripe_customer is None:
-                    stripe_customer = stripe.Customer.create(
-                        email=payment_method['billing_details']['email'],
-                        name=payment_method['billing_details']['name'],
-                    )
-                    djstripe_customer = StripeCustomer.sync_from_stripe_data(
-                        stripe_customer
-                    )
-                    customer.stripe_customer = djstripe_customer
-                    customer.save()
-                else:
-                    stripe_customer = customer.stripe_customer
+                djstripe_customer = StripeCustomer.sync_from_stripe_data(
+                    stripe_customer
+                )
+                third_party_customer.stripe_customer = djstripe_customer
+                third_party_customer.save()
 
                 return_data = self._attach_payment_method_to_stripe_customer(
                     payment_method['id'], stripe_customer
@@ -605,11 +605,10 @@ class UserViewSet(viewsets.ModelViewSet):
 
                 return Response(return_data)
             else:
-                return_data = self._attach_payment_method_to_loggin_user(
-                    user, payment_method
+                return Response(
+                    data={"detail": "incorrect payment method"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-
-                return Response(return_data)
         else:
             return Response(
                 data={"detail": "incorrect payment method"},
