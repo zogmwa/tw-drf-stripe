@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from api.utils.models import get_or_none
+from dateutil.relativedelta import relativedelta
 from api.utils.convert_str_to_date import (
     convert_string_to_datetime,
 )
@@ -18,6 +19,8 @@ from api.models.solution import Solution
 from api.models.time_tracked_day import TimeTrackedDay
 from api.models.solution_booking import SolutionBooking
 from api.models.third_party_customer import ThirdPartyCustomer
+from api.models.asset_price_plan import AssetPricePlan
+from api.models.asset_price_plan_subscription import AssetPricePlanSubscription
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import Subscription as StripeSubscription
 from djstripe.models import SubscriptionItem as StripeSubscriptionItem
@@ -614,3 +617,86 @@ class UserViewSet(viewsets.ModelViewSet):
                 data={"detail": "incorrect payment method"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
+    def subscribe_asset_price_plan(self, request, *args, **kwargs):
+        customer_uid = request.data.get('customer_uid')
+        asset_price_plan_id = request.data.get('price_plan_id')
+        asset_price_plan = get_or_none(AssetPricePlan, id=asset_price_plan_id)
+
+        partner_customer = get_or_none(ThirdPartyCustomer, customer_uid=customer_uid)
+        if (partner_customer is None) or (asset_price_plan is None):
+            return Response(
+                data={"detail": "Customer is not exist"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            stripe_customer = partner_customer.stripe_customer
+            asset_booking = AssetPricePlanSubscription.objects.create(
+                customer=partner_customer, price_plan=asset_price_plan
+            )
+
+            current_day = datetime.datetime.now().day
+            if current_day >= 5:
+                billing_cycle_anchor = int(
+                    (
+                        datetime.datetime.now() + relativedelta(months=1, day=5)
+                    ).timestamp()
+                )
+            else:
+                billing_cycle_anchor = int(
+                    (datetime.datetime.now() + relativedelta(day=5)).timestamp()
+                )
+
+            stripe_subscription = stripe.Subscription.create(
+                customer=stripe_customer.id,
+                items=[{'price': asset_price_plan.stripe_price.id}],
+                expand=['latest_invoice.payment_intent'],
+                billing_cycle_anchor=billing_cycle_anchor,
+            )
+
+            djstripe_subscription = StripeSubscription.sync_from_stripe_data(
+                stripe_subscription
+            )
+
+            asset_booking.stripe_subscription = djstripe_subscription
+            asset_booking.save()
+
+            return Response({'status': 'Successfully subscribed'})
+        except Exception:
+            return Response(
+                data={"detail": "incorrect price plan or customer data"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
+    def partner_price_plan(self, request, *args, **kwargs):
+        customer_uid = request.data.get('customer_uid', '')
+        asset_price_plan_id = request.data.get('price_id')
+
+        customer = get_or_none(ThirdPartyCustomer, customer_uid=customer_uid)
+        asset_price_plan = get_or_none(AssetPricePlan, id=asset_price_plan_id)
+
+        if (customer is None) or (asset_price_plan is None):
+            return Response({'status: None data'})
+
+        return Response(
+            {
+                'email': customer.stripe_customer.email,
+                'organization': {
+                    'name': customer.organization.name,
+                    'logo_url': customer.organization.logo_url,
+                },
+                'price_plan': {
+                    'name': asset_price_plan.name,
+                    'price': asset_price_plan.price,
+                    'per': asset_price_plan.per,
+                    'currency': asset_price_plan.currency,
+                    'asset': {
+                        'name': asset_price_plan.asset.name,
+                        'slug': asset_price_plan.asset.slug,
+                    },
+                },
+            }
+        )
