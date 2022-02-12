@@ -19,7 +19,6 @@ from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from api.serializers.third_pary_customer import ThirdPartyCustomerSerializer
 from api.views.newsletter_contact import NewsLetterContactViewSet
 from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
