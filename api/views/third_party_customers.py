@@ -4,7 +4,7 @@ from rest_framework import (
 )
 
 from api.models import ThirdPartyCustomer
-from api.serializers.third_pary_customer import ThirdPartyCustomerSerializer
+from api.serializers.third_party_customer import ThirdPartyCustomerSerializer
 
 
 class ThirdPartyCustomerViewSet(viewsets.ModelViewSet):

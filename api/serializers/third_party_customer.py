@@ -26,7 +26,7 @@ class ThirdPartyCustomerSerializer(ModelSerializer):
         customer_email = validated_data.pop('customer_email', '')
         customer_email = customer_email.strip()
         self._create_stripe_customer_and_associate_with_third_party_customer(
-            customer_email
+            validated_data, customer_email
         )
         third_party_customer = super().create(validated_data)
         third_party_customer.customer_email = customer_email
@@ -44,14 +44,14 @@ class ThirdPartyCustomerSerializer(ModelSerializer):
             validated_data['organization'] = self.context['request'].user.organization
 
     def _create_stripe_customer_and_associate_with_third_party_customer(
-        self, customer_email
+        self, validated_data, customer_email
     ):
         if customer_email:
             stripe_customer_object = self._stripe_customer_create(customer_email)
             djstripe_customer = StripeCustomer.sync_from_stripe_data(
                 stripe_customer_object
             )
-            self.stripe_customer = djstripe_customer
+            validated_data['stripe_customer'] = djstripe_customer
 
     def _stripe_customer_create(self, customer_email):
         return stripe.Customer.create(email=customer_email)
