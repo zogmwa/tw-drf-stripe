@@ -3,6 +3,9 @@ from django.test import override_settings
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_201_CREATED
 
 from api.models import ThirdPartyCustomer
+from api.models.asset_price_plan import AssetPricePlan
+from djstripe.models import Price as StripePrice
+from djstripe.models import Product as StripeProduct
 from stripe import util
 
 THIRD_PARTY_CUSTOMER_ENDPOINT = 'http://127.0.0.1:8000/third_party_customers/'
@@ -113,8 +116,8 @@ class TestThirdPartyCustomer:
         unauthenticated_client,
         example_stripe_attach_payment_method_customer_object_1,
         example_stripe_customer_has_default_payment_method_object,
-        mocker,
         example_stripe_customer_object,
+        mocker,
     ):
         response = self._attach_payment_method_to_customer(
             authenticated_client,
@@ -232,3 +235,66 @@ class TestThirdPartyCustomer:
         )
 
         assert response.status_code == 200
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_third_party_customer_could_subscribe_asset_price_plan(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_has_default_payment_method_object,
+        example_asset_price_plan_stripe_subscription_object,
+        example_stripe_price_create_event,
+        example_stripe_customer_object,
+        mocker,
+    ):
+        example_price_data = example_stripe_price_create_event.data['object']
+        example_price_data['id'] = example_asset_price_plan_stripe_subscription_object[
+            'items'
+        ]['data'][0]['price']['id']
+        example_product = StripeProduct.objects.create(
+            id=example_asset_price_plan_stripe_subscription_object['items']['data'][0][
+                'price'
+            ]['product'],
+            name='test codemesh product',
+            type='service',
+        )
+        example_price = StripePrice.objects.create(
+            id=example_price_data['id'],
+            product=example_product,
+            currency=example_price_data['currency'],
+            type='Recurring',
+            active=True,
+        )
+        example_asset_price_plan = AssetPricePlan.objects.create(
+            asset=example_asset, name='test price', stripe_price=example_price
+        )
+
+        self._attach_payment_method_to_customer(
+            authenticated_client,
+            unauthenticated_client,
+            example_stripe_customer_object,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_has_default_payment_method_object,
+            mocker,
+        )
+
+        mocker.patch(
+            'stripe.Subscription.create',
+            return_value=util.convert_to_stripe_object(
+                example_asset_price_plan_stripe_subscription_object
+            ),
+        )
+
+        response = unauthenticated_client.post(
+            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_asset_price_plan'),
+            {
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'price_plan_id': example_asset_price_plan.id,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['status'] == 'Successfully subscribed'
