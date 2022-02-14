@@ -16,13 +16,13 @@ class SolutionSerializerForConsultationRequest(serializers.ModelSerializer):
 
 
 class ConsultationRequestSerializer(serializers.ModelSerializer):
-    solution = SolutionSerializerForConsultationRequest(read_only=True)
     created = serializers.DateTimeField(read_only=True)
     updated = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = ConsultationRequest
         fields = [
+            "id",
             "solution",
             "customer_email",
             "customer_first_name",
@@ -31,3 +31,7 @@ class ConsultationRequestSerializer(serializers.ModelSerializer):
             "updated",
         ]
         read_only_fields = ["created", "updated"]
+
+
+class ReadConsultationRequestSerializer(ConsultationRequestSerializer):
+    solution = SolutionSerializerForConsultationRequest(read_only=True)
