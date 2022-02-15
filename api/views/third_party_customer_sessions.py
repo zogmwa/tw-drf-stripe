@@ -71,7 +71,7 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     asset_price_plan = AssetPricePlan.objects.get(id=price_plan_id)
 
                     active_site_obj = Site.objects.get(id=settings.SITE_ID)
-                    active_site = furl('http://{}'.format(active_site_obj.domain))
+                    active_site = furl('https://{}'.format(active_site_obj.domain))
                     return_url = '{}/{}/{}/{}/{}?session_id={}'.format(
                         active_site,
                         user.organization.name,

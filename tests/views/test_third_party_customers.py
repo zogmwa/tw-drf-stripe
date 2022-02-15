@@ -145,60 +145,6 @@ class TestThirdPartyCustomer:
         return response
 
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
-    def test_third_party_customer_could_subscribe_asset_price_plan(
-        self,
-        authenticated_client,
-        unauthenticated_client,
-        example_asset,
-        example_stripe_attach_payment_method_customer_object_1,
-        example_stripe_customer_has_default_payment_method_object,
-        example_asset_price_plan_stripe_subscription_object,
-        example_stripe_price_create_event,
-        example_stripe_customer_object,
-        mocker,
-    ):
-        self._generate_session_id(
-            authenticated_client,
-            example_stripe_customer_object,
-            example_stripe_price_create_event,
-            example_asset_price_plan_stripe_subscription_object,
-            example_asset,
-            mocker,
-        )
-
-        self._attach_payment_method_to_customer(
-            authenticated_client,
-            unauthenticated_client,
-            example_stripe_customer_object,
-            example_stripe_attach_payment_method_customer_object_1,
-            example_stripe_customer_has_default_payment_method_object,
-            mocker,
-        )
-
-        mocker.patch(
-            'stripe.Subscription.create',
-            return_value=util.convert_to_stripe_object(
-                example_asset_price_plan_stripe_subscription_object
-            ),
-        )
-
-        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
-        response = unauthenticated_client.post(
-            '{}{}/'.format(
-                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT, 'subscribe_asset_price_plan'
-            ),
-            {
-                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
-                'price_plan_id': 1,
-                'session_id': third_party_customer_session.session_id,
-            },
-            content_type='application/json',
-        )
-
-        assert response.status_code == 200
-        assert response.data['status'] == 'Successfully subscribed'
-
-    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_create_with_logged_in_user(
         self,
         authenticated_client,
@@ -404,3 +350,58 @@ class TestThirdPartyCustomer:
         )
 
         assert response.status_code == 200
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_third_party_customer_could_subscribe_asset_price_plan(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_has_default_payment_method_object,
+        example_asset_price_plan_stripe_subscription_object,
+        example_stripe_price_create_event,
+        example_stripe_customer_object,
+        mocker,
+    ):
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
+
+        self._attach_payment_method_to_customer(
+            authenticated_client,
+            unauthenticated_client,
+            example_stripe_customer_object,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_has_default_payment_method_object,
+            mocker,
+        )
+
+        mocker.patch(
+            'stripe.Subscription.create',
+            return_value=util.convert_to_stripe_object(
+                example_asset_price_plan_stripe_subscription_object
+            ),
+        )
+
+        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
+        asset_price_plan = AssetPricePlan.objects.get()
+        response = unauthenticated_client.post(
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT, 'subscribe_asset_price_plan'
+            ),
+            {
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'price_plan_id': asset_price_plan.id,
+                'session_id': third_party_customer_session.session_id,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['status'] == 'Successfully subscribed'

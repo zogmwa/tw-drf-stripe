@@ -334,6 +334,8 @@ APSCHEDULER_RUN_NOW_TIMEOUT = 7200  # Seconds
 
 NEWSLETTER_THUMBNAIL = 'sorl-thumbnail'
 
+THIRD_PATRY_SESSION_EXPIRE_DURATION = 3600  # Seconds - 1 hour
+
 
 sentry_sdk.init(
     dsn="https://ae3e3499901e40a0a7848f5485d32587@o1064580.ingest.sentry.io/6055486",
