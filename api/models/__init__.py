@@ -34,6 +34,7 @@ from .user_problem import UserProblem
 
 # Third-Party SaaS Subscriptions
 from .third_party_customer import ThirdPartyCustomer
+from .third_party_customer_session import ThirdPartyCustomerSession
 from .asset_price_plan_subscription import AssetPricePlanSubscription
 
 
