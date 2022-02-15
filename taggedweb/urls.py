@@ -52,6 +52,7 @@ from api.views.user_problem import UserProblemViewSet
 from api.views.organization import autocomplete_organizations
 from api.views.price_plans import PricePlanViewSet
 from api.views.user import UserViewSet
+from api.views.consultation_requests import ConsultationRequestViewSet
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -93,6 +94,7 @@ router.register(r'newsletter_contact', NewsLetterContactViewSet)
 router.register(r'user_problems', UserProblemViewSet)
 router.register(r'third_party_customers', ThirdPartyCustomerViewSet)
 router.register(r'third_party_customer_sessions', ThirdPartyCustomerSessionViewSet)
+router.register(r'consultation_request', ConsultationRequestViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
