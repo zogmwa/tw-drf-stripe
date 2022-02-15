@@ -16,6 +16,7 @@ from api.models.asset_price_plan_subscription import AssetPricePlanSubscription
 from djstripe.models import Subscription as StripeSubscription
 from api.models.asset_price_plan import AssetPricePlan
 from api.views.user import UserViewSet
+from sentry_sdk import capture_message
 
 REQUEST_ACTIONS = [
     'add-payment-method',
@@ -42,10 +43,12 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 return True
             else:
                 return False
-        except Exception:
+        except ThirdPartyCustomerSession.DoesNotExist:
             return False
 
-    @action(detail=False, methods=['post'])
+    @action(
+        detail=False, permission_classes=[permissions.IsAuthenticated], methods=['post']
+    )
     def generate_session_url(self, request, *args, **kwargs):
         """ """
         user = self.request.user
@@ -81,19 +84,25 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                         session_id,
                     )
                     return Response({'url': return_url})
-                except Exception:
+                except Exception as e:
+                    capture_message('Error: Generate session url', str(e))
                     return Response(
-                        data={"detail": Exception},
+                        data={"detail": str(e)},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
             else:
                 return Response(
-                    data={"detail": "Unknown request action."},
+                    data={
+                        "detail": "Unknown request action.",
+                        "action_lists": REQUEST_ACTIONS,
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
             return Response(
-                data={"detail": "Incorrect user info."},
+                data={
+                    "detail": "User organization is not set, please contact a TaggedWeb admin and they will help you"
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -206,7 +215,7 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     )
 
                     return Response(return_data)
-            except Exception:
+            except ThirdPartyCustomer.DoesNotExist:
                 return Response({'has_payment_method': None})
         else:
             return Response(
@@ -231,7 +240,7 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 if stripe_customer is None:
                     return Response({'has_payment_method': None})
 
-                return_payment_methods = UserViewSet._fetch_payment_method_list(
+                return_payment_methods = UserViewSet._fetch_payment_methods(
                     stripe_customer
                 )
                 return Response(
@@ -255,7 +264,7 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
         permission_classes=[AllowOnlyThirdPartyCustomers],
         methods=['post'],
     )
-    def subscribe_asset_price_plan(self, request, *args, **kwargs):
+    def subscribe_customer_to_price_plan(self, request, *args, **kwargs):
         session_id = request.data.get('session_id', '')
         customer_uid = request.data.get('customer_uid')
         if self._check_valid_session_id(session_id, customer_uid):
@@ -302,9 +311,10 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 asset_booking.save()
 
                 return Response({'status': 'Successfully subscribed'})
-            except Exception:
+            except Exception as e:
+                capture_message('Error: Subscribe asset price plan', str(e))
                 return Response(
-                    data={"detail": "incorrect price plan or customer data"},
+                    data={"detail": str(e)},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:

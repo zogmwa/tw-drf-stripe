@@ -199,7 +199,7 @@ class UserViewSet(viewsets.ModelViewSet):
             }
 
     @staticmethod
-    def _fetch_payment_method_list(stripe_customer):
+    def _fetch_payment_methods(stripe_customer):
         customer_payment_methods = stripe.PaymentMethod.list(
             customer=stripe_customer.id,
             type="card",
@@ -340,7 +340,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if stripe_customer is None:
                 return Response({'has_payment_method': None})
 
-        return_payment_methods = self._fetch_payment_method_list(stripe_customer)
+        return_payment_methods = self._fetch_payment_methods(stripe_customer)
         return Response(
             {
                 'has_payment_method': stripe_customer.default_payment_method

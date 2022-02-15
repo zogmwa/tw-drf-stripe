@@ -393,7 +393,8 @@ class TestThirdPartyCustomer:
         asset_price_plan = AssetPricePlan.objects.get()
         response = unauthenticated_client.post(
             '{}{}/'.format(
-                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT, 'subscribe_asset_price_plan'
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
+                'subscribe_customer_to_price_plan',
             ),
             {
                 'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
