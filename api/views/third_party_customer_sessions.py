@@ -37,7 +37,7 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 session_id=session_id, third_party_customer__customer_uid=customer_uid
             )
             if (
-                third_party_customer_session.expire_date.replace(tzinfo=None)
+                third_party_customer_session.expiration_time.replace(tzinfo=None)
                 > datetime.now()
             ) and (third_party_customer_session.is_expired is False):
                 return True
@@ -61,15 +61,15 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 try:
                     session_id = uuid.uuid4()
                     third_party_customer = ThirdPartyCustomer.objects.get(
-                        customer_uid=customer_uid
+                        customer_uid=customer_uid, organization=user.organization
                     )
-                    expire_date = datetime.now() + timedelta(
+                    expiration_time = datetime.now() + timedelta(
                         seconds=settings.THIRD_PATRY_SESSION_EXPIRE_DURATION
                     )
                     ThirdPartyCustomerSession.objects.create(
                         session_id=session_id,
                         third_party_customer=third_party_customer,
-                        expire_date=expire_date,
+                        expiration_time=expiration_time,
                     )
                     asset_price_plan = AssetPricePlan.objects.get(id=price_plan_id)
 

@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.db.models import UniqueConstraint
 from api.models.third_party_customer import ThirdPartyCustomer
@@ -8,15 +9,14 @@ class ThirdPartyCustomerSession(models.Model):
     Third party customer session is for store the third party customer's session info.
     """
 
-    third_party_customer = models.OneToOneField(
+    third_party_customer = models.ForeignKey(
         ThirdPartyCustomer,
-        related_name='third_party_customer',
         on_delete=models.CASCADE,
     )
 
-    session_id = models.CharField(max_length=255)
+    session_id = models.UUIDField(default=uuid.uuid4, editable=False)
 
-    expire_date = models.DateTimeField(null=True, blank=True)
+    expiration_time = models.DateTimeField(null=True, blank=True)
 
     is_expired = models.BooleanField(
         default=False,
