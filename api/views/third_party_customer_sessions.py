@@ -59,17 +59,17 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
         if user.organization:
             if action_type in REQUEST_ACTIONS:
                 try:
-                    session_id = uuid.uuid4()
                     third_party_customer = ThirdPartyCustomer.objects.get(
                         customer_uid=customer_uid, organization=user.organization
                     )
                     expiration_time = datetime.now() + timedelta(
                         seconds=settings.THIRD_PATRY_SESSION_EXPIRE_DURATION
                     )
-                    ThirdPartyCustomerSession.objects.create(
-                        session_id=session_id,
-                        third_party_customer=third_party_customer,
-                        expiration_time=expiration_time,
+                    third_party_customer_session = (
+                        ThirdPartyCustomerSession.objects.create(
+                            third_party_customer=third_party_customer,
+                            expiration_time=expiration_time,
+                        )
                     )
                     asset_price_plan = AssetPricePlan.objects.get(id=price_plan_id)
 
@@ -81,13 +81,17 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                         asset_price_plan.id,
                         customer_uid,
                         action_type,
-                        session_id,
+                        third_party_customer_session.session_id,
                     )
                     return Response({'url': return_url})
-                except Exception as e:
-                    capture_message('Error: Generate session url', str(e))
+                except ThirdPartyCustomer.DoesNotExist:
                     return Response(
-                        data={"detail": str(e)},
+                        data={"detail": "Third party customer doesn't exist"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                except AssetPricePlan.DoesNotExist:
+                    return Response(
+                        data={"detail": "Asset price plan doesn't exist"},
                         status=status.HTTP_400_BAD_REQUEST,
                     )
             else:
@@ -311,10 +315,9 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 asset_booking.save()
 
                 return Response({'status': 'Successfully subscribed'})
-            except Exception as e:
-                capture_message('Error: Subscribe asset price plan', str(e))
+            except AssetPricePlanSubscription.DoesNotExist:
                 return Response(
-                    data={"detail": str(e)},
+                    data={"detail": "Asset price plan does not exist."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         else:
