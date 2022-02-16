@@ -24,6 +24,7 @@ from api.views.asset_attribute_votes import AssetAttributeVoteViewSet
 from api.views.asset_reviews import AssetReviewViewSet
 from api.views.solution_reviews import SolutionReviewViewSet
 from api.views.third_party_customers import ThirdPartyCustomerViewSet
+from api.views.third_party_customer_sessions import ThirdPartyCustomerSessionViewSet
 from payments.views import CreateStripeCheckoutSession
 from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
@@ -92,6 +93,7 @@ router.register(r'solution_votes', SolutionVoteViewSet)
 router.register(r'newsletter_contact', NewsLetterContactViewSet)
 router.register(r'user_problems', UserProblemViewSet)
 router.register(r'third_party_customers', ThirdPartyCustomerViewSet)
+router.register(r'third_party_customer_sessions', ThirdPartyCustomerSessionViewSet)
 router.register(r'consultation_request', ConsultationRequestViewSet)
 
 urlpatterns = [

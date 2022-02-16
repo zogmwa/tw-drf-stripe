@@ -17,3 +17,10 @@ class AllowOwnerOrAdminOrStaff(permissions.IsAuthenticated):
         if obj.id == user.id or self._is_staff_or_admin(request):
             return True
         return False
+
+
+class AllowOnlyThirdPartyCustomers(permissions.AllowAny):
+    def has_permission(self, request, view):
+        if request.data.get('session_id') == '':
+            return False
+        return True

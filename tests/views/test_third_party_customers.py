@@ -1,19 +1,67 @@
 import pytest
 from django.test import override_settings
 from rest_framework.status import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_201_CREATED
-
 from api.models import ThirdPartyCustomer
 from api.models.asset_price_plan import AssetPricePlan
+from api.models.third_party_customer_session import ThirdPartyCustomerSession
 from djstripe.models import Price as StripePrice
 from djstripe.models import Product as StripeProduct
 from stripe import util
 
 THIRD_PARTY_CUSTOMER_ENDPOINT = 'http://127.0.0.1:8000/third_party_customers/'
-USERS_BASE_ENDPOINT = 'http://127.0.0.1:8000/users/'
+THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT = (
+    'http://127.0.0.1:8000/third_party_customer_sessions/'
+)
 FAKE_THIRD_PARTY_CUSTOMER_UID = 'sadsaedasdsa'
 
 
 class TestThirdPartyCustomer:
+    def _generate_session_id(
+        self,
+        partner,
+        stripe_customer_object,
+        stripe_price_create_event,
+        asset_price_plan_stripe_subscription_object,
+        asset,
+        mock,
+    ):
+        self._create_stripe_customer(stripe_customer_object, partner, mock)
+        example_price_data = stripe_price_create_event.data['object']
+        example_price_data['id'] = asset_price_plan_stripe_subscription_object['items'][
+            'data'
+        ][0]['price']['id']
+        example_product = StripeProduct.objects.create(
+            id=asset_price_plan_stripe_subscription_object['items']['data'][0]['price'][
+                'product'
+            ],
+            name='test codemesh product',
+            type='service',
+        )
+        example_price = StripePrice.objects.create(
+            id=example_price_data['id'],
+            product=example_product,
+            currency=example_price_data['currency'],
+            type='Recurring',
+            active=True,
+        )
+        example_asset_price_plan = AssetPricePlan.objects.create(
+            asset=asset, name='test price', stripe_price=example_price
+        )
+
+        response = partner.post(
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT, 'generate_session_url'
+            ),
+            {
+                'action': 'add-payment-method',
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'price_plan_id': example_asset_price_plan.id,
+            },
+            content_type='application/json',
+        )
+
+        return response
+
     def _create_stripe_customer(self, example_stripe_customer, partner, mock):
         test_email = 'test@example.com'
         example_stripe_customer['email'] = test_email
@@ -23,13 +71,13 @@ class TestThirdPartyCustomer:
             return_value=util.convert_to_stripe_object(example_stripe_customer),
         )
 
-        # Vote on asset attribute
         response = partner.post(
             THIRD_PARTY_CUSTOMER_ENDPOINT,
             {
                 'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
                 'customer_email': test_email,
             },
+            content_type='application/json',
         )
 
         return response
@@ -43,8 +91,6 @@ class TestThirdPartyCustomer:
         stripe_customer_has_default_payment_method_object,
         mock,
     ):
-        self._create_stripe_customer(stripe_customer_object, auth_user, mock)
-
         stripe_customer_object['name'] = 'Test user'
         mock.patch(
             'stripe.Customer.modify',
@@ -78,10 +124,14 @@ class TestThirdPartyCustomer:
             ),
         )
 
+        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
         response = unauth_user.post(
-            '{}{}/'.format(USERS_BASE_ENDPOINT, 'attach_card_for_partners'),
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT, 'attach_card_for_partners'
+            ),
             {
                 'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'session_id': third_party_customer_session.session_id,
                 'payment_method': {
                     "id": stripe_attach_payment_method_customer_object['id'],
                     "billing_details": {
@@ -110,15 +160,49 @@ class TestThirdPartyCustomer:
         assert third_party_customer.customer_uid == FAKE_THIRD_PARTY_CUSTOMER_UID
 
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_create_session_url_with_logged_in_user(
+        self,
+        example_asset,
+        example_asset_price_plan_stripe_subscription_object,
+        example_stripe_customer_object,
+        example_stripe_price_create_event,
+        authenticated_client,
+        mocker,
+    ):
+        response = self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
+
+        assert response.status_code == 200
+        assert response.data['url'] is not None
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_third_party_customer_could_attach_payment_method(
         self,
         authenticated_client,
         unauthenticated_client,
         example_stripe_attach_payment_method_customer_object_1,
         example_stripe_customer_has_default_payment_method_object,
+        example_stripe_price_create_event,
+        example_asset_price_plan_stripe_subscription_object,
+        example_asset,
         example_stripe_customer_object,
         mocker,
     ):
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
+
         response = self._attach_payment_method_to_customer(
             authenticated_client,
             unauthenticated_client,
@@ -137,11 +221,23 @@ class TestThirdPartyCustomer:
         authenticated_client,
         unauthenticated_client,
         example_stripe_customer_object,
+        example_stripe_price_create_event,
         example_stripe_attach_payment_method_customer_object_1,
         example_stripe_attach_payment_method_customer_object_2,
         example_stripe_customer_has_default_payment_method_object,
+        example_asset_price_plan_stripe_subscription_object,
+        example_asset,
         mocker,
     ):
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
+
         self._attach_payment_method_to_customer(
             authenticated_client,
             unauthenticated_client,
@@ -164,13 +260,17 @@ class TestThirdPartyCustomer:
                 ],
             },
         )
-        response = unauthenticated_client.get(
-            '{}{}/?{}={}'.format(
-                USERS_BASE_ENDPOINT,
+        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
+        response = unauthenticated_client.post(
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
                 'payment_methods',
-                'customer_uid',
-                FAKE_THIRD_PARTY_CUSTOMER_UID,
             ),
+            {
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'session_id': third_party_customer_session.session_id,
+            },
+            content_type='application/json',
         )
 
         assert response.status_code == 200
@@ -191,8 +291,19 @@ class TestThirdPartyCustomer:
         example_stripe_customer_has_default_payment_method_object,
         example_stripe_customer_has_not_default_payment_method_object,
         example_stripe_detach_payment_method_customer_object_1,
+        example_stripe_price_create_event,
+        example_asset_price_plan_stripe_subscription_object,
+        example_asset,
         mocker,
     ):
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
         mocker.patch(
             'stripe.PaymentMethod.detach',
             return_value=util.convert_to_stripe_object(
@@ -223,13 +334,17 @@ class TestThirdPartyCustomer:
             mocker,
         )
 
+        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
         response = authenticated_client.post(
-            '{}{}/'.format(USERS_BASE_ENDPOINT, 'detach_payment_method'),
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT, 'detach_payment_method'
+            ),
             {
                 'payment_method': example_stripe_attach_payment_method_customer_object_1[
                     'id'
                 ],
-                'partner_customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'session_id': third_party_customer_session.session_id,
             },
             content_type='application/json',
         )
@@ -249,26 +364,13 @@ class TestThirdPartyCustomer:
         example_stripe_customer_object,
         mocker,
     ):
-        example_price_data = example_stripe_price_create_event.data['object']
-        example_price_data['id'] = example_asset_price_plan_stripe_subscription_object[
-            'items'
-        ]['data'][0]['price']['id']
-        example_product = StripeProduct.objects.create(
-            id=example_asset_price_plan_stripe_subscription_object['items']['data'][0][
-                'price'
-            ]['product'],
-            name='test codemesh product',
-            type='service',
-        )
-        example_price = StripePrice.objects.create(
-            id=example_price_data['id'],
-            product=example_product,
-            currency=example_price_data['currency'],
-            type='Recurring',
-            active=True,
-        )
-        example_asset_price_plan = AssetPricePlan.objects.create(
-            asset=example_asset, name='test price', stripe_price=example_price
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
         )
 
         self._attach_payment_method_to_customer(
@@ -287,11 +389,17 @@ class TestThirdPartyCustomer:
             ),
         )
 
+        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
+        asset_price_plan = AssetPricePlan.objects.get()
         response = unauthenticated_client.post(
-            '{}{}/'.format(USERS_BASE_ENDPOINT, 'subscribe_asset_price_plan'),
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
+                'subscribe_customer_to_price_plan',
+            ),
             {
                 'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
-                'price_plan_id': example_asset_price_plan.id,
+                'price_plan_id': asset_price_plan.id,
+                'session_id': third_party_customer_session.session_id,
             },
             content_type='application/json',
         )

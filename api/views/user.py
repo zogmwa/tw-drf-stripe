@@ -8,9 +8,8 @@ from django.db.models import Sum
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from api.utils.models import get_or_none
-from dateutil.relativedelta import relativedelta
 from api.utils.convert_str_to_date import (
     convert_string_to_datetime,
 )
@@ -18,9 +17,6 @@ from api.models import User
 from api.models.solution import Solution
 from api.models.time_tracked_day import TimeTrackedDay
 from api.models.solution_booking import SolutionBooking
-from api.models.third_party_customer import ThirdPartyCustomer
-from api.models.asset_price_plan import AssetPricePlan
-from api.models.asset_price_plan_subscription import AssetPricePlanSubscription
 from djstripe.models import Customer as StripeCustomer
 from djstripe.models import Subscription as StripeSubscription
 from djstripe.models import SubscriptionItem as StripeSubscriptionItem
@@ -202,6 +198,29 @@ class UserViewSet(viewsets.ModelViewSet):
                 'has_payment_method': True,
             }
 
+    @staticmethod
+    def _fetch_payment_methods(stripe_customer):
+        customer_payment_methods = stripe.PaymentMethod.list(
+            customer=stripe_customer.id,
+            type="card",
+        )
+        payment_methods = customer_payment_methods.get('data')
+        return_payment_methods = []
+        for payment_method in payment_methods:
+            return_payment_methods.append(
+                {
+                    "id": payment_method.id,
+                    "brand": payment_method.card.brand,
+                    "last4": payment_method.card.last4,
+                    "exp_month": payment_method.card.exp_month,
+                    "exp_year": payment_method.card.exp_year,
+                    "default_payment_method": stripe_customer.default_payment_method.id
+                    == payment_method.id,
+                }
+            )
+
+        return return_payment_methods
+
     def _save_tracked_times(self, contract_id, tracking_time_data, user):
         if contract_id:
             try:
@@ -311,43 +330,17 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-    @action(detail=False, permission_classes=[AllowAny], methods=['get'])
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['get'])
     def payment_methods(self, request, *args, **kwargs):
         user = self.request.user
         if user.is_anonymous:
-            customer_uid = request.query_params.get('customer_uid', '')
-            if customer_uid:
-                third_party_customer = ThirdPartyCustomer.objects.get(
-                    customer_uid=customer_uid
-                )
-                stripe_customer = third_party_customer.stripe_customer
-                if stripe_customer is None:
-                    return Response({'has_payment_method': None})
-            else:
-                return Response({'has_payment_method': None})
+            return Response({'has_payment_method': None})
         else:
             stripe_customer = user.stripe_customer
             if stripe_customer is None:
                 return Response({'has_payment_method': None})
 
-        customer_payment_methods = stripe.PaymentMethod.list(
-            customer=stripe_customer.id,
-            type="card",
-        )
-        payment_methods = customer_payment_methods.get('data')
-        return_payment_methods = []
-        for payment_method in payment_methods:
-            return_payment_methods.append(
-                {
-                    "id": payment_method.id,
-                    "brand": payment_method.card.brand,
-                    "last4": payment_method.card.last4,
-                    "exp_month": payment_method.card.exp_month,
-                    "exp_year": payment_method.card.exp_year,
-                    "default_payment_method": stripe_customer.default_payment_method.id
-                    == payment_method.id,
-                }
-            )
+        return_payment_methods = self._fetch_payment_methods(stripe_customer)
         return Response(
             {
                 'has_payment_method': stripe_customer.default_payment_method
@@ -391,24 +384,11 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
+    @action(detail=False, permission_classes=[IsAuthenticated], methods=['post'])
     def detach_payment_method(self, request, *args, **kwargs):
         user = self.request.user
         if user.is_anonymous:
-            try:
-                customer_uid = request.data.get('partner_customer_uid', '')
-                if customer_uid:
-                    third_party_customer = ThirdPartyCustomer.objects.get(
-                        customer_uid=customer_uid
-                    )
-                    stripe_customer = third_party_customer.stripe_customer
-                    return_data = self._detach_payment_method_from_stripe_customer(
-                        request.data.get('payment_method'), stripe_customer
-                    )
-
-                    return Response(return_data)
-            except Exception:
-                return Response({'has_payment_method': None})
+            return Response({'has_payment_method': None})
         else:
             if user.stripe_customer:
                 return_data = self._detach_payment_method_from_stripe_customer(
@@ -580,124 +560,3 @@ class UserViewSet(viewsets.ModelViewSet):
                 return Response({'error': 'Contract does not exist.'})
         else:
             return Response({'error': 'Please check your data again.'})
-
-    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
-    def attach_card_for_partners(self, request, *args, **kwargs):
-        if request.data.get('payment_method'):
-            payment_method = request.data.get('payment_method')
-            customer_uid = request.data.get('customer_uid')
-
-            third_party_customer = get_or_none(
-                ThirdPartyCustomer, customer_uid=customer_uid
-            )
-
-            if third_party_customer is not None:
-                stripe_customer = stripe.Customer.modify(
-                    third_party_customer.stripe_customer.id,
-                    name=payment_method['billing_details']['name'],
-                )
-                djstripe_customer = StripeCustomer.sync_from_stripe_data(
-                    stripe_customer
-                )
-                third_party_customer.stripe_customer = djstripe_customer
-                third_party_customer.save()
-
-                return_data = self._attach_payment_method_to_stripe_customer(
-                    payment_method['id'], stripe_customer
-                )
-
-                return Response(return_data)
-            else:
-                return Response(
-                    data={"detail": "incorrect payment method"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        else:
-            return Response(
-                data={"detail": "incorrect payment method"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
-    def subscribe_asset_price_plan(self, request, *args, **kwargs):
-        customer_uid = request.data.get('customer_uid')
-        asset_price_plan_id = request.data.get('price_plan_id')
-        asset_price_plan = get_or_none(AssetPricePlan, id=asset_price_plan_id)
-
-        partner_customer = get_or_none(ThirdPartyCustomer, customer_uid=customer_uid)
-        if (partner_customer is None) or (asset_price_plan is None):
-            return Response(
-                data={"detail": "Customer is not exist"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            stripe_customer = partner_customer.stripe_customer
-            asset_booking = AssetPricePlanSubscription.objects.create(
-                customer=partner_customer, price_plan=asset_price_plan
-            )
-
-            current_day = datetime.datetime.now().day
-            if current_day >= 5:
-                billing_cycle_anchor = int(
-                    (
-                        datetime.datetime.now() + relativedelta(months=1, day=5)
-                    ).timestamp()
-                )
-            else:
-                billing_cycle_anchor = int(
-                    (datetime.datetime.now() + relativedelta(day=5)).timestamp()
-                )
-
-            stripe_subscription = stripe.Subscription.create(
-                customer=stripe_customer.id,
-                items=[{'price': asset_price_plan.stripe_price.id}],
-                expand=['latest_invoice.payment_intent'],
-                billing_cycle_anchor=billing_cycle_anchor,
-            )
-
-            djstripe_subscription = StripeSubscription.sync_from_stripe_data(
-                stripe_subscription
-            )
-
-            asset_booking.stripe_subscription = djstripe_subscription
-            asset_booking.save()
-
-            return Response({'status': 'Successfully subscribed'})
-        except Exception:
-            return Response(
-                data={"detail": "incorrect price plan or customer data"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-    @action(detail=False, permission_classes=[AllowAny], methods=['post'])
-    def partner_price_plan(self, request, *args, **kwargs):
-        customer_uid = request.data.get('customer_uid', '')
-        asset_price_plan_id = request.data.get('price_id')
-
-        customer = get_or_none(ThirdPartyCustomer, customer_uid=customer_uid)
-        asset_price_plan = get_or_none(AssetPricePlan, id=asset_price_plan_id)
-
-        if (customer is None) or (asset_price_plan is None):
-            return Response({'status: None data'})
-
-        return Response(
-            {
-                'email': customer.stripe_customer.email,
-                'organization': {
-                    'name': customer.organization.name,
-                    'logo_url': customer.organization.logo_url,
-                    'website': customer.organization.website,
-                },
-                'price_plan': {
-                    'name': asset_price_plan.name,
-                    'price': asset_price_plan.price,
-                    'per': asset_price_plan.per,
-                    'currency': asset_price_plan.currency,
-                    'asset': {
-                        'name': asset_price_plan.asset.name,
-                        'slug': asset_price_plan.asset.slug,
-                    },
-                },
-            }
-        )

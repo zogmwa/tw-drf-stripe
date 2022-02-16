@@ -14,7 +14,6 @@ from api.models import (
     Attribute,
     AssetQuestionVote,
     AssetClaim,
-    ThirdPartyCustomer,
 )
 from api.models.asset_review import AssetReview
 from api.models.asset_snapshot import AssetSnapshot
@@ -29,6 +28,8 @@ from api.models.solution_question import SolutionQuestion
 from api.models.newsletter_contact import NewsLetterContact
 from api.models.solution_review import SolutionReview
 from api.models.user_problem import UserProblem
+from api.models.third_party_customer import ThirdPartyCustomer
+from api.models.third_party_customer_session import ThirdPartyCustomerSession
 
 
 class TagInline(admin.TabularInline):
@@ -235,6 +236,12 @@ class SolutionBookmarkAdmin(admin.ModelAdmin):
     search_fields = ['solution__name', 'user']
 
 
+class ThirdPartyCustomerSessionAdmin(admin.ModelAdmin):
+    model = ThirdPartyCustomerSession
+    autocomplete_fields = ['third_party_customer']
+    search_fields = ['session_id', 'third_party_customer__customer_uid']
+
+
 class UserProblemAdmin(admin.ModelAdmin):
     model = UserProblem
     readonly_fields = ["created", "updated"]
@@ -286,3 +293,5 @@ admin.site.register(NewsLetterContact)
 admin.site.register(SolutionReview, SolutionReviewAdmin)
 admin.site.register(UserProblem, UserProblemAdmin)
 admin.site.register(ConsultationRequest, ConsultationRequestAdmin)
+admin.site.register(ThirdPartyCustomer, ThirdPartyCustomerAdmin)
+admin.site.register(ThirdPartyCustomerSession, ThirdPartyCustomerSessionAdmin)
