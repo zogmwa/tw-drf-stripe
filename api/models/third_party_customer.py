@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import UniqueConstraint
+
 from api.models import Organization
 from djstripe.models import Customer as StripeCustomer
 
@@ -29,3 +31,10 @@ class ThirdPartyCustomer(models.Model):
     class Meta:
         verbose_name = 'Third Party Customer'
         verbose_name_plural = 'Third Party Customers'
+
+        constraints = [
+            UniqueConstraint(
+                fields=['customer_uid', 'organization'],
+                name='third_party_organization_customer',
+            )
+        ]
