@@ -9,6 +9,7 @@ from djstripe.models import Product as StripeProduct
 from stripe import util
 
 THIRD_PARTY_CUSTOMER_ENDPOINT = 'http://127.0.0.1:8000/third_party_customers/'
+ASSET_SUBSCRIPTION_USAGE = 'http://127.0.0.1:8000/asset_subscription_usage/'
 THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT = (
     'http://127.0.0.1:8000/third_party_customer_sessions/'
 )
@@ -138,6 +139,33 @@ class TestThirdPartyCustomer:
                         "name": "Test customer",
                     },
                 },
+            },
+            content_type='application/json',
+        )
+
+        return response
+
+    def _subscribe_asset_price_plan(
+        self, asset_price_plan_stripe_subscription_object, unauth_user, mock
+    ):
+        mock.patch(
+            'stripe.Subscription.create',
+            return_value=util.convert_to_stripe_object(
+                asset_price_plan_stripe_subscription_object
+            ),
+        )
+
+        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
+        asset_price_plan = AssetPricePlan.objects.get()
+        response = unauth_user.post(
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
+                'subscribe_customer_to_price_plan',
+            ),
+            {
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'price_plan_id': asset_price_plan.id,
+                'session_id': third_party_customer_session.session_id,
             },
             content_type='application/json',
         )
@@ -382,27 +410,70 @@ class TestThirdPartyCustomer:
             mocker,
         )
 
-        mocker.patch(
-            'stripe.Subscription.create',
-            return_value=util.convert_to_stripe_object(
-                example_asset_price_plan_stripe_subscription_object
-            ),
-        )
-
-        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
-        asset_price_plan = AssetPricePlan.objects.get()
-        response = unauthenticated_client.post(
-            '{}{}/'.format(
-                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
-                'subscribe_customer_to_price_plan',
-            ),
-            {
-                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
-                'price_plan_id': asset_price_plan.id,
-                'session_id': third_party_customer_session.session_id,
-            },
-            content_type='application/json',
+        response = self._subscribe_asset_price_plan(
+            example_asset_price_plan_stripe_subscription_object,
+            unauthenticated_client,
+            mocker,
         )
 
         assert response.status_code == 200
         assert response.data['status'] == 'Successfully subscribed'
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_partner_could_report_the_usage_counts(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_has_default_payment_method_object,
+        example_asset_price_plan_stripe_subscription_object,
+        example_stripe_price_create_event,
+        example_stripe_customer_object,
+        example_stripe_usage_object,
+        mocker,
+    ):
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
+
+        self._attach_payment_method_to_customer(
+            authenticated_client,
+            unauthenticated_client,
+            example_stripe_customer_object,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_has_default_payment_method_object,
+            mocker,
+        )
+
+        self._subscribe_asset_price_plan(
+            example_asset_price_plan_stripe_subscription_object,
+            unauthenticated_client,
+            mocker,
+        )
+
+        example_stripe_usage_object['quantity'] = 5
+        mocker.patch(
+            'stripe.SubscriptionItem.create_usage_record',
+            return_value=util.convert_to_stripe_object(example_stripe_usage_object),
+        )
+        asset_price_plan = AssetPricePlan.objects.get()
+        response = authenticated_client.post(
+            ASSET_SUBSCRIPTION_USAGE,
+            {
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'tracked_units': example_stripe_usage_object['quantity'],
+                'usage_effective_date': '2022-02-16 00:00:00',
+                'price_plan_id': asset_price_plan.id,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 201
+        assert response.data['customer_uid'] == FAKE_THIRD_PARTY_CUSTOMER_UID
+        assert response.data['tracked_units'] == example_stripe_usage_object['quantity']
