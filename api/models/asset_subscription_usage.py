@@ -17,6 +17,9 @@ class AssetSubscriptionUsage(models.Model):
     tracked_units = models.IntegerField(default=0)
     usage_effective_date = models.DateTimeField()
 
+    created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+
+    @property
     def usage_period(self):
         return {
             'current_period_start': self.asset_subscription.stripe_subscription.current_period_start,

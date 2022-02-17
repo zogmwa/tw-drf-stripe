@@ -24,9 +24,9 @@ class TestThirdPartyCustomer:
         stripe_price_create_event,
         asset_price_plan_stripe_subscription_object,
         asset,
-        mock,
+        pytest_mocker,
     ):
-        self._create_stripe_customer(stripe_customer_object, partner, mock)
+        self._create_stripe_customer(stripe_customer_object, partner, pytest_mocker)
         example_price_data = stripe_price_create_event.data['object']
         example_price_data['id'] = asset_price_plan_stripe_subscription_object['items'][
             'data'
@@ -63,11 +63,11 @@ class TestThirdPartyCustomer:
 
         return response
 
-    def _create_stripe_customer(self, example_stripe_customer, partner, mock):
+    def _create_stripe_customer(self, example_stripe_customer, partner, pytest_mocker):
         test_email = 'test@example.com'
         example_stripe_customer['email'] = test_email
 
-        mock.patch(
+        pytest_mocker.patch(
             'stripe.Customer.create',
             return_value=util.convert_to_stripe_object(example_stripe_customer),
         )
@@ -90,20 +90,20 @@ class TestThirdPartyCustomer:
         stripe_customer_object,
         stripe_attach_payment_method_customer_object,
         stripe_customer_has_default_payment_method_object,
-        mock,
+        pytest_mocker,
     ):
         stripe_customer_object['name'] = 'Test user'
-        mock.patch(
+        pytest_mocker.patch(
             'stripe.Customer.modify',
             return_value=util.convert_to_stripe_object(stripe_customer_object),
         )
-        mock.patch(
+        pytest_mocker.patch(
             'stripe.PaymentMethod.retrieve',
             return_value=util.convert_to_stripe_object(
                 stripe_attach_payment_method_customer_object
             ),
         )
-        mock.patch(
+        pytest_mocker.patch(
             'stripe.PaymentMethod.list',
             return_value={
                 "object": "list",
@@ -112,13 +112,13 @@ class TestThirdPartyCustomer:
                 'data': [],
             },
         )
-        mock.patch(
+        pytest_mocker.patch(
             'stripe.PaymentMethod.attach',
             return_value=util.convert_to_stripe_object(
                 stripe_attach_payment_method_customer_object
             ),
         )
-        mock.patch(
+        pytest_mocker.patch(
             'stripe.Customer.modify',
             return_value=util.convert_to_stripe_object(
                 stripe_customer_has_default_payment_method_object
@@ -146,9 +146,9 @@ class TestThirdPartyCustomer:
         return response
 
     def _subscribe_asset_price_plan(
-        self, asset_price_plan_stripe_subscription_object, unauth_user, mock
+        self, asset_price_plan_stripe_subscription_object, unauth_user, pytest_mocker
     ):
-        mock.patch(
+        pytest_mocker.patch(
             'stripe.Subscription.create',
             return_value=util.convert_to_stripe_object(
                 asset_price_plan_stripe_subscription_object
