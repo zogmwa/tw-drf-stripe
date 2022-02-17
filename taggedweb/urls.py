@@ -25,6 +25,7 @@ from api.views.asset_reviews import AssetReviewViewSet
 from api.views.solution_reviews import SolutionReviewViewSet
 from api.views.third_party_customers import ThirdPartyCustomerViewSet
 from api.views.third_party_customer_sessions import ThirdPartyCustomerSessionViewSet
+from api.views.asset_subscription_usages import AssetSubscriptionUsagesViewSet
 from payments.views import CreateStripeCheckoutSession
 from api.views.solution_bookings import SolutionBookingViewSet
 from api.views.solutions import SolutionViewSet, autocomplete_solutions
@@ -95,6 +96,7 @@ router.register(r'user_problems', UserProblemViewSet)
 router.register(r'third_party_customers', ThirdPartyCustomerViewSet)
 router.register(r'third_party_customer_sessions', ThirdPartyCustomerSessionViewSet)
 router.register(r'consultation_request', ConsultationRequestViewSet)
+router.register(r'asset_subscription_usage', AssetSubscriptionUsagesViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

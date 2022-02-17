@@ -36,6 +36,7 @@ from .user_problem import UserProblem
 from .third_party_customer import ThirdPartyCustomer
 from .third_party_customer_session import ThirdPartyCustomerSession
 from .asset_price_plan_subscription import AssetPricePlanSubscription
+from .asset_subscription_usage import AssetSubscriptionUsage
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

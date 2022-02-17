@@ -1,4 +1,3 @@
-import uuid
 import stripe
 from furl import furl
 from datetime import datetime, timedelta
@@ -16,7 +15,6 @@ from api.models.asset_price_plan_subscription import AssetPricePlanSubscription
 from djstripe.models import Subscription as StripeSubscription
 from api.models.asset_price_plan import AssetPricePlan
 from api.views.user import UserViewSet
-from sentry_sdk import capture_message
 
 REQUEST_ACTIONS = [
     'add-payment-method',
