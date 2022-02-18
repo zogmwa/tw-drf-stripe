@@ -323,3 +323,46 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 data={"detail": "invalid session data"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @action(
+        detail=False, permission_classes=[permissions.IsAuthenticated], methods=['post']
+    )
+    def cancel_asset_subscription_by_partner(self, request, *args, **kwargs):
+        user = self.request.user
+        asset_price_plan_id = request.data.get('price_plan_id', '')
+        customer_uid = request.data.get('customer_uid', '')
+        if user.organization:
+            try:
+                partner_customer = ThirdPartyCustomer.objects.get(
+                    customer_uid=customer_uid, organization=user.organization
+                )
+                asset_price_plan = AssetPricePlan.objects.get(id=asset_price_plan_id)
+                asset_booking = AssetPricePlanSubscription.objects.get(
+                    customer=partner_customer, price_plan=asset_price_plan
+                )
+                stripe_subscription = stripe.Subscription.modify(
+                    asset_booking.stripe_subscription.id, cancel_at_period_end=True
+                )
+                StripeSubscription.sync_from_stripe_data(stripe_subscription)
+                asset_booking.delete()
+                return Response({'status': 'successfully canceled.'})
+            except ThirdPartyCustomer.DoesNotExist:
+                return Response(
+                    data={"detail": "customer does not exist"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            except AssetPricePlan.DoesNotExist:
+                return Response(
+                    data={"detail": "asset price plan does not exist."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            except AssetPricePlanSubscription.DoesNotExist:
+                return Response(
+                    data={"detail": "asset price plan subscription does not exist."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                data={"detail": "user organization does not exist."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
