@@ -354,6 +354,10 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     asset_subscription.stripe_subscription.id,
                     pause_collection=pause_collection,
                 )
+                """
+                This will update the old djstripe Subscription instance attached to the asset_subscription 
+                (asset_subscription.stripe_subscription)
+                """
                 StripeSubscription.sync_from_stripe_data(stripe_subscription)
                 if pause_status == 'pause':
                     return Response({'status': 'subscription paused'})
