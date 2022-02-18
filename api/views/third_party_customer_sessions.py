@@ -366,3 +366,64 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 data={"detail": "user organization does not exist."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    @action(
+        detail=False, permission_classes=[permissions.IsAuthenticated], methods=['post']
+    )
+    def pause_or_resume_asset_subscription(self, request, *args, **kwargs):
+        user = self.request.user
+        customer_uid = request.data.get('customer_uid', '')
+        asset_price_plan_id = request.data.get('price_plan_id', '')
+        pause_status = request.data.get('pause_status')
+        if user.organization:
+            try:
+                partner_customer = ThirdPartyCustomer.objects.get(
+                    customer_uid=customer_uid, organization=user.organization
+                )
+                asset_subscription = AssetPricePlanSubscription.objects.get(
+                    price_plan__id=asset_price_plan_id, customer=partner_customer
+                )
+                if pause_status == 'pause':
+                    pause_collection = {'behavior': 'void'}
+                elif pause_status == 'resume':
+                    pause_collection = ''
+                else:
+                    return Response(
+                        data={"detail": "incorrect pause status."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                stripe_subscription = stripe.Subscription.modify(
+                    asset_subscription.stripe_subscription.id,
+                    pause_collection=pause_collection,
+                )
+                """
+                This will update the old djstripe Subscription instance attached to the asset_subscription 
+                (asset_subscription.stripe_subscription)
+                """
+                StripeSubscription.sync_from_stripe_data(stripe_subscription)
+                if pause_status == 'pause':
+                    return Response({'status': 'subscription paused'})
+                else:
+                    return Response({'status': 'subscription resumed'})
+            except ThirdPartyCustomer.DoesNotExist:
+                return Response(
+                    data={
+                        "detail": "Third party customer does not exist, please contact a TaggedWeb admin and they will help you"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            except AssetPricePlanSubscription.DoesNotExist:
+                return Response(
+                    data={
+                        "detail": "Asset price plan does not exist, please contact a TaggedWeb admin and they will help you"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                data={
+                    "detail": "User organization is not set, please contact a TaggedWeb admin and they will help you"
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
