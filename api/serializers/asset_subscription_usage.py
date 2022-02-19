@@ -24,7 +24,7 @@ class AssetSubscriptionUsageSerializer(ModelSerializer):
             'usage_period',
             'status',
         ]
-        read_only_fields = ['usage_period']
+        read_only_fields = ['usage_period', 'status']
 
     def create(self, validated_data):
         customer_uid = validated_data.pop('customer_uid', '')
