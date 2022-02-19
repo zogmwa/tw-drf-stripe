@@ -479,6 +479,67 @@ class TestThirdPartyCustomer:
         assert response.data['tracked_units'] == example_stripe_usage_object['quantity']
 
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_third_party_customer_could_cancel_asset_subscription(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_asset,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_has_default_payment_method_object,
+        example_stripe_subscription_object,
+        example_asset_price_plan_stripe_subscription_object,
+        example_stripe_price_create_event,
+        example_stripe_customer_object,
+        mocker,
+    ):
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
+
+        self._attach_payment_method_to_customer(
+            authenticated_client,
+            unauthenticated_client,
+            example_stripe_customer_object,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_has_default_payment_method_object,
+            mocker,
+        )
+
+        self._subscribe_asset_price_plan(
+            example_asset_price_plan_stripe_subscription_object,
+            unauthenticated_client,
+            mocker,
+        )
+
+        example_stripe_subscription_object['cancel_at_period_end'] = True
+        mocker.patch(
+            'stripe.Subscription.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_object
+            ),
+        )
+        asset_price_plan = AssetPricePlan.objects.get()
+        response = authenticated_client.post(
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
+                'cancel_asset_subscription_by_partner',
+            ),
+            {
+                'price_plan_id': asset_price_plan.id,
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 200
+        assert response.data['status'] == 'successfully canceled.'
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_partner_should_pause_or_resume_subscription(
         self,
         user_and_password,
