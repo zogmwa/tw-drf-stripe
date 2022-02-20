@@ -1,4 +1,5 @@
 from django.db import models
+import django.utils.timezone
 from django.db.models import UniqueConstraint
 
 from api.models import AssetPricePlanSubscription
@@ -15,7 +16,7 @@ class AssetSubscriptionUsage(models.Model):
         on_delete=models.CASCADE,
     )
     tracked_units = models.IntegerField(default=0)
-    usage_effective_date = models.DateTimeField()
+    usage_effective_date = models.DateTimeField(default=django.utils.timezone.now)
 
     created = models.DateTimeField(null=True, blank=True, auto_now_add=True)
 
