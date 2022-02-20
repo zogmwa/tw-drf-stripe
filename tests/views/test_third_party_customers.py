@@ -478,6 +478,21 @@ class TestThirdPartyCustomer:
         assert response.data['customer_uid'] == FAKE_THIRD_PARTY_CUSTOMER_UID
         assert response.data['tracked_units'] == example_stripe_usage_object['quantity']
 
+        # usage_effective_date could be a optional.
+        response = authenticated_client.post(
+            ASSET_SUBSCRIPTION_USAGE,
+            {
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'tracked_units': example_stripe_usage_object['quantity'],
+                'price_plan_id': asset_price_plan.id,
+            },
+            content_type='application/json',
+        )
+
+        assert response.status_code == 201
+        assert response.data['customer_uid'] == FAKE_THIRD_PARTY_CUSTOMER_UID
+        assert response.data['usage_effective_date'] is not None
+
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_third_party_customer_could_cancel_asset_subscription(
         self,
