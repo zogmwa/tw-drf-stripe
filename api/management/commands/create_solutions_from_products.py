@@ -27,10 +27,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         for product in Product.objects.all():
-            solution, is_created = Solution.objects.get_or_create(
-                stripe_product=product
-            )
-            _set_solution_fields_from_product_instance(
-                solution, product, is_created=is_created
-            )
-            solution.save()
+            if product.metadata['tweb_type'] == 'solution':
+                solution, is_created = Solution.objects.get_or_create(
+                    stripe_product=product
+                )
+                _set_solution_fields_from_product_instance(
+                    solution, product, is_created=is_created
+                )
+                solution.save()

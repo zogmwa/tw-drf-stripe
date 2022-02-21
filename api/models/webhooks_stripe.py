@@ -11,6 +11,9 @@ from api.models.solution import Solution
 from django.utils.text import slugify
 
 
+TWEB_PRODUCT_TYPES = ['solution', 'asset']
+
+
 def _set_solution_fields_from_product_instance(
     solution: Solution,
     product: Product,
@@ -47,10 +50,11 @@ def price_created_handler(event, **kwargs):
     price = Price.sync_from_stripe_data(price_data['object'])
 
     product = price.product
-    solution, _ = Solution.objects.get_or_create(stripe_product=product)
-    solution.is_published = False
-    solution.stripe_primary_price = price
-    solution.save()
+    if product.metadata['tweb_type'] == TWEB_PRODUCT_TYPES[0]:
+        solution, _ = Solution.objects.get_or_create(stripe_product=product)
+        solution.is_published = False
+        solution.stripe_primary_price = price
+        solution.save()
 
 
 @webhooks.handler('price.updated')
@@ -81,8 +85,9 @@ def product_created_handler(event: Event, **kwargs):
 
     product = Product.sync_from_stripe_data(event.data['object'])
 
-    solution, is_created = Solution.objects.get_or_create(stripe_product=product)
-    _set_solution_fields_from_product_instance(solution, product, is_created)
+    if product.metadata['tweb_type'] == TWEB_PRODUCT_TYPES[0]:
+        solution, is_created = Solution.objects.get_or_create(stripe_product=product)
+        _set_solution_fields_from_product_instance(solution, product, is_created)
 
 
 @webhooks.handler('product.updated')
@@ -96,8 +101,11 @@ def product_updated_handler(event: Event, **kwargs):
     # In most cases is_created will be False because the product will already have a corresponding solution, however,
     # for some cases where there is a drift where product.created event did not trigger the handler or errored/server
     # was down, we can create the solution during the product update.
-    solution, is_created = Solution.objects.get_or_create(stripe_product=product)
-    _set_solution_fields_from_product_instance(solution, product, is_created=is_created)
+    if product.metadata['tweb_type'] == TWEB_PRODUCT_TYPES[0]:
+        solution, is_created = Solution.objects.get_or_create(stripe_product=product)
+        _set_solution_fields_from_product_instance(
+            solution, product, is_created=is_created
+        )
 
 
 @webhooks.handler('customer.subscription.updated')
