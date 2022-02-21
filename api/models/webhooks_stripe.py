@@ -90,7 +90,7 @@ def product_created_handler(event: Event, **kwargs):
 def product_updated_handler(event: Event, **kwargs):
     """
     When the product is updated, we update the title, slug and also description(if the description is not
-    already set) of the solution corresponding to the product which is ucreate_solutions_from_products.pypdated
+    already set) of the solution corresponding to the product which is updated
     """
     product = Product.sync_from_stripe_data(event.data['object'])
 
