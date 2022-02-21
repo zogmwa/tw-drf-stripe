@@ -29,7 +29,7 @@ class ThirdPartyCustomer(models.Model):
     # taggedweb_user = FK(settings.AUTH_USER_MODEL, null=True, blank=True)
 
     @property
-    def customer_email(self):
+    def email(self):
         return self.stripe_customer.email
 
     class Meta:
