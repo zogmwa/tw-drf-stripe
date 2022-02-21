@@ -28,6 +28,10 @@ class ThirdPartyCustomer(models.Model):
     # In case the customer is also logged in on our end we may want this field as well but we can always add it later, not needed in the beginning
     # taggedweb_user = FK(settings.AUTH_USER_MODEL, null=True, blank=True)
 
+    @property
+    def customer_email(self):
+        return self.stripe_customer.email
+
     class Meta:
         verbose_name = 'Third Party Customer'
         verbose_name_plural = 'Third Party Customers'
