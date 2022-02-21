@@ -84,6 +84,9 @@ def example_stripe_price_create_event(
 
     # A stripe price is always associated with a stripe product, so a corresponding product must exist for this stripe
     # price.
+    example_stripe_product_create_event.data['object']['metadata'] = {
+        'tweb_type': 'solution'
+    }
     product_dict = example_stripe_product_create_event.data['object']
     Product.sync_from_stripe_data(product_dict)
 
