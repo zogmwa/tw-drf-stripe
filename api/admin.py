@@ -104,7 +104,7 @@ class AssetQuestionAdmin(admin.ModelAdmin):
 
 class PricePlanAdmin(admin.ModelAdmin):
     model = AssetPricePlan
-    autocomplete_fields = ['asset']
+    autocomplete_fields = ['asset', 'stripe_price']
     search_fields = ['asset__name', 'name']
 
 
@@ -121,7 +121,12 @@ class AssetAdmin(GuardedModelAdmin):
     search_fields = [
         'name',
     ]
-    autocomplete_fields = ['owner_organization', 'submitted_by', 'owner']
+    autocomplete_fields = [
+        'owner_organization',
+        'submitted_by',
+        'owner',
+        'stripe_product',
+    ]
     prepopulated_fields = {
         'slug': ('name',),
     }
