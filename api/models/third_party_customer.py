@@ -17,7 +17,7 @@ class ThirdPartyCustomer(models.Model):
         StripeCustomer,
         null=True,
         blank=True,
-        related_name='organizations',
+        related_name='third_party_customers',
         on_delete=models.SET_NULL,
     )
 
