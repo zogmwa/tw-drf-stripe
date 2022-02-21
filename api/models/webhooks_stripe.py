@@ -81,23 +81,27 @@ def product_created_handler(event: Event, **kwargs):
 
     product = Product.sync_from_stripe_data(event.data['object'])
 
-    solution, is_created = Solution.objects.get_or_create(stripe_product=product)
-    _set_solution_fields_from_product_instance(solution, product, is_created)
+    if product.metadata['tweb_type'] == 'solution':
+        solution, is_created = Solution.objects.get_or_create(stripe_product=product)
+        _set_solution_fields_from_product_instance(solution, product, is_created)
 
 
 @webhooks.handler('product.updated')
 def product_updated_handler(event: Event, **kwargs):
     """
     When the product is updated, we update the title, slug and also description(if the description is not
-    already set) of the solution corresponding to the product which is updated
+    already set) of the solution corresponding to the product which is ucreate_solutions_from_products.pypdated
     """
     product = Product.sync_from_stripe_data(event.data['object'])
 
     # In most cases is_created will be False because the product will already have a corresponding solution, however,
     # for some cases where there is a drift where product.created event did not trigger the handler or errored/server
     # was down, we can create the solution during the product update.
-    solution, is_created = Solution.objects.get_or_create(stripe_product=product)
-    _set_solution_fields_from_product_instance(solution, product, is_created=is_created)
+    if product.metadata['tweb_type'] == 'solution':
+        solution, is_created = Solution.objects.get_or_create(stripe_product=product)
+        _set_solution_fields_from_product_instance(
+            solution, product, is_created=is_created
+        )
 
 
 @webhooks.handler('customer.subscription.updated')
