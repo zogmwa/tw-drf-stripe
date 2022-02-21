@@ -15,6 +15,9 @@ class TestStripeWebhooksProductPriceCreateHandlers:
     def test_create_product_webhook_should_create_solution(
         self, example_stripe_product_create_event
     ):
+        example_stripe_product_create_event.data['object']['metadata'] = {
+            'tweb_type': 'solution'
+        }
         response = product_created_handler(example_stripe_product_create_event)
         product_dict = example_stripe_product_create_event.data["object"]
 
@@ -52,6 +55,9 @@ class TestStripeWebhooksProductPriceUpdatedHandlers:
     def test_product_update_webhook_should_update_solution(
         self, example_stripe_product_create_event
     ):
+        example_stripe_product_create_event.data['object']['metadata'] = {
+            'tweb_type': 'solution'
+        }
         # first product.created webhook will be fired after that product.updated webhook will be called
         product_created_handler(example_stripe_product_create_event)
         product_dict = example_stripe_product_create_event.data["object"]
@@ -95,6 +101,9 @@ class TestStripeWebhooksProductPriceUpdatedHandlers:
         example_stripe_price_archive_event,
         example_stripe_product_create_event,
     ):
+        example_stripe_product_create_event.data['object']['metadata'] = {
+            'tweb_type': 'solution'
+        }
         price_dict = example_stripe_price_create_event.data['object']
         product_created_handler(example_stripe_product_create_event)
         price_created_handler(example_stripe_price_create_event)
