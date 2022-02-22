@@ -52,6 +52,7 @@ from dj_rest_auth.views import PasswordResetConfirmView
 from api.views.user_problem import UserProblemViewSet
 from api.views.organization import autocomplete_organizations
 from api.views.price_plans import PricePlanViewSet
+from api.views.registered_webhooks import RegisteredWebhookViewSet
 from api.views.user import UserViewSet
 from api.views.consultation_requests import ConsultationRequestViewSet
 from rest_framework import permissions
@@ -97,6 +98,7 @@ router.register(r'third_party_customers', ThirdPartyCustomerViewSet)
 router.register(r'third_party_customer_sessions', ThirdPartyCustomerSessionViewSet)
 router.register(r'consultation_request', ConsultationRequestViewSet)
 router.register(r'asset_subscription_usage', AssetSubscriptionUsageViewSet)
+router.register(r'registered_webhook', RegisteredWebhookViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
