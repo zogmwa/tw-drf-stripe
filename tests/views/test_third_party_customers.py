@@ -678,7 +678,7 @@ class TestThirdPartyCustomer:
         response = authenticated_client.get(
             '{}{}/?{}={}'.format(
                 THIRD_PARTY_CUSTOMER_ENDPOINT,
-                'customer_payment_method_count',
+                'customer_payment_methods_count',
                 'customer_uid',
                 FAKE_THIRD_PARTY_CUSTOMER_UID,
             )
@@ -713,7 +713,7 @@ class TestThirdPartyCustomer:
         response = authenticated_client.get(
             '{}{}/?{}={}'.format(
                 THIRD_PARTY_CUSTOMER_ENDPOINT,
-                'customer_payment_method_count',
+                'customer_payment_methods_count',
                 'customer_uid',
                 FAKE_THIRD_PARTY_CUSTOMER_UID,
             )

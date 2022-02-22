@@ -23,14 +23,14 @@ class ThirdPartyCustomerViewSet(viewsets.ModelViewSet):
     @action(
         detail=False, permission_classes=[permissions.IsAuthenticated], methods=['get']
     )
-    def customer_payment_method_count(self, request, *args, **kwargs):
+    def customer_payment_methods_count(self, request, *args, **kwargs):
         """
         If our partners want to know customer's payment methods count
-        http://127.0.0.1:8000/third_party_customers/customer_payment_method_count/?customer_uid=<customer_uid>
+        http://127.0.0.1:8000/third_party_customers/customer_payment_methods_count/?customer_uid=<customer_uid>
         """
         user = self.request.user
-        customer_uid = request.GET.get('customer_uid', '')
         try:
+            customer_uid = request.GET['customer_uid']
             third_party_customer = ThirdPartyCustomer.objects.get(
                 customer_uid=customer_uid, organization=user.organization
             )
@@ -40,6 +40,11 @@ class ThirdPartyCustomerViewSet(viewsets.ModelViewSet):
 
             return_payment_methods = UserViewSet._fetch_payment_methods(stripe_customer)
             return Response({'payment_methods': len(return_payment_methods)})
+        except KeyError:
+            return Response(
+                data={"detail": "'customer_uid' GET parameter must be provided."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except ThirdPartyCustomer.DoesNotExist:
             return Response(
                 data={"detail": "Third party customer does not exist."},
