@@ -17,7 +17,7 @@ class ThirdPartyCustomer(models.Model):
         StripeCustomer,
         null=True,
         blank=True,
-        related_name='organizations',
+        related_name='third_party_customers',
         on_delete=models.SET_NULL,
     )
 
@@ -31,6 +31,9 @@ class ThirdPartyCustomer(models.Model):
     @property
     def email(self):
         return self.stripe_customer.email
+
+    def __str__(self):
+        return "{}: {}".format(self.customer_uid, self.organization.name)
 
     class Meta:
         verbose_name = 'Third Party Customer'
