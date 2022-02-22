@@ -89,8 +89,9 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
 
                     active_site_obj = Site.objects.get(id=settings.SITE_ID)
                     active_site = furl('https://{}'.format(active_site_obj.domain))
-                    return_url = '{}/{}/{}/{}/{}?session_id={}'.format(
+                    return_url = '{}/{}/{}/{}/{}/{}?session_id={}'.format(
                         active_site,
+                        'partners',
                         user.organization.name,
                         asset_price_plan.id,
                         customer_uid,
