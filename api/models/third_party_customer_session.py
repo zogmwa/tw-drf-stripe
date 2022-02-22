@@ -23,6 +23,9 @@ class ThirdPartyCustomerSession(models.Model):
         help_text='When payment action is finished then this value should be set to True.',
     )
 
+    def __str__(self):
+        return "{}: {}".format(self.third_party_customer, self.session_id)
+
     class Meta:
         constraints = [
             UniqueConstraint(
