@@ -44,20 +44,6 @@ class Solution(models.Model):
         StripePrice, null=True, blank=True, on_delete=models.SET_NULL
     )
 
-    # TODO: Deprecated, but keeping for backwards compatibility until frontend stops using this
-    @property
-    def pay_now_price_stripe_id(self) -> str:
-        # This is needed by the frontend for the "Purchase Now" -> "Stripe Checkout" flow.
-        return self.stripe_primary_price.id if self.stripe_primary_price else None
-
-    # TODO: Deprecated, but keeping for backwards compatibility until frontend stops using this
-    @property
-    def pay_now_price_unit_amount(self) -> str:
-        # This will be in cents so frontend will have to divide this by 100 to show dollar value for USD
-        return (
-            self.stripe_primary_price.unit_amount if self.stripe_primary_price else None
-        )
-
     @property
     def stripe_primary_price_stripe_id(self) -> str:
         # This is needed by the frontend for the "Purchase Now" -> "Stripe Checkout" flow.

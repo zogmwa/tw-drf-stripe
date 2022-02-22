@@ -83,8 +83,6 @@ class SolutionSerializerForSolutionBooking(ModelSerializer):
             'billing_period',
         ]
         read_only_fields = [
-            # TODO: Deprecated
-            'pay_now_price_unit_amount',
             'stripe_primary_price_unit_amount',
             'my_solution_review',
             'my_solution_review_id',
