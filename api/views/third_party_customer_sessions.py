@@ -18,7 +18,7 @@ from api.views.user import UserViewSet
 
 REQUEST_ACTIONS = [
     'add-payment-method',
-    'subscribe-price-plan',
+    'start-plan-subscription',
 ]
 
 
