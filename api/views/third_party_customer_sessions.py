@@ -301,7 +301,16 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
 
             try:
                 stripe_customer = partner_customer.stripe_customer
-                asset_booking = AssetPricePlanSubscription.objects.create(
+                old_asset_subscription = get_or_none(
+                    AssetPricePlanSubscription,
+                    customer=partner_customer,
+                    price_plan=asset_price_plan,
+                )
+                if old_asset_subscription is not None:
+                    return Response(
+                        {'status': 'You have already subscribe this product.'}
+                    )
+                asset_subscription = AssetPricePlanSubscription.objects.create(
                     customer=partner_customer, price_plan=asset_price_plan
                 )
 
@@ -326,8 +335,8 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     stripe_subscription
                 )
 
-                asset_booking.stripe_subscription = djstripe_subscription
-                asset_booking.save()
+                asset_subscription.stripe_subscription = djstripe_subscription
+                asset_subscription.save()
 
                 return Response({'status': 'Successfully subscribed'})
             except AssetPricePlanSubscription.DoesNotExist:
