@@ -642,3 +642,82 @@ class TestThirdPartyCustomer:
 
         response.status_code == 200
         response.data['status'] == 'subscription resumed'
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_partner_could_fetch_customers_payment_method_count(
+        self,
+        authenticated_client,
+        unauthenticated_client,
+        example_stripe_customer_object,
+        example_stripe_price_create_event,
+        example_asset_price_plan_stripe_subscription_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_has_default_payment_method_object,
+        example_asset,
+        mocker,
+    ):
+        self._generate_session_id(
+            authenticated_client,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_asset,
+            mocker,
+        )
+
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [],
+            },
+        )
+
+        response = authenticated_client.get(
+            '{}{}/?{}={}'.format(
+                THIRD_PARTY_CUSTOMER_ENDPOINT,
+                'customer_payment_method_count',
+                'customer_uid',
+                FAKE_THIRD_PARTY_CUSTOMER_UID,
+            )
+        )
+
+        assert response.status_code == 200
+        assert response.data['payment_methods'] == 0
+
+        self._attach_payment_method_to_customer(
+            authenticated_client,
+            unauthenticated_client,
+            example_stripe_customer_object,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_has_default_payment_method_object,
+            mocker,
+        )
+
+        mocker.patch(
+            'stripe.PaymentMethod.list',
+            return_value={
+                "object": "list",
+                "url": "/v1/payment_methods",
+                "has_more": False,
+                'data': [
+                    util.convert_to_stripe_object(
+                        example_stripe_attach_payment_method_customer_object_1
+                    ),
+                ],
+            },
+        )
+
+        response = authenticated_client.get(
+            '{}{}/?{}={}'.format(
+                THIRD_PARTY_CUSTOMER_ENDPOINT,
+                'customer_payment_method_count',
+                'customer_uid',
+                FAKE_THIRD_PARTY_CUSTOMER_UID,
+            )
+        )
+
+        assert response.status_code == 200
+        assert response.data['payment_methods'] == 1
