@@ -85,7 +85,9 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                             expiration_time=expiration_time,
                         )
                     )
-                    asset_price_plan = AssetPricePlan.objects.get(id=price_plan_id)
+                    asset_price_plan = AssetPricePlan.objects.get(
+                        id=price_plan_id, asset__owner_organization=user.organization
+                    )
 
                     active_site_obj = Site.objects.get(id=settings.SITE_ID)
                     active_site = furl('https://{}'.format(active_site_obj.domain))
@@ -106,7 +108,9 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     )
                 except AssetPricePlan.DoesNotExist:
                     return Response(
-                        data={"detail": "Asset price plan doesn't exist"},
+                        data={
+                            "detail": "Asset price plan doesn't exist with the given plan_id for the partner"
+                        },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
             else:

@@ -36,7 +36,7 @@ class TestTestAutocomplete:
         assert response.json()['asset_slugs'][0] == example_asset.slug
 
     def test_autocomplete_organization(
-        self, example_asset_customer_organization, mocker, authenticated_client
+        self, example_organization, mocker, authenticated_client
     ):
         mocker.patch.object(
             organization,
@@ -48,11 +48,8 @@ class TestTestAutocomplete:
         )
         assert response.status_code == status.HTTP_200_OK
         response_organization = response.json()['results'][0]
-        assert response_organization['name'] == example_asset_customer_organization.name
-        assert (
-            response_organization['website']
-            == example_asset_customer_organization.website
-        )
+        assert response_organization['name'] == example_organization.name
+        assert response_organization['website'] == example_organization.website
 
     def test_autocomplete_solution_questions(
         self, mocker, authenticated_client, example_solution_question

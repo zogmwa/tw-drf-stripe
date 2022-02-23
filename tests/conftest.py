@@ -1417,7 +1417,7 @@ def example_event():
 
 
 @pytest.fixture
-def example_asset():
+def example_asset(example_organization):
     return Asset.objects.create(
         slug='mailchimp',
         name='Mailchimp',
@@ -1426,6 +1426,7 @@ def example_asset():
         description='bla bla bla',
         promo_video='https://www.youtube.com/embed/Q0hi9d1W3Ag',
         is_published=True,
+        owner_organization=example_organization,
     )
 
 
@@ -1554,12 +1555,17 @@ def example_asset_attribute2(example_asset):
 
 
 @pytest.fixture
-def example_asset_customer_organization(example_asset):
-    return example_asset.customer_organizations.create(
+def example_organization():
+    return Organization.objects.create(
         name='Primer',
         logo_url='https://logo.clearbit.com/primer.io',
         website='https://primer.io/',
     )
+
+
+@pytest.fixture
+def example_asset_customer_organization(example_asset, example_organization):
+    example_asset.customer_organizations = example_organization
 
 
 @pytest.fixture
@@ -1613,11 +1619,10 @@ def example_featured_tag():
 
 
 @pytest.fixture
-def user_and_password():
+def user_and_password(example_organization):
     username = 'username'
     password = 'password'
-    organization = Organization.objects.create(name='TestOrganization')
-    user = User.objects.create(username=username, organization=organization)
+    user = User.objects.create(username=username, organization=example_organization)
     user.set_password(password)
     user.save()
     return user, password

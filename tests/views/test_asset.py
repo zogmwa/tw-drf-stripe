@@ -1178,7 +1178,7 @@ class TestPatchCustomerOrganizationsToAsset:
         authenticated_client,
         unauthenticated_client,
         example_asset,
-        example_asset_customer_organization,
+        example_organization,
         user_and_password,
     ):
         example_asset.owner = user_and_password[0]
@@ -1189,9 +1189,9 @@ class TestPatchCustomerOrganizationsToAsset:
             {
                 'customer_organizations': [
                     {
-                        'name': example_asset_customer_organization.name,
-                        'logo_url': example_asset_customer_organization.logo_url,
-                        'website': example_asset_customer_organization.website,
+                        'name': example_organization.name,
+                        'logo_url': example_organization.logo_url,
+                        'website': example_organization.website,
                     }
                 ]
             },
@@ -1205,9 +1205,9 @@ class TestPatchCustomerOrganizationsToAsset:
             {
                 'customer_organizations': [
                     {
-                        'name': example_asset_customer_organization.name,
-                        'logo_url': example_asset_customer_organization.logo_url,
-                        'website': example_asset_customer_organization.website,
+                        'name': example_organization.name,
+                        'logo_url': example_organization.logo_url,
+                        'website': example_organization.website,
                     }
                 ]
             },
@@ -1217,15 +1217,15 @@ class TestPatchCustomerOrganizationsToAsset:
         assert response.status_code == 200
         assert (
             response.data['customer_organizations'][0]['name']
-            == example_asset_customer_organization.name
+            == example_organization.name
         )
         assert (
             response.data['customer_organizations'][0]['logo_url']
-            == example_asset_customer_organization.logo_url
+            == example_organization.logo_url
         )
         assert (
             response.data['customer_organizations'][0]['website']
-            == example_asset_customer_organization.website
+            == example_organization.website
         )
 
 

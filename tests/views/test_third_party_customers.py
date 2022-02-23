@@ -195,6 +195,7 @@ class TestThirdPartyCustomer:
         example_stripe_customer_object,
         example_stripe_price_create_event,
         authenticated_client,
+        example_organization,
         mocker,
     ):
         response = self._generate_session_id(
