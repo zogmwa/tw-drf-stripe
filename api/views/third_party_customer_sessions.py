@@ -308,7 +308,11 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 )
                 if old_asset_subscription is not None:
                     return Response(
-                        {'status': 'You have already subscribe this product.'}
+                        {
+                            'status': "Customer {}, has already subscribed to price_plan {}".format(
+                                partner_customer.customer_uid, asset_price_plan.id
+                            )
+                        }
                     )
                 asset_subscription = AssetPricePlanSubscription.objects.create(
                     customer=partner_customer, price_plan=asset_price_plan
