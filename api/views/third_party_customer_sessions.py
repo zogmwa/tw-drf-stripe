@@ -458,7 +458,14 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     customer__customer_uid=customer_uid,
                     price_plan__id=asset_price_plan_id,
                 )
-                stripe_subscription = asset_subscription.stripe_subscription
+                stripe_subscription = stripe.Subscription.retrieve(
+                    asset_subscription.stripe_subscription.id
+                )
+                pause_collection = stripe_subscription.pause_collection
+                pause = False
+                if pause_collection is not None:
+                    if pause_collection['behavior'] == 'void':
+                        pause = True
                 stripe_invoices = StripeInvoice.objects.filter(
                     subscription__id=stripe_subscription.id
                 )
@@ -466,10 +473,11 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 return Response(
                     {
                         "is_subscribe": True,
-                        "card_info": stripe_subscription.default_payment_method.card,
+                        "card_info": asset_subscription.stripe_subscription.default_payment_method.card,
                         "current_period_start": stripe_subscription.current_period_start,
                         "current_period_end": stripe_subscription.current_period_end,
                         "invoices": stripe_invoices,
+                        "is_pause": pause,
                     }
                 )
 
