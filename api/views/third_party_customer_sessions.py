@@ -62,31 +62,6 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 "data": {"detail": "asset price plan subscription does not exist"},
             }
 
-    @staticmethod
-    def _pause_or_resume_asset_subscription(
-        pause_status, asset_price_plan_subscription
-    ):
-        if pause_status == 'pause':
-            pause_collection = {'behavior': 'void'}
-        elif pause_status == 'resume':
-            pause_collection = ''
-        else:
-            return {"detail": "incorrect pause status."}
-
-        stripe_subscription = stripe.Subscription.modify(
-            asset_price_plan_subscription.stripe_subscription.id,
-            pause_collection=pause_collection,
-        )
-        """
-        This will update the old djstripe Subscription instance attached to the asset_subscription 
-        (asset_subscription.stripe_subscription)
-        """
-        StripeSubscription.sync_from_stripe_data(stripe_subscription)
-        if pause_status == 'pause':
-            return {'status': 'subscription paused'}
-        else:
-            return {'status': 'subscription resumed'}
-
     @action(
         detail=False, permission_classes=[permissions.IsAuthenticated], methods=['post']
     )
@@ -319,7 +294,6 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
         customer_uid = request.data.get('customer_uid')
         if self._check_valid_session_id(session_id, customer_uid):
             asset_price_plan_id = request.data.get('price_plan_id')
-            payment_method = request.data.get('payment_method', None)
             asset_price_plan = get_or_none(AssetPricePlan, id=asset_price_plan_id)
 
             partner_customer = get_or_none(
@@ -365,7 +339,6 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     items=[{'price': asset_price_plan.stripe_price.id}],
                     expand=['latest_invoice.payment_intent'],
                     billing_cycle_anchor=billing_cycle_anchor,
-                    default_payment_method=payment_method,
                 )
 
                 djstripe_subscription = StripeSubscription.sync_from_stripe_data(
