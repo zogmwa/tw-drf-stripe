@@ -62,6 +62,31 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 "data": {"detail": "asset price plan subscription does not exist"},
             }
 
+    @staticmethod
+    def _pause_or_resume_asset_subscription(
+        pause_status, asset_price_plan_subscription
+    ):
+        if pause_status == 'pause':
+            pause_collection = {'behavior': 'void'}
+        elif pause_status == 'resume':
+            pause_collection = ''
+        else:
+            return {"detail": "incorrect pause status."}
+
+        stripe_subscription = stripe.Subscription.modify(
+            asset_price_plan_subscription.stripe_subscription.id,
+            pause_collection=pause_collection,
+        )
+        """
+        This will update the old djstripe Subscription instance attached to the asset_subscription 
+        (asset_subscription.stripe_subscription)
+        """
+        StripeSubscription.sync_from_stripe_data(stripe_subscription)
+        if pause_status == 'pause':
+            return {'status': 'subscription paused'}
+        else:
+            return {'status': 'subscription resumed'}
+
     @action(
         detail=False, permission_classes=[permissions.IsAuthenticated], methods=['post']
     )
