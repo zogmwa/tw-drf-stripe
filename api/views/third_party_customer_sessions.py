@@ -62,6 +62,31 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                 "data": {"detail": "asset price plan subscription does not exist"},
             }
 
+    @staticmethod
+    def _pause_or_resume_asset_subscription(
+        pause_status, asset_price_plan_subscription
+    ):
+        if pause_status == 'pause':
+            pause_collection = {'behavior': 'void'}
+        elif pause_status == 'resume':
+            pause_collection = ''
+        else:
+            return {"detail": "incorrect pause status."}
+
+        stripe_subscription = stripe.Subscription.modify(
+            asset_price_plan_subscription.stripe_subscription.id,
+            pause_collection=pause_collection,
+        )
+        """
+        This will update the old djstripe Subscription instance attached to the asset_subscription 
+        (asset_subscription.stripe_subscription)
+        """
+        StripeSubscription.sync_from_stripe_data(stripe_subscription)
+        if pause_status == 'pause':
+            return {'status': 'subscription paused'}
+        else:
+            return {'status': 'subscription resumed'}
+
     @action(
         detail=False, permission_classes=[permissions.IsAuthenticated], methods=['post']
     )
@@ -412,34 +437,52 @@ class ThirdPartyCustomerSessionViewSet(viewsets.ModelViewSet):
                     data={"detail": validation_result['data']},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if pause_status == 'pause':
-                pause_collection = {'behavior': 'void'}
-            elif pause_status == 'resume':
-                pause_collection = ''
-            else:
-                return Response(
-                    data={"detail": "incorrect pause status."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            stripe_subscription = stripe.Subscription.modify(
-                asset_price_plan_subscription.stripe_subscription.id,
-                pause_collection=pause_collection,
+            return_data = self._pause_or_resume_asset_subscription(
+                pause_status, asset_price_plan_subscription
             )
-            """
-            This will update the old djstripe Subscription instance attached to the asset_subscription 
-            (asset_subscription.stripe_subscription)
-            """
-            StripeSubscription.sync_from_stripe_data(stripe_subscription)
-            if pause_status == 'pause':
-                return Response({'status': 'subscription paused'})
-            else:
-                return Response({'status': 'subscription resumed'})
+            return Response(return_data)
         else:
             return Response(
                 data={
                     "detail": "User organization is not set, please contact a TaggedWeb admin and they will help you"
                 },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(
+        detail=False,
+        permission_classes=[AllowOnlyThirdPartyCustomers],
+        methods=['post'],
+    )
+    def third_party_customer_pause_or_resume_asset_subscription(
+        self, request, *args, **kwargs
+    ):
+        customer_uid = request.data.get('customer_uid', '')
+        session_id = request.data.get('session_id', '')
+        asset_price_plan_id = request.data.get('price_plan_id', '')
+        if self._check_valid_session_id(session_id, customer_uid):
+            try:
+                asset_price_plan_subscription = AssetPricePlanSubscription.objects.get(
+                    customer__customer_uid=customer_uid,
+                    price_plan__id=asset_price_plan_id,
+                )
+                pause_status = request.data.get('pause_status')
+                return_data = self._pause_or_resume_asset_subscription(
+                    pause_status, asset_price_plan_subscription
+                )
+                return Response(return_data)
+            except AssetPricePlanSubscription.DoesNotExist:
+                return Response(
+                    data={
+                        "detail": "Customer {}, has not subscribed to price_plan {}".format(
+                            customer_uid, asset_price_plan_id
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                data={"detail": "invalid session data"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

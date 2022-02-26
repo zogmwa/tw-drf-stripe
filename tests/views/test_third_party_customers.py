@@ -172,6 +172,42 @@ class TestThirdPartyCustomer:
 
         return response
 
+    def _create_customer_attach_payment_and_subscribe_asset(
+        self,
+        auth_client,
+        unauth_client,
+        asset,
+        stripe_customer_object,
+        stripe_price_create_event,
+        asset_price_plan_stripe_subscription_object,
+        stripe_attach_payment_method_customer_object_1,
+        stripe_customer_has_default_payment_method_object,
+        pytest_mocker,
+    ):
+        self._generate_session_id(
+            auth_client,
+            stripe_customer_object,
+            stripe_price_create_event,
+            asset_price_plan_stripe_subscription_object,
+            asset,
+            pytest_mocker,
+        )
+
+        self._attach_payment_method_to_customer(
+            auth_client,
+            unauth_client,
+            stripe_customer_object,
+            stripe_attach_payment_method_customer_object_1,
+            stripe_customer_has_default_payment_method_object,
+            pytest_mocker,
+        )
+
+        self._subscribe_asset_price_plan(
+            asset_price_plan_stripe_subscription_object,
+            unauth_client,
+            pytest_mocker,
+        )
+
     @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
     def test_create_with_logged_in_user(
         self,
@@ -434,27 +470,15 @@ class TestThirdPartyCustomer:
         example_stripe_usage_object,
         mocker,
     ):
-        self._generate_session_id(
+        self._create_customer_attach_payment_and_subscribe_asset(
             authenticated_client,
+            unauthenticated_client,
+            example_asset,
             example_stripe_customer_object,
             example_stripe_price_create_event,
             example_asset_price_plan_stripe_subscription_object,
-            example_asset,
-            mocker,
-        )
-
-        self._attach_payment_method_to_customer(
-            authenticated_client,
-            unauthenticated_client,
-            example_stripe_customer_object,
             example_stripe_attach_payment_method_customer_object_1,
             example_stripe_customer_has_default_payment_method_object,
-            mocker,
-        )
-
-        self._subscribe_asset_price_plan(
-            example_asset_price_plan_stripe_subscription_object,
-            unauthenticated_client,
             mocker,
         )
 
@@ -508,27 +532,15 @@ class TestThirdPartyCustomer:
         example_stripe_customer_object,
         mocker,
     ):
-        self._generate_session_id(
+        self._create_customer_attach_payment_and_subscribe_asset(
             authenticated_client,
+            unauthenticated_client,
+            example_asset,
             example_stripe_customer_object,
             example_stripe_price_create_event,
             example_asset_price_plan_stripe_subscription_object,
-            example_asset,
-            mocker,
-        )
-
-        self._attach_payment_method_to_customer(
-            authenticated_client,
-            unauthenticated_client,
-            example_stripe_customer_object,
             example_stripe_attach_payment_method_customer_object_1,
             example_stripe_customer_has_default_payment_method_object,
-            mocker,
-        )
-
-        self._subscribe_asset_price_plan(
-            example_asset_price_plan_stripe_subscription_object,
-            unauthenticated_client,
             mocker,
         )
 
@@ -571,27 +583,15 @@ class TestThirdPartyCustomer:
         example_asset,
         mocker,
     ):
-        self._generate_session_id(
+        self._create_customer_attach_payment_and_subscribe_asset(
             authenticated_client,
+            unauthenticated_client,
+            example_asset,
             example_stripe_customer_object,
             example_stripe_price_create_event,
             example_asset_price_plan_stripe_subscription_object,
-            example_asset,
-            mocker,
-        )
-
-        self._attach_payment_method_to_customer(
-            authenticated_client,
-            unauthenticated_client,
-            example_stripe_customer_object,
             example_stripe_attach_payment_method_customer_object_1,
             example_stripe_customer_has_default_payment_method_object,
-            mocker,
-        )
-
-        self._subscribe_asset_price_plan(
-            example_asset_price_plan_stripe_subscription_object,
-            unauthenticated_client,
             mocker,
         )
 
@@ -784,3 +784,83 @@ class TestThirdPartyCustomer:
 
         assert response.status_code == 200
         assert response.data['is_subscribe'] is True
+
+    @override_settings(STRIPE_TEST_PUBLISHED_KEY='')
+    def test_third_party_customer_should_pause_or_resume_subscription(
+        self,
+        user_and_password,
+        authenticated_client,
+        unauthenticated_client,
+        example_stripe_price_create_event,
+        example_stripe_customer_object,
+        example_stripe_attach_payment_method_customer_object_1,
+        example_stripe_customer_has_default_payment_method_object,
+        example_asset_price_plan_stripe_subscription_object,
+        example_stripe_subscription_pause_object,
+        example_stripe_subscription_resume_object,
+        example_asset,
+        mocker,
+    ):
+        self._create_customer_attach_payment_and_subscribe_asset(
+            authenticated_client,
+            unauthenticated_client,
+            example_asset,
+            example_stripe_customer_object,
+            example_stripe_price_create_event,
+            example_asset_price_plan_stripe_subscription_object,
+            example_stripe_attach_payment_method_customer_object_1,
+            example_stripe_customer_has_default_payment_method_object,
+            mocker,
+        )
+
+        mocker.patch(
+            'stripe.Subscription.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_pause_object
+            ),
+        )
+
+        # Pause the subscription
+        third_party_customer_session = ThirdPartyCustomerSession.objects.get()
+        asset_price_plan = AssetPricePlan.objects.get()
+        response = unauthenticated_client.post(
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
+                'third_party_customer_pause_or_resume_asset_subscription',
+            ),
+            {
+                'price_plan_id': asset_price_plan.id,
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'session_id': third_party_customer_session.session_id,
+                'pause_status': 'pause',
+            },
+            content_type='application/json',
+        )
+
+        response.status_code == 200
+        response.data['status'] == 'subscription paused'
+
+        mocker.patch(
+            'stripe.Subscription.modify',
+            return_value=util.convert_to_stripe_object(
+                example_stripe_subscription_resume_object
+            ),
+        )
+
+        # Resume the subscription
+        response = unauthenticated_client.post(
+            '{}{}/'.format(
+                THIRD_PARTY_CUSTOMER_SESSION_ENDPOINT,
+                'third_party_customer_pause_or_resume_asset_subscription',
+            ),
+            {
+                'price_plan_id': asset_price_plan.id,
+                'customer_uid': FAKE_THIRD_PARTY_CUSTOMER_UID,
+                'session_id': third_party_customer_session.session_id,
+                'pause_status': 'resume',
+            },
+            content_type='application/json',
+        )
+
+        response.status_code == 200
+        response.data['status'] == 'subscription resumed'
